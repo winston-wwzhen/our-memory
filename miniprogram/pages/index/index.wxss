@@ -1,0 +1,174 @@
+/* index.wxss */
+
+/* index.wxss 新增部分 */
+
+/* 任务卡片 */
+.mission-card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-top: 20rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.05);
+  border-left: 8rpx solid #ff6b81; /* 恋爱粉强调色 */
+}
+
+.mission-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.mission-icon {
+  font-size: 48rpx;
+  margin-right: 20rpx;
+}
+
+.mission-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.mission-desc {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 30rpx;
+  display: block;
+}
+
+.mission-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1rpx;
+}
+
+/* 骨架屏加载效果 */
+.skeleton {
+  background: #f0f2f5;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200rpx;
+  border-left-color: #ccc;
+}
+
+page {
+  background-color: #f6f7f9; /* 柔和背景 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 40rpx;
+  box-sizing: border-box;
+  justify-content: space-between;
+}
+
+/* 顶部文字 */
+.header {
+  margin-top: 40rpx;
+}
+.date-text {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #333;
+  display: block;
+}
+.sub-text {
+  font-size: 28rpx;
+  color: #888;
+  letter-spacing: 2rpx;
+  text-transform: uppercase;
+}
+
+/* 拍立得卡片 (核心视觉) */
+.polaroid-card {
+  background: white;
+  padding: 30rpx 30rpx 80rpx 30rpx; /* 底部留白多一点，像拍立得 */
+  border-radius: 8rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.08);
+  transform: rotate(-2deg); /* 微微倾斜，更有生活感 */
+  transition: all 0.3s ease;
+  margin: 40rpx 0;
+}
+
+/* 处理中的呼吸效果 */
+.developing {
+  animation: breathe 1.5s infinite ease-in-out;
+}
+@keyframes breathe {
+  0% { box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.08); }
+  50% { box-shadow: 0 20rpx 60rpx rgba(100, 149, 237, 0.4); } /* 蓝色光晕 */
+  100% { box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.08); }
+}
+
+.photo-frame {
+  width: 100%;
+  height: 600rpx;
+  background-color: #f0f0f0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ccc;
+  font-size: 24rpx;
+}
+
+.handwriting-area {
+  margin-top: 30rpx;
+  text-align: center;
+  font-family: 'Bradley Hand', 'cursive', sans-serif; /* 尝试手写体 */
+  font-size: 36rpx;
+  color: #555;
+}
+
+/* 快门按钮 */
+.action-area {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 60rpx;
+}
+
+.shutter-btn {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 4rpx solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.1);
+}
+
+.inner-circle {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); /* 少女粉渐变 */
+}
+
+.btn-hover {
+  transform: scale(0.95);
+}

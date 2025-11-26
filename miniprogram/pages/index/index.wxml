@@ -1,0 +1,50 @@
+<view class="app-container">
+  
+  <view class="mission-card" wx:if="{{currentTask}}">
+    <view class="mission-header">
+      <text class="mission-icon">{{currentTask.icon}}</text>
+      <text class="mission-title">今日任务: {{currentTask.title}}</text>
+    </view>
+    <text class="mission-desc">{{currentTask.description}}</text>
+    <view class="mission-footer">
+      <text>Difficulty: Lv.{{currentTask.difficulty}}</text>
+      <text>{{todayDateStr}}</text>
+    </view>
+  </view>
+  
+  <view class="mission-card skeleton" wx:else>
+    <text>正在接收今日指令...</text>
+  </view>
+
+  <view class="polaroid-card {{loading ? 'developing' : ''}}">
+    <view class="photo-frame">
+      <image 
+        src="{{displayImage}}" 
+        mode="aspectFill" 
+        class="main-photo"
+        wx:if="{{displayImage}}"
+      ></image>
+      <view class="placeholder" wx:else>
+        <image class="icon-camera" src="../../images/camera-icon.png" mode="widthFix"></image> <text>Tap shutter to capture</text>
+      </view>
+    </view>
+    
+    <view class="handwriting-area">
+      <text wx:if="{{loading}}">Developing...</text>
+      <text wx:elif="{{displayImage}}">✨ Magic Moment ✨</text>
+      <text wx:else>Waiting for you...</text>
+    </view>
+  </view>
+
+  <view class="action-area">
+    <button 
+      class="shutter-btn" 
+      bindtap="onCapture" 
+      disabled="{{loading}}"
+      hover-class="btn-hover"
+    >
+      <view class="inner-circle"></view>
+    </button>
+  </view>
+
+</view>

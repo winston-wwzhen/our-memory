@@ -1,0 +1,17 @@
+# === Dependencies ===
+node_modules/
+miniprogram_npm/
+
+# === Secrets (绝对不能提交) ===
+cloudfunctions/**/config.js
+project.private.config.json
+
+# === Build / OS Files ===
+unpackage/
+dist/
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
