@@ -1,0 +1,133 @@
+/* pages/history/index.wxss */
+page {
+  background: #fdfbf7;
+  padding-bottom: 40rpx;
+}
+
+.history-container {
+  padding: 40rpx;
+}
+
+.timeline-header {
+  margin-bottom: 60rpx;
+}
+.title {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #333;
+  display: block;
+}
+.subtitle {
+  font-size: 28rpx;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+}
+
+/* 时间轴布局 */
+.timeline-content {
+  position: relative;
+}
+
+.timeline-item {
+  display: flex;
+  margin-bottom: 40rpx;
+}
+
+/* 左侧轴线 */
+.time-node {
+  margin-right: 30rpx;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.dot {
+  width: 20rpx;
+  height: 20rpx;
+  background: #ff6b81;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  box-shadow: 0 0 0 4rpx #ffcad4;
+  z-index: 2;
+}
+.line {
+  width: 4rpx;
+  flex: 1;
+  background: #e0e0e0;
+  margin-top: 10rpx;
+  min-height: 100rpx; /* 保证线连起来 */
+}
+/* 最后一个条目不显示线，防止超出 */
+.timeline-item:last-child .line {
+  display: none;
+}
+
+/* 右侧卡片 */
+.memory-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+.card-date {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 16rpx;
+  font-family: monospace;
+}
+
+.card-img {
+  width: 100%;
+  height: 300rpx;
+  border-radius: 8rpx;
+  background-color: #eee;
+  margin-bottom: 12rpx;
+}
+
+.card-tag {
+  display: inline-block;
+  font-size: 20rpx;
+  background: #f0f7ff;
+  color: #4a90e2;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.empty-state {
+  text-align: center;
+  color: #ccc;
+  margin-top: 100rpx;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.user-tag {
+  font-size: 20rpx;
+  font-weight: bold;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+}
+
+/* 我发的：默认样式 */
+.mine-card .user-tag {
+  background: #333;
+  color: #fff;
+}
+
+/* 对象发的：粉色边框 + 粉色标签 */
+.partner-card {
+  border: 2rpx solid #ffcad4;
+  background: #fff5f7; /* 微微泛红的背景 */
+}
+.partner-card .user-tag {
+  background: #ff6b81;
+  color: #fff;
+}

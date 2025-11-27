@@ -1,50 +1,63 @@
-<view class="app-container">
+<view class="journal-container">
   
-  <view class="mission-card" wx:if="{{currentTask}}">
-    <view class="mission-header">
-      <text class="mission-icon">{{currentTask.icon}}</text>
-      <text class="mission-title">今日任务: {{currentTask.title}}</text>
-    </view>
-    <text class="mission-desc">{{currentTask.description}}</text>
-    <view class="mission-footer">
-      <text>Difficulty: Lv.{{currentTask.difficulty}}</text>
-      <text>{{todayDateStr}}</text>
-    </view>
-  </view>
-  
-  <view class="mission-card skeleton" wx:else>
-    <text>正在接收今日指令...</text>
-  </view>
+  <view class="ambient-light top-light"></view>
+  <view class="ambient-light bottom-light"></view>
 
-  <view class="polaroid-card {{loading ? 'developing' : ''}}">
-    <view class="photo-frame">
-      <image 
-        src="{{displayImage}}" 
-        mode="aspectFill" 
-        class="main-photo"
-        wx:if="{{displayImage}}"
-      ></image>
-      <view class="placeholder" wx:else>
-        <image class="icon-camera" src="../../images/camera-icon.png" mode="widthFix"></image> <text>Tap shutter to capture</text>
+  <view class="content-wrapper">
+    <view class="task-note-container" wx:if="{{currentTask}}">
+      <view class="washi-tape tape-top-left"></view>
+      
+      <view class="task-note">
+        <view class="note-header">
+          <text class="note-icon">{{currentTask.icon}}</text>
+          <text class="note-title">今日限定：{{currentTask.title}}</text>
+        </view>
+        <text class="note-desc">{{currentTask.description}}</text>
+        <view class="note-footer">
+          <text class="difficulty-tag">甜蜜度 Lv.{{currentTask.difficulty}}</text>
+          <text class="date-tag">{{todayDateStr}}</text>
+        </view>
       </view>
     </view>
-    
-    <view class="handwriting-area">
-      <text wx:if="{{loading}}">Developing...</text>
-      <text wx:elif="{{displayImage}}">✨ Magic Moment ✨</text>
-      <text wx:else>Waiting for you...</text>
+
+    <view class="polaroid-frame {{loading ? 'developing-pulse' : ''}}">
+      <view class="photo-area">
+        <image 
+          src="{{displayImage}}" 
+          mode="aspectFill" 
+          class="the-photo"
+          wx:if="{{displayImage}}"
+        ></image>
+        <view class="placeholder-state" wx:else>
+           <view class="css-camera-icon">
+            <view class="cam-body">
+              <view class="cam-lens"></view>
+              <view class="cam-flash"></view>
+            </view>
+          </view>
+          <text class="placeholder-text">点击快门，捕捉今日份心动</text>
+        </view>
+      </view>
+      
+      <view class="handwriting-caption">
+        <text wx:if="{{loading}}">正在冲洗爱的影像...</text>
+        <text wx:elif="{{displayImage}}" class="success-text">✨ Our Magic Moment ✨</text>
+        <text wx:else class="waiting-text">Waiting for us...</text>
+      </view>
+    </view>
+
+    <view class="action-bar">
+      <button 
+        class="shutter-button" 
+        bindtap="onCapture" 
+        disabled="{{loading}}"
+        hover-class="shutter-hover"
+      >
+        <view class="shutter-inner">
+          <view class="shutter-icon"></view>
+        </view>
+      </button>
+      <text class="action-hint">Tap to mark</text>
     </view>
   </view>
-
-  <view class="action-area">
-    <button 
-      class="shutter-btn" 
-      bindtap="onCapture" 
-      disabled="{{loading}}"
-      hover-class="btn-hover"
-    >
-      <view class="inner-circle"></view>
-    </button>
-  </view>
-
 </view>

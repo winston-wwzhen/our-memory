@@ -1,0 +1,180 @@
+/* pages/mine/index.wxss */
+page { background: #f6f7f9; }
+
+.mine-container { padding: 40rpx; }
+
+.user-card {
+  background: white;
+  padding: 40rpx;
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.05);
+}
+
+.avatar-box {
+  width: 140rpx; height: 140rpx;
+  border-radius: 50%; overflow: hidden;
+  border: 6rpx solid #fff;
+  box-shadow: 0 10rpx 20rpx rgba(0,0,0,0.1);
+  margin-bottom: 20rpx;
+}
+.nickname { font-size: 36rpx; font-weight: bold; color: #333; }
+
+.status-badge {
+  margin-top: 20rpx; padding: 6rpx 20rpx;
+  border-radius: 30rpx; font-size: 24rpx; font-weight: bold;
+}
+.status-badge.single { background: #eee; color: #999; }
+.status-badge.connected { background: #ffe4e8; color: #ff6b81; }
+
+.action-card {
+  background: white; border-radius: 20rpx; padding: 40rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.05);
+}
+
+.section-title {
+  font-size: 32rpx; font-weight: bold; margin-bottom: 30rpx;
+  border-left: 8rpx solid #333; padding-left: 20rpx;
+}
+
+.label { font-size: 26rpx; color: #666; display: block; margin-bottom: 10rpx; }
+
+.key-value {
+  background: #f0f2f5; padding: 20rpx;
+  font-family: monospace; font-size: 24rpx; color: #333;
+  word-break: break-all; border-radius: 8rpx;
+  text-align: center;
+}
+
+.hint { font-size: 22rpx; color: #999; display: block; text-align: right; margin-top: 10rpx; }
+
+.divider { height: 2rpx; background: #eee; margin: 40rpx 0; }
+
+.key-input {
+  background: #f0f2f5; padding: 20rpx; border-radius: 8rpx;
+  font-size: 28rpx; margin-bottom: 30rpx;
+}
+
+.btn-connect {
+  background: #333; color: white; border-radius: 12rpx;
+}
+
+.love-info {
+  display: flex; flex-direction: column; align-items: center;
+  font-family: monospace; color: #666; font-size: 24rpx;
+}
+
+/* mine/index.wxss 新增 */
+
+.danger-zone {
+  margin-top: 60rpx;
+  border-top: 2rpx dashed #ffccc7;
+  padding-top: 40rpx;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn-unbind {
+  /* 核心样式 */
+  background-color: #ff4d4f; /* 警示红 */
+  color: #ffffff !important; /* 强制白色字体，加 !important 防止被覆盖 */
+  font-size: 28rpx;
+  font-weight: bold;
+  border-radius: 12rpx; /* 圆角稍微润一点 */
+  width: 80% !important;
+  border: none; /* 去掉默认边框 */
+  
+  /* 确保文字绝对居中 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24rpx 0; /* 增加高度，看起来更有分量 */
+  letter-spacing: 2rpx;
+  box-shadow: 0 8rpx 16rpx rgba(255, 77, 79, 0.2); /* 加一点红色阴影 */
+  transition: all 0.2s;
+}
+
+/* 新增：点击时的按压效果 */
+.btn-unbind:active {
+  transform: scale(0.98);
+  background-color: #d9363e; /* 按下去颜色深一点 */
+  box-shadow: none;
+}
+
+.danger-hint {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 16rpx;
+}
+
+.avatar-wrapper {
+  padding: 0;
+  width: 140rpx !important;
+  height: 140rpx !important;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  background: none;
+  position: relative;
+  box-shadow: 0 10rpx 20rpx rgba(0,0,0,0.1);
+}
+.avatar-wrapper::after { border: none; }
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #f0f0f0; /* 默认灰色底 */
+}
+
+.edit-hint {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 20rpx;
+  width: 100%;
+  text-align: center;
+  border-bottom-left-radius: 100rpx; /* 简单的遮罩效果 */
+  border-bottom-right-radius: 100rpx;
+  padding-bottom: 10rpx;
+}
+
+/* 昵称输入区 */
+.nickname-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  border-bottom: 2rpx dashed transparent; /* 默认透明 */
+  transition: all 0.3s;
+}
+.nickname-box:hover { /* 点击时给点提示 */
+  border-bottom-color: #ddd;
+}
+
+.nickname-input {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  width: 300rpx; /* 限制宽度 */
+}
+.edit-icon {
+  font-size: 24rpx;
+  color: #ccc;
+  margin-left: 10rpx;
+}
+
+/* 保存按钮 */
+.btn-save {
+  margin-top: 20rpx;
+  background: #333;
+  color: #fff;
+  font-weight: normal;
+  border-radius: 30rpx;
+}

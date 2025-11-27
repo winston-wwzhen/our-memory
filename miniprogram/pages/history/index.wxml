@@ -1,0 +1,38 @@
+<view class="history-container">
+  <view class="timeline-header">
+    <text class="title">Memory Lane</text>
+    <text class="subtitle">Our sweet archive</text>
+  </view>
+
+  <view class="timeline-content">
+    <view wx:if="{{memories.length === 0}}" class="empty-state">
+      <text>还没有回忆哦，快去打卡吧！</text>
+    </view>
+
+    <block wx:for="{{memories}}" wx:key="_id">
+      <view class="timeline-item">
+        <view class="time-node">
+          <view class="dot"></view>
+          <view class="line"></view>
+        </view>
+        
+        <view class="memory-card {{item.isMine ? 'mine-card' : 'partner-card'}}">
+          <view class="card-header">
+            <text class="user-tag">{{item.isMine ? 'ME' : 'PARTNER'}}</text>
+            <view class="card-date">{{item.originalDate}}</view>
+          </view>
+          
+          <image 
+            src="{{item.imageFileID}}" 
+            mode="aspectFill" 
+            class="card-img" 
+            bindtap="previewImage" 
+            data-src="{{item.imageFileID}}"
+          ></image>
+          
+          <view class="card-tag">Daily Check-in</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

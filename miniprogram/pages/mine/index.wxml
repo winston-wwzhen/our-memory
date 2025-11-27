@@ -1,0 +1,81 @@
+<view class="mine-container">
+  
+  <view class="user-card">
+    
+    <button 
+      class="avatar-wrapper" 
+      open-type="chooseAvatar" 
+      bind:chooseavatar="onChooseAvatar"
+    >
+      <image 
+        class="avatar-img" 
+        src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
+        mode="aspectFill"
+      ></image>
+      <view class="edit-hint" wx:if="{{!userData.avatarUrl}}">📷</view>
+    </button>
+
+    <view class="nickname-box">
+      <input 
+        type="nickname" 
+        class="nickname-input" 
+        placeholder="点击输入昵称" 
+        value="{{userData.nickName}}" 
+        bind:change="onInputNickname"
+      />
+      <view class="edit-icon">✎</view>
+    </view>
+    
+    <view class="status-badge {{userData.partner_id ? 'connected' : 'single'}}">
+      <text wx:if="{{userData.partner_id}}">❤️ 已连接</text>
+      <text wx:else>💔 单身模式</text>
+    </view>
+
+    <button 
+      class="btn-save" 
+      bindtap="saveProfile" 
+      size="mini"
+      wx:if="{{needSave}}"
+    >保存资料</button>
+
+  </view>
+
+  <view class="action-card" wx:if="{{!userData.partner_id}}">
+    <view class="section-title">建立连接 / Handshake</view>
+    
+    <view class="key-box">
+      <text class="label">我的通信密钥 (My Key):</text>
+      <view class="key-value" bindtap="copyMyKey">{{userData._openid || 'Loading...'}}</view>
+      <text class="hint">点击复制，发给你的另一半</text>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="input-box">
+      <text class="label">对方密钥 (Target Key):</text>
+      <input 
+        class="key-input" 
+        placeholder="粘贴 TA 的密钥..." 
+        bindinput="onInputKey"
+      />
+      <button class="btn-connect" bindtap="bindPartner">执行连接</button>
+    </view>
+  </view>
+
+  <view class="action-card" wx:else>
+    <view class="love-info">
+      <text>Current Protocol: CP-IP v1.0</text>
+      <text>Latency: 0ms (In Heart)</text>
+      <text style="margin-top: 20rpx; color: #ff6b81;">Linked with [{{partnerShortID}}]</text>
+    </view>
+    
+    <view class="danger-zone">
+      <button 
+        class="btn-unbind" 
+        bindtap="onUnbind" 
+      >⚠️ Terminate Connection</button>
+      <text class="danger-hint">*此操作仅限管理员/付费用户</text>
+    </view>
+  </view>
+
+</view>
