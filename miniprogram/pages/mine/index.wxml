@@ -45,8 +45,26 @@
     
     <view class="key-box">
       <text class="label">我的通信密钥 (My Key):</text>
-      <view class="key-value" bindtap="copyMyKey">{{userData._openid || 'Loading...'}}</view>
-      <text class="hint">点击复制，发给你的另一半</text>
+      
+      <!-- 密钥显示区 -->
+      <view class="key-display">
+        <text class="key-text">{{userData._openid || 'Loading...'}}</text>
+      </view>
+
+      <!-- 操作按钮组 -->
+      <view class="key-actions">
+        <button 
+          class="btn-mini btn-copy" 
+          bindtap="copyMyKey"
+        >📄 复制</button>
+        
+        <button 
+          class="btn-mini btn-share" 
+          open-type="share"
+        >📤 发送给 TA</button>
+      </view>
+      
+      <text class="hint">对方点击分享卡片可自动填入</text>
     </view>
 
     <view class="divider"></view>

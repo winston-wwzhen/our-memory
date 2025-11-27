@@ -1,75 +1,109 @@
-// cloudfunctions/process_anime/index.js
-const cloud = require("wx-server-sdk");
-const axios = require("axios");
-const qs = require("querystring");
-
-const config = require("./config");
+const cloud = require('wx-server-sdk');
+const Replicate = require('replicate');
+const axios = require('axios');
+const config = require('./config'); // 读取配置文件
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
-const db = cloud.database(); // 初始化数据库
+const db = cloud.database();
 
-// 获取 Token (逻辑不变)
-async function getAccessToken() {
-  const url = "https://aip.baidubce.com/oauth/2.0/token";
-  const params = {
-    grant_type: "client_credentials",
-    client_id: config.BAIDU.AK,
-    client_secret: config.BAIDU.SK,
-  };
-  const res = await axios.post(url, null, { params });
-  return res.data.access_token;
-}
+// 初始化 Replicate
+const replicate = new Replicate({
+  auth: config.REPLICATE.TOKEN,
+});
 
 exports.main = async (event, context) => {
   const { imageBase64 } = event;
-  const wxContext = cloud.getWXContext(); // 获取当前用户信息(OPENID)
+  const wxContext = cloud.getWXContext();
+  
+  // 准备容器
+  let finalBuffer = null;
+  let processStatus = 'success'; 
+  let statusMsg = '✨ Magic Moment ✨';
+  let engineUsed = 'replicate';
 
-  console.log("⚡ Processing for user:", wxContext.OPENID);
+  console.log('⚡ Processing for user:', wxContext.OPENID);
 
   try {
-    // 1. 调用百度 AI
-    const token = await getAccessToken();
-    const requestUrl = `https://aip.baidubce.com/rest/2.0/image-process/v1/selfie_anime?access_token=${token}`;
-    const payload = qs.stringify({ image: imageBase64, type: "anime" });
+    // === 尝试 1: Replicate AI 动漫化处理 ===
+    try {
+      if (!imageBase64) throw new Error('No image data');
 
-    const aiRes = await axios.post(requestUrl, payload, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
+      // 1. 准备 Data URI
+      const dataUri = `data:image/jpeg;base64,${imageBase64}`;
 
-    if (!aiRes.data.image) throw new Error("AI Processing Failed");
+      console.log('⚡ Calling Replicate API...');
+      
+      // 2. 调用模型 (Face to Many)
+      // video_game 风格通常比较好看，也可以尝试 '3d' 或 'clay'
+      const output = await replicate.run(
+        "fofr/face-to-many:a07f252abbbd4328919455e96f9b819db3616b0480317dd042071143890f8450",
+        {
+          input: {
+            image: dataUri,
+            style: "video_game", 
+            prompt: "anime style, romantic atmosphere, soft lighting, highly detailed",
+            negative_prompt: "ugly, broken, distorted, low quality",
+            denoising_strength: 0.65 
+          }
+        }
+      );
 
-    // 2. 【关键】将返回的 Base64 转回二进制 Buffer
-    const buffer = Buffer.from(aiRes.data.image, "base64");
+      // Replicate 返回的是图片 URL 数组
+      if (!output || output.length === 0) throw new Error('AI Generation Failed');
 
-    // 3. 【关键】上传到云存储 (Cloud Storage)
-    // 命名规则：anime_用户ID_时间戳.jpg
-    const fileName = `anime_${wxContext.OPENID}_${Date.now()}.jpg`;
+      const aiImageUrl = output[0];
+      console.log('✅ Replicate Success URL:', aiImageUrl);
+
+      // 3. 下载 AI 生成的图片 (转为 Buffer)
+      // 因为 Replicate 的链接是临时的，必须转存到自己的云存储
+      const response = await axios.get(aiImageUrl, { responseType: 'arraybuffer' });
+      finalBuffer = Buffer.from(response.data, 'binary');
+
+    } catch (aiError) {
+      // === 降级处理: AI 失败，使用原图 ===
+      console.error('⚠️ AI Failed, switching to fallback mode:', aiError.message);
+      
+      // 将原始 Base64 转回 Buffer
+      finalBuffer = Buffer.from(imageBase64, 'base64');
+      processStatus = 'fallback';
+      statusMsg = 'AI 休息中，已保存原图';
+      engineUsed = 'none';
+    }
+
+    // === 步骤 2: 上传到云存储 ===
+    // 命名规则：引擎名_用户ID_时间戳.jpg
+    const fileName = `${engineUsed}_${wxContext.OPENID}_${Date.now()}.jpg`;
+    
     const uploadRes = await cloud.uploadFile({
       cloudPath: `daily_moments/${fileName}`,
-      fileContent: buffer,
+      fileContent: finalBuffer,
     });
+    
+    const fileID = uploadRes.fileID;
 
-    const fileID = uploadRes.fileID; // 拿到永久文件ID (cloud://...)
-
-    // 4. 【关键】写入数据库 (Database)
-    // 记录：谁，什么时间，照片在哪
-    await db.collection("logs").add({
+    // === 步骤 3: 写入数据库 ===
+    await db.collection('logs').add({
       data: {
-        _openid: wxContext.OPENID, // 自动标记是谁
-        createdAt: db.serverDate(), // 服务器时间
-        imageFileID: fileID, // 动漫图地址
-        originalDate: new Date().toLocaleDateString(), // 方便日历查询的日期字符串
-        type: "daily_check_in",
-      },
+        _openid: wxContext.OPENID,
+        createdAt: db.serverDate(),
+        imageFileID: fileID,
+        originalDate: new Date().toLocaleDateString(),
+        type: 'daily_check_in',
+        engine: engineUsed,
+        style: processStatus
+      }
     });
 
-    // 5. 返回 fileID 给前端 (而不是巨大的 Base64)
+    // === 步骤 4: 返回结果 ===
     return {
       status: 200,
       result: fileID,
+      msg: statusMsg,
+      isFallback: processStatus === 'fallback'
     };
+
   } catch (err) {
-    console.error("💥 Error:", err);
+    console.error('💥 System Error:', err);
     return { status: 500, error: err.message };
   }
 };

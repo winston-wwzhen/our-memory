@@ -178,3 +178,55 @@ page { background: #f6f7f9; }
   font-weight: normal;
   border-radius: 30rpx;
 }
+
+.key-display {
+  background: #f0f2f5;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  margin-bottom: 20rpx;
+  text-align: center;
+  border: 2rpx solid #e1e4e8;
+}
+
+.key-text {
+  font-family: 'Courier New', monospace; /* 极客等宽字体 */
+  font-size: 24rpx;
+  color: #333;
+  word-break: break-all;
+}
+
+.key-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 10rpx;
+}
+
+.btn-mini {
+  flex: 1;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 0;
+  border-radius: 12rpx;
+  border: none;
+  line-height: 1.5;
+}
+
+.btn-copy {
+  background-color: #f5f5f5;
+  color: #666;
+  box-shadow: 0 4rpx 0 #e0e0e0;
+}
+
+.btn-share {
+  background-color: #333;
+  color: #fff;
+  box-shadow: 0 4rpx 0 #000;
+}
+
+.btn-mini:active {
+  transform: translateY(4rpx);
+  box-shadow: none;
+}
