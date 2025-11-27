@@ -57,44 +57,53 @@ Page({
           loading: true, // 开启“显影中”动画
         });
 
-        // 读取并上传 (逻辑不变)
-        wx.getFileSystemManager().readFile({
+        // 🛑 删除原来的 wx.getFileSystemManager().readFile 代码
+
+        // ✅ 新增：先上传到云存储临时区，获取 fileID
+        const cloudPath = `temp_uploads/${Date.now()}-${Math.floor(
+          Math.random() * 1000
+        )}.jpg`;
+
+        wx.cloud.uploadFile({
+          cloudPath: cloudPath,
           filePath: tempFilePath,
-          encoding: "base64",
           success: (res) => {
-            that.callCloudBrain(res.data);
+            // 上传成功，拿到 fileID，传给云函数
+            console.log("上传临时文件成功", res.fileID);
+            that.callCloudBrain(res.fileID);
+          },
+          fail: (err) => {
+            console.error("上传失败", err);
+            that.setData({ loading: false });
+            wx.showToast({ title: "上传失败", icon: "none" });
           },
         });
       },
     });
   },
 
-  callCloudBrain: function (base64Str) {
+  // 修改参数名为 fileID
+  callCloudBrain: function (fileID) {
     const that = this;
 
     wx.cloud.callFunction({
       name: "process_anime",
-      data: { imageBase64: base64Str },
+      data: { imageFileID: fileID }, // 👈 传 fileID 而不是 Base64
       success: (res) => {
+        // ... (保持原有 success 逻辑不变)
         if (res.result && res.result.status === 200) {
-          // 🆕 适配新逻辑：后端返回的是 fileID
           const cloudPath = res.result.result;
-
           that.setData({
-            displayImage: cloudPath, // 小程序 <image> 标签原生支持 cloud:// 路径
+            displayImage: cloudPath,
             loading: false,
           });
-
-          // 可以在这里加个震动反馈，增加爽感
           wx.vibrateShort();
         } else {
-          // ... 错误处理保持不变 ...
           that.setData({ loading: false });
-          wx.showToast({ title: "AI 走神了", icon: "none" });
+          wx.showToast({ title: res.result?.msg || "AI 走神了", icon: "none" });
         }
       },
       fail: (err) => {
-        // ... 错误处理保持不变 ...
         console.error(err);
         that.setData({ loading: false });
         wx.showToast({ title: "连接中断", icon: "none" });

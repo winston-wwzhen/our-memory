@@ -1,109 +1,104 @@
-const cloud = require('wx-server-sdk');
-const Replicate = require('replicate');
-const axios = require('axios');
-const config = require('./config'); // 读取配置文件
+// cloudfunctions/process_anime/index.js
+const cloud = require("wx-server-sdk");
+const tencentcloud = require("tencentcloud-sdk-nodejs");
+const AiartClient = tencentcloud.aiart.v20221229.Client;
+const config = require("./config");
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
-// 初始化 Replicate
-const replicate = new Replicate({
-  auth: config.REPLICATE.TOKEN,
-});
-
 exports.main = async (event, context) => {
-  const { imageBase64 } = event;
+  const { imageFileID } = event;
   const wxContext = cloud.getWXContext();
-  
-  // 准备容器
-  let finalBuffer = null;
-  let processStatus = 'success'; 
-  let statusMsg = '✨ Magic Moment ✨';
-  let engineUsed = 'replicate';
 
-  console.log('⚡ Processing for user:', wxContext.OPENID);
+  console.log("⚡ Processing (Tencent Engine) for:", wxContext.OPENID);
+
+  let finalBuffer = null;
+  let processStatus = "success";
+  let engineUsed = "tencent";
 
   try {
-    // === 尝试 1: Replicate AI 动漫化处理 ===
+    if (!imageFileID) throw new Error("Missing imageFileID");
+
+    // 1. 下载原图
+    const downloadRes = await cloud.downloadFile({ fileID: imageFileID });
+    const originalBuffer = downloadRes.fileContent;
+    const base64Img = originalBuffer.toString("base64");
+
     try {
-      if (!imageBase64) throw new Error('No image data');
+      // 2. 初始化客户端
+      const clientConfig = {
+        credential: {
+          secretId: config.TENCENT.SID,
+          secretKey: config.TENCENT.SKEY,
+        },
+        region: config.TENCENT.REGION || "ap-shanghai",
+        profile: {
+          httpProfile: {
+            endpoint: "aiart.tencentcloudapi.com",
+          },
+        },
+      };
+      const client = new AiartClient(clientConfig);
 
-      // 1. 准备 Data URI
-      const dataUri = `data:image/jpeg;base64,${imageBase64}`;
+      console.log("🎨 Calling Tencent AI Art API...");
 
-      console.log('⚡ Calling Replicate API...');
-      
-      // 2. 调用模型 (Face to Many)
-      // video_game 风格通常比较好看，也可以尝试 '3d' 或 'clay'
-      const output = await replicate.run(
-        "fofr/face-to-many:a07f252abbbd4328919455e96f9b819db3616b0480317dd042071143890f8450",
-        {
-          input: {
-            image: dataUri,
-            style: "video_game", 
-            prompt: "anime style, romantic atmosphere, soft lighting, highly detailed",
-            negative_prompt: "ugly, broken, distorted, low quality",
-            denoising_strength: 0.65 
-          }
-        }
-      );
+      // 3. 发起请求：图生图 (ImageToImage)
+      const params = {
+        InputImage: base64Img,
+        Styles: ["201"], // 201: 日系动漫
+        RspImgType: "base64",
+        // 🔴 删除了报错的 PreCheck 参数
+      };
 
-      // Replicate 返回的是图片 URL 数组
-      if (!output || output.length === 0) throw new Error('AI Generation Failed');
+      const result = await client.ImageToImage(params);
 
-      const aiImageUrl = output[0];
-      console.log('✅ Replicate Success URL:', aiImageUrl);
+      if (!result.ResultImage) {
+        throw new Error("腾讯云未返回图片数据");
+      }
 
-      // 3. 下载 AI 生成的图片 (转为 Buffer)
-      // 因为 Replicate 的链接是临时的，必须转存到自己的云存储
-      const response = await axios.get(aiImageUrl, { responseType: 'arraybuffer' });
-      finalBuffer = Buffer.from(response.data, 'binary');
-
+      // 4. 将结果转回 Buffer
+      finalBuffer = Buffer.from(result.ResultImage, "base64");
+      console.log("✅ Tencent Generation Success");
     } catch (aiError) {
-      // === 降级处理: AI 失败，使用原图 ===
-      console.error('⚠️ AI Failed, switching to fallback mode:', aiError.message);
-      
-      // 将原始 Base64 转回 Buffer
-      finalBuffer = Buffer.from(imageBase64, 'base64');
-      processStatus = 'fallback';
-      statusMsg = 'AI 休息中，已保存原图';
-      engineUsed = 'none';
+      console.error("⚠️ AI Failed, fallback to original:", aiError);
+      // 降级处理
+      finalBuffer = originalBuffer;
+      processStatus = "fallback";
+      engineUsed = "none";
     }
 
-    // === 步骤 2: 上传到云存储 ===
-    // 命名规则：引擎名_用户ID_时间戳.jpg
-    const fileName = `${engineUsed}_${wxContext.OPENID}_${Date.now()}.jpg`;
-    
+    // 5. 上传结果
+    const fileName = `tencent_${wxContext.OPENID}_${Date.now()}.jpg`;
     const uploadRes = await cloud.uploadFile({
       cloudPath: `daily_moments/${fileName}`,
       fileContent: finalBuffer,
     });
-    
-    const fileID = uploadRes.fileID;
 
-    // === 步骤 3: 写入数据库 ===
-    await db.collection('logs').add({
+    // 6. 写入日志
+    await db.collection("logs").add({
       data: {
         _openid: wxContext.OPENID,
         createdAt: db.serverDate(),
-        imageFileID: fileID,
+        imageFileID: uploadRes.fileID,
         originalDate: new Date().toLocaleDateString(),
-        type: 'daily_check_in',
+        type: "daily_check_in",
         engine: engineUsed,
-        style: processStatus
-      }
+        style: processStatus,
+        originalFileID: imageFileID,
+      },
     });
 
-    // === 步骤 4: 返回结果 ===
     return {
       status: 200,
-      result: fileID,
-      msg: statusMsg,
-      isFallback: processStatus === 'fallback'
+      result: uploadRes.fileID,
+      msg:
+        processStatus === "fallback"
+          ? "AI 休息中，已保存原图"
+          : "✨ 变身成功 ✨",
     };
-
   } catch (err) {
-    console.error('💥 System Error:', err);
+    console.error("💥 System Error:", err);
     return { status: 500, error: err.message };
   }
 };
