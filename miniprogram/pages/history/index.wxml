@@ -1,12 +1,31 @@
 <view class="history-container">
   <view class="timeline-header">
-    <text class="title">Memory Lane</text>
-    <text class="subtitle">Our sweet archive</text>
+    <text class="title">我们的时光轴</text>
+    <text class="subtitle">收集每一个心动瞬间</text>
+    
+    <view class="surprise-banner">
+      <view class="gift-box">
+        <text class="gift-icon">🎁</text>
+      </view>
+
+      <view class="gift-content">
+        <view class="gift-title">
+          已珍藏 <text class="days-highlight">{{totalDays}}</text> 个心动瞬间
+        </view>
+        
+        <view class="gift-desc" wx:if="{{totalDays < 100}}">
+          再坚持 <text class="days-left">{{100 - totalDays}}</text> 天，解锁【动态时光影集】✨
+        </view>
+        <view class="gift-desc" wx:else>
+          🎉 恭喜达成百日成就！神秘惊喜准备中...
+        </view>
+      </view>
+    </view>
   </view>
 
   <view class="timeline-content">
     <view wx:if="{{memories.length === 0}}" class="empty-state">
-      <text>还没有回忆哦，快去打卡吧！</text>
+      <text>这里空空如也，快去创造属于我们的独家记忆吧！📸</text>
     </view>
 
     <block wx:for="{{memories}}" wx:key="_id">
@@ -18,7 +37,7 @@
         
         <view class="memory-card {{item.isMine ? 'mine-card' : 'partner-card'}}">
           <view class="card-header">
-            <text class="user-tag">{{item.isMine ? 'ME' : 'PARTNER'}}</text>
+            <text class="user-tag">{{item.isMine ? 'ME' : 'TA'}}</text>
             <view class="card-date">{{item.originalDate}}</view>
           </view>
           
@@ -30,7 +49,7 @@
             data-src="{{item.imageFileID}}"
           ></image>
           
-          <view class="card-tag">Daily Check-in</view>
+          <view class="card-tag">Sweet Moment</view>
         </view>
       </view>
     </block>

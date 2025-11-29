@@ -1,133 +1,82 @@
 /* pages/history/index.wxss */
 page {
-  background: #fdfbf7;
+  background: #fdfbf7; /* 暖米色 */
   padding-bottom: 40rpx;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
 }
 
-.history-container {
-  padding: 40rpx;
-}
+.history-container { padding: 40rpx; }
 
-.timeline-header {
-  margin-bottom: 60rpx;
-}
-.title {
-  font-size: 48rpx;
-  font-weight: 800;
-  color: #333;
-  display: block;
-}
-.subtitle {
-  font-size: 28rpx;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 2rpx;
-}
+.timeline-header { margin-bottom: 50rpx; }
+.title { font-size: 48rpx; font-weight: 800; color: #5d4037; display: block; margin-bottom: 8rpx; }
+.subtitle { font-size: 26rpx; color: #a1887f; text-transform: uppercase; letter-spacing: 2rpx; display: block; }
 
-/* 时间轴布局 */
-.timeline-content {
-  position: relative;
-}
-
-.timeline-item {
+/* === 🆕 惊喜里程碑卡片 (升级版) === */
+.surprise-banner {
+  margin-top: 30rpx;
+  background: #fffbf0; /* 暖黄信纸色 */
+  border: 2rpx dashed #ffb7b2; 
+  border-radius: 20rpx;
+  padding: 24rpx 30rpx;
   display: flex;
-  margin-bottom: 40rpx;
-}
-
-/* 左侧轴线 */
-.time-node {
-  margin-right: 30rpx;
-  position: relative;
-  display: flex;
-  flex-direction: column;
   align-items: center;
+  box-shadow: 0 8rpx 20rpx rgba(255, 183, 178, 0.15);
 }
-.dot {
-  width: 20rpx;
-  height: 20rpx;
-  background: #ff6b81;
+
+.gift-box {
+  width: 80rpx; height: 80rpx;
+  background: #ffe4e8;
   border-radius: 50%;
-  border: 4rpx solid #fff;
-  box-shadow: 0 0 0 4rpx #ffcad4;
-  z-index: 2;
-}
-.line {
-  width: 4rpx;
-  flex: 1;
-  background: #e0e0e0;
-  margin-top: 10rpx;
-  min-height: 100rpx; /* 保证线连起来 */
-}
-/* 最后一个条目不显示线，防止超出 */
-.timeline-item:last-child .line {
-  display: none;
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
 }
 
-/* 右侧卡片 */
-.memory-card {
-  flex: 1;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+.gift-icon {
+  font-size: 40rpx;
+  /* 礼物盒跳动动画 */
+  animation: bounce 2s infinite ease-in-out;
 }
 
-.card-date {
-  font-size: 24rpx;
-  color: #999;
-  margin-bottom: 16rpx;
-  font-family: monospace;
+.gift-content { display: flex; flex-direction: column; }
+
+.gift-title {
+  font-size: 28rpx; color: #5d4037; font-weight: bold; margin-bottom: 6rpx;
+}
+.days-highlight {
+  color: #ff6b81; font-size: 32rpx; font-family: 'Courier New', monospace;
 }
 
-.card-img {
-  width: 100%;
-  height: 300rpx;
-  border-radius: 8rpx;
-  background-color: #eee;
-  margin-bottom: 12rpx;
+.gift-desc {
+  font-size: 22rpx; color: #a1887f;
+}
+.days-left {
+  color: #ed7876; font-weight: bold; margin: 0 4rpx;
 }
 
-.card-tag {
-  display: inline-block;
-  font-size: 20rpx;
-  background: #f0f7ff;
-  color: #4a90e2;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
+@keyframes bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6rpx) scale(1.1); }
 }
 
-.empty-state {
-  text-align: center;
-  color: #ccc;
-  margin-top: 100rpx;
-}
+/* === 时间轴布局 (保持不变) === */
+.timeline-content { position: relative; }
+.timeline-item { display: flex; margin-bottom: 40rpx; }
+.time-node { margin-right: 30rpx; position: relative; display: flex; flex-direction: column; align-items: center; }
+.dot { width: 20rpx; height: 20rpx; background: #ff6b81; border-radius: 50%; border: 4rpx solid #fff; box-shadow: 0 0 0 4rpx #ffcad4; z-index: 2; }
+.line { width: 4rpx; flex: 1; background: #e0e0e0; margin-top: 10rpx; min-height: 100rpx; }
+.timeline-item:last-child .line { display: none; }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16rpx;
-}
+.memory-card { flex: 1; background: #fff; border-radius: 16rpx; padding: 24rpx; box-shadow: 0 8rpx 24rpx rgba(149, 157, 165, 0.08); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
+.user-tag { font-size: 20rpx; font-weight: bold; padding: 4rpx 12rpx; border-radius: 20rpx; }
 
-.user-tag {
-  font-size: 20rpx;
-  font-weight: bold;
-  padding: 4rpx 10rpx;
-  border-radius: 6rpx;
-}
+.mine-card .user-tag { background: #5d4037; color: #fff; }
+.partner-card { border: 2rpx solid #ffe4e8; background: #fffdfd; }
+.partner-card .user-tag { background: #ff6b81; color: #fff; }
 
-/* 我发的：默认样式 */
-.mine-card .user-tag {
-  background: #333;
-  color: #fff;
-}
+.card-date { font-size: 22rpx; color: #ccc; font-family: 'Courier New', monospace; }
+.card-img { width: 100%; height: 300rpx; border-radius: 8rpx; background-color: #f0f0f0; margin-bottom: 16rpx; object-fit: cover; }
+.card-tag { display: inline-block; font-size: 20rpx; background: #f0f7ff; color: #8daac7; padding: 6rpx 16rpx; border-radius: 20rpx; }
 
-/* 对象发的：粉色边框 + 粉色标签 */
-.partner-card {
-  border: 2rpx solid #ffcad4;
-  background: #fff5f7; /* 微微泛红的背景 */
-}
-.partner-card .user-tag {
-  background: #ff6b81;
-  color: #fff;
-}
+.empty-state { text-align: center; color: #b0a4a4; margin-top: 120rpx; font-size: 26rpx; padding: 0 40rpx; line-height: 1.6; }

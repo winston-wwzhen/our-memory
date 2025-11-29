@@ -1,284 +1,267 @@
 /* miniprogram/pages/index/index.wxss */
 page {
-  /* 基础底色：淡粉 */
   background: #fff0f5; 
   font-family: -apple-system, 'Helvetica Neue', sans-serif;
   height: 100vh; 
-  overflow: hidden; 
+  overflow: hidden; /* 锁定一屏 */
 }
 
 .journal-container {
   position: relative;
   height: 100%;
   width: 100%;
-  /* 🌅 浪漫升级：从淡粉色流向奶油黄的渐变 */
-  background: linear-gradient(180deg, #fff0f5 0%, #fff5e6 100%);
+  background: linear-gradient(180deg, #fff0f5 0%, #fffaf0 100%);
 }
 
-/* 装饰背景 (保留爱心，增加一点透明度变化) */
+/* === 背景装饰 === */
 .bg-decoration {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none; z-index: 0; overflow: hidden;
 }
 .floating-heart {
   position: absolute; bottom: -50rpx;
-  font-size: 30rpx; color: #ffdee9; opacity: 0.6; /* 爱心颜色更粉嫩 */
+  font-size: 30rpx; color: #ffdee9; opacity: 0.6;
   animation: floatUp linear infinite;
-  text-shadow: 0 0 10rpx rgba(255, 182, 193, 0.5); /* 增加发光感 */
+  text-shadow: 0 0 10rpx rgba(255, 182, 193, 0.5);
 }
 .h1 { left: 10%; animation-duration: 8s; font-size: 24rpx; }
 .h2 { left: 30%; animation-duration: 12s; animation-delay: 2s; font-size: 36rpx; color: #ffb7b2; }
 .h3 { left: 60%; animation-duration: 10s; animation-delay: 4s; }
 .h4 { left: 80%; animation-duration: 15s; animation-delay: 1s; font-size: 20rpx; }
 .h5 { left: 90%; animation-duration: 9s; animation-delay: 6s; font-size: 28rpx; }
-
 @keyframes floatUp {
   0% { transform: translateY(0) rotate(0deg); opacity: 0; }
   20% { opacity: 0.8; }
   100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
 }
 
+/* === 主布局容器 === */
 .content-wrapper {
   position: relative; z-index: 10;
   display: flex; flex-direction: column; 
   height: 100%;
-  padding: 20rpx 40rpx 50rpx 40rpx; /* 顶部padding稍微减小，因为导航栏颜色融为一体了 */
+  /* 左右边距 40，底部留出安全距离 */
+  padding: 20rpx 40rpx 60rpx 40rpx; 
   box-sizing: border-box; 
+  /* 关键：两端对齐，让中间的元素自动伸缩 */
   justify-content: space-between; 
 }
 
-/* === 顶部任务卡片 (更通透) === */
+/* === 顶部：任务卡片 === */
 .task-note-container {
-  margin-bottom: 60rpx; position: relative;
+  flex-shrink: 0; /* 不允许压缩 */
+  margin-bottom: 20rpx;
 }
 
 .task-note {
-  /* 半透明乳白玻璃质感 */
-  background: rgba(255, 255, 255, 0.9);
-  padding: 40rpx 30rpx 30rpx;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30rpx;
   border-radius: 24rpx;
-  /* 暖色阴影：用粉色代替灰色 */
-  box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.2); 
+  box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.15); 
   border: 2rpx solid #fff;
   position: relative;
-  transform-origin: center top;
 }
 
-/* 📌 图钉装饰 */
 .pin-icon {
   position: absolute; top: -16rpx; left: 50%; transform: translateX(-50%);
   font-size: 32rpx; text-shadow: 0 4rpx 4rpx rgba(0,0,0,0.1);
-  filter: hue-rotate(-20deg); /* 让图钉颜色更红一点 */
+  filter: hue-rotate(-20deg);
 }
 
-.floating-sway { animation: sway 4s ease-in-out infinite; }
-@keyframes sway {
-  0%, 100% { transform: rotate(-0.5deg); }
-  50% { transform: rotate(0.5deg); }
-}
-
-.note-header { display: flex; align-items: center; margin-bottom: 20rpx; }
+.note-header { display: flex; align-items: center; margin-bottom: 16rpx; }
 .note-icon { 
   font-size: 44rpx; margin-right: 20rpx; 
-  background: #fff0f5; /* 与背景呼应 */
-  padding: 10rpx; border-radius: 50%; 
-  color: #ff6b81;
+  background: #fff0f5; padding: 10rpx; border-radius: 50%; 
 }
 .header-text { display: flex; flex-direction: column; }
 .note-label { font-size: 20rpx; color: #ff8fa3; font-weight: bold; letter-spacing: 2rpx; }
-.note-title { font-size: 32rpx; font-weight: 800; color: #5d4037; margin-top: 4rpx; } /* 暖棕色标题 */
-.note-desc { font-size: 26rpx; color: #8d6e63; line-height: 1.6; margin-bottom: 20rpx; } /* 浅棕色正文 */
+.note-title { font-size: 30rpx; font-weight: 800; color: #5d4037; margin-top: 4rpx; }
+.note-desc { font-size: 26rpx; color: #8d6e63; line-height: 1.5; margin-bottom: 16rpx; }
 
 .remote-tip-box {
-  background: #f0f7ff; padding: 12rpx 20rpx; border-radius: 12rpx;
-  font-size: 22rpx; color: #8daac7; margin-bottom: 20rpx;
+  background: #f0f7ff; padding: 10rpx 16rpx; border-radius: 12rpx;
+  font-size: 22rpx; color: #8daac7; margin-bottom: 16rpx;
   border: 1rpx dashed #dbe9fe;
 }
 
 .note-footer { display: flex; justify-content: space-between; font-size: 22rpx; color: #d7ccc8; }
 .difficulty-tag { background: #ffe4e8; color: #ff6b81; padding: 4rpx 16rpx; border-radius: 20rpx; font-weight: bold;}
 
-/* === 拍立得区域 (暖色调) === */
+/* === 中部：拍立得 (自动占据剩余空间) === */
 .polaroid-frame {
   background: #fff;
-  padding: 24rpx 24rpx 80rpx 24rpx;
-  /* 阴影改为暖色，更有氛围感 */
-  box-shadow: 0 20rpx 50rpx rgba(139, 69, 19, 0.1); 
-  border-radius: 8rpx;
+  padding: 24rpx 24rpx 80rpx 24rpx; /* 底部留白给手写字 */
+  box-shadow: 0 20rpx 50rpx rgba(139, 69, 19, 0.08); 
+  border-radius: 6rpx;
   position: relative;
-  flex-shrink: 0;
-  transform: rotate(2deg);
-  margin: auto 0; 
+  
+  /* 弹性伸缩 */
+  flex: 1; 
+  /* 限制最大高度，防止拉太长 */
+  max-height: 750rpx; 
+  /* 垂直居中 */
+  margin: 20rpx 0; 
+  display: flex; flex-direction: column;
+  
+  transform: rotate(2deg); /* 微微右倾 */
+  z-index: 5;
 }
 
-/* 浮动动画 */
-.floating-updown { animation: float-tilted-right 5s ease-in-out infinite; }
-@keyframes float-tilted-right {
+/* 胶带 */
+.polaroid-frame::after {
+  content: ""; position: absolute; top: -10rpx; left: 50%; transform: translateX(-50%);
+  width: 100rpx; height: 28rpx; background: rgba(255, 228, 225, 0.8); 
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.05); border-radius: 2rpx;
+}
+
+/* 浮动 */
+.floating-updown { animation: float-tilted 5s ease-in-out infinite; }
+@keyframes float-tilted {
   0%, 100% { transform: rotate(2deg) translateY(0); }
   50% { transform: rotate(2deg) translateY(-8rpx); }
 }
 
-/* 顶部胶带 (改为粉色半透明) */
-.polaroid-frame::after {
-  content: ""; position: absolute; top: -12rpx; left: 50%; transform: translateX(-50%);
-  width: 120rpx; height: 32rpx; 
-  background: rgba(255, 228, 225, 0.8); /* 迷雾玫瑰色胶带 */
-  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.05); border-radius: 2rpx;
+/* 照片区域 */
+.photo-area {
+  width: 100%; 
+  flex: 1; /* 撑满拍立得的内部空间 */
+  background: #fffaf0;
+  overflow: hidden; position: relative; border-radius: 2rpx;
 }
 
-.photo-area {
-  width: 100%; height: 550rpx; background: #fffaf0; /* 花卉白底色 */
-  overflow: hidden; position: relative; border-radius: 4rpx;
-}
 .the-photo { width: 100%; height: 100%; object-fit: cover; }
 
-/* 空状态 */
-.empty-state-cover {
-  width: 100%; height: 100%; position: relative; background-color: #fff5ee; 
-}
-/* === 空状态优化 (高斯模糊版) === */
-.empty-state-cover {
-  width: 100%; height: 100%; position: relative; 
-  background-color: #f0f0f0; 
-  overflow: hidden; /* 防止模糊边缘溢出 */
-  border-radius: 4rpx;
-}
-
-/* 1. 背景层：模糊、放大、变暗 */
-.sample-img-bg {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  filter: blur(20rpx) brightness(0.8); /* 模糊20px，亮度调低凸显前景 */
-  transform: scale(1.2); /* 放大一点，防止模糊边缘露出白边 */
-  z-index: 1;
-}
-
-/* 2. 前景层：清晰、居中、完整 */
-.sample-img-main {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 2; /* 浮在背景之上 */
+/* 空状态：单图填充 (回归简洁) */
+.empty-state-cover { width: 100%; height: 100%; position: relative; background-color: #f0f0f0; }
+.sample-img { 
+  width: 100%; height: 100%; 
+  object-fit: cover; /* 关键：填充整个区域，裁剪多余部分 */
+  opacity: 1; 
 }
 
 .empty-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: transparent;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 5; /* 确保按钮在最上层 */
-}
-
-.empty-overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: transparent;
+  background: transparent; /* 无遮罩 */
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   z-index: 5;
 }
 
-/* 粉色呼吸按钮 (加深一点颜色，更突出) */
+/* 按钮 */
 .camera-btn-circle {
-  width: 130rpx; height: 130rpx; 
-  /* 更加鲜艳浪漫的渐变 */
+  width: 120rpx; height: 120rpx; 
   background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); 
-  margin-bottom: 24rpx; position: relative;
+  box-shadow: 0 8rpx 30rpx rgba(255, 154, 158, 0.4); 
+  margin-bottom: 20rpx; position: relative;
   animation: pulse-strong 2s infinite;
   overflow: visible; 
 }
-
 .btn-ripple {
   position: absolute; top: -10rpx; left: -10rpx; right: -10rpx; bottom: -10rpx;
-  border: 4rpx solid #ffb6c1; /* 浅粉色涟漪 */
-  border-radius: 50%;
+  border: 4rpx solid #ffb6c1; border-radius: 50%;
   opacity: 0; animation: ripple 2s infinite; z-index: 1;
 }
+.camera-icon-img { width: 60rpx; height: 60rpx; z-index: 10; }
+.empty-hint { color: #8d6e63; font-size: 26rpx; letter-spacing: 4rpx; font-weight: bold; text-shadow: 0 2rpx 8rpx rgba(255,255,255,0.9); }
 
-.camera-icon-img { width: 64rpx; height: 64rpx; z-index: 10; }
-
-.empty-hint { 
-  color: #8d6e63; font-size: 28rpx; letter-spacing: 4rpx; font-weight: bold;
-  text-shadow: 0 2rpx 10rpx rgba(255,255,255,0.9);
+.quota-hint {
+  color: #fff; 
+  font-size: 20rpx; 
+  margin-top: 10rpx;
+  background: rgba(0,0,0,0.3);
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.2);
 }
-
-.handwriting-caption {
-  text-align: center; margin-top: 40rpx;
-  font-family: 'Courier New', serif; 
-  color: #a1887f; font-size: 26rpx; letter-spacing: 2rpx; /* 暖棕色手写字 */
+/* 印章 */
+.score-stamp {
+  position: absolute; top: 20rpx; right: 20rpx;
+  width: 110rpx; height: 110rpx;
+  border: 4rpx solid #ff6b81; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(-15deg); opacity: 0; z-index: 10;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
 }
-
-/* === 🆕 新增：Loading 遮罩样式 === */
-.loading-mask {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(255, 255, 255, 0.85); /* 半透明白底 */
-  backdrop-filter: blur(4px); /* 毛玻璃效果 */
+.stamp-circle {
+  width: 90rpx; height: 90rpx;
+  border: 2rpx dashed #ff6b81; border-radius: 50%;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 20;
+}
+.stamp-label { font-size: 16rpx; color: #ff6b81; font-weight: bold; }
+.stamp-score { font-size: 36rpx; color: #ff4757; font-weight: 900; font-family: 'Courier New', monospace; line-height: 1; }
+.stamp-anim { animation: stamp-in 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards 0.5s; }
+@keyframes stamp-in {
+  0% { transform: rotate(-15deg) scale(2); opacity: 0; }
+  100% { transform: rotate(-15deg) scale(1); opacity: 0.9; }
 }
 
-.loading-spinner {
-  width: 60rpx; height: 60rpx;
-  border: 6rpx solid #ffd1dc; /* 浅粉底色 */
-  border-top: 6rpx solid #ff6b81; /* 深粉转动色 */
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20rpx;
+/* 底部手写字 */
+.handwriting-caption {
+  position: absolute; bottom: 20rpx; left: 0; width: 100%;
+  text-align: center; font-family: 'Courier New', serif; 
+  color: #a1887f; font-size: 24rpx; padding: 0 30rpx;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.loading-text {
-  font-size: 26rpx; color: #ff6b81; font-weight: bold; letter-spacing: 2rpx;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* === 每日一句样式 (文字颜色加深) === */
+/* === 底部：每日一句 === */
 .daily-quote-box {
-  text-align: center;
-  margin-top: 60rpx; 
-  opacity: 0.9; /* 提高不透明度，更清晰 */
+  text-align: center; opacity: 0.9;
+  flex-shrink: 0; height: 80rpx; /* 固定高度占位 */
+  display: flex; flex-direction: column; justify-content: center;
 }
 .quote-text {
-  font-family: "PingFang SC", serif;
-  font-size: 26rpx; color: #5d4037; /* 加深颜色，防止看不清 */
-  letter-spacing: 2rpx; font-style: italic;
-  display: block; margin-bottom: 10rpx;
-  text-shadow: 0 2rpx 0 rgba(255,255,255,0.5); /* 增加一点立体感 */
+  font-family: "PingFang SC", serif; font-size: 24rpx; color: #5d4037;
+  letter-spacing: 2rpx; font-style: italic; display: block; margin-bottom: 6rpx;
 }
-.quote-author {
-  font-size: 20rpx; color: #bcaaa4; 
-  text-transform: uppercase; letter-spacing: 4rpx;
+.quote-author { font-size: 18rpx; color: #bcaaa4; text-transform: uppercase; letter-spacing: 4rpx; }
+
+/* === 底部：按钮区 === */
+.action-bar {
+  width: 100%; display: flex; justify-content: center; z-index: 20;
+  flex-shrink: 0; height: 100rpx; /* 固定高度 */
 }
 
-/* === 底部按钮区 === */
-.action-bar {
-  position: absolute; bottom: 60rpx; left: 0; width: 100%;
-  display: flex; justify-content: center; z-index: 20;
+.replace-tip {
+  position: absolute;
+  top: -50rpx; /* 悬浮在按钮上方 */
+  width: 100%;
+  text-align: center;
+  font-size: 22rpx;
+  color: #e57373; /* 柔和的红色警告 */
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6rpx 0;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
 }
+
 .confirm-actions { display: flex; width: 100%; justify-content: center; align-items: center; gap: 40rpx; }
 .action-btn-wrapper { display: flex; flex-direction: column; align-items: center; }
 .btn-circle {
-  width: 90rpx; height: 90rpx; border-radius: 50%; background: #fff;
-  box-shadow: 0 6rpx 20rpx rgba(139, 69, 19, 0.1); /* 暖棕色阴影 */
-  display: flex; align-items: center; justify-content: center; margin-bottom: 12rpx;
+  width: 80rpx; height: 80rpx; border-radius: 50%; background: #fff;
+  box-shadow: 0 6rpx 20rpx rgba(139, 69, 19, 0.1);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 10rpx;
   color: #8d6e63;
 }
-.btn-label { font-size: 22rpx; color: #8d6e63; }
+.btn-label { font-size: 20rpx; color: #8d6e63; }
 .btn-confirm-main {
-  background: #5d4037; color: #fff; border-radius: 50rpx; padding: 0 70rpx;
-  height: 90rpx; line-height: 90rpx; font-size: 30rpx;
+  background: #5d4037; color: #fff; border-radius: 50rpx; padding: 0 60rpx;
+  height: 80rpx; line-height: 80rpx; font-size: 28rpx;
   box-shadow: 0 10rpx 20rpx rgba(93, 64, 55, 0.25);
 }
 
-@keyframes pulse-strong {
-  0% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); }
-  50% { transform: scale(1.05); box-shadow: 0 12rpx 40rpx rgba(255, 105, 180, 0.6); }
-  100% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); }
-}
-@keyframes ripple {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.5); opacity: 0; }
-}
+/* 占位符 */
+.placeholder-box { height: 80rpx; width: 100%; flex-shrink: 0; }
+
+/* 动画与 Loading */
+@keyframes pulse-strong { 0% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 12rpx 40rpx rgba(255, 105, 180, 0.6); } 100% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); } }
+@keyframes ripple { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .slide-in-down { animation: slideInDown 0.8s ease-out; }
 .slide-in-up { animation: slideInUp 0.5s ease-out; }
 @keyframes slideInDown { from { transform: translateY(-30rpx); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes slideInUp { from { transform: translateY(30rpx); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.loading-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
+.loading-spinner { width: 50rpx; height: 50rpx; border: 6rpx solid #ffd1dc; border-top: 6rpx solid #ff6b81; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20rpx; }
+.loading-text { font-size: 24rpx; color: #ff6b81; font-weight: bold; letter-spacing: 2rpx; }

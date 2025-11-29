@@ -1,8 +1,18 @@
 <view class="journal-container">
   
+  <view class="bg-decoration">
+    <view class="floating-heart h1">❤</view>
+    <view class="floating-heart h2">✨</view>
+    <view class="floating-heart h3">❤</view>
+    <view class="floating-heart h4">✨</view>
+    <view class="floating-heart h5">❤</view>
+  </view>
+
   <view class="content-wrapper">
+    
     <view class="task-note-container slide-in-down" wx:if="{{currentTask}}">
       <view class="task-note">
+        <view class="pin-icon">📌</view>
         <view class="note-header">
           <text class="note-icon">{{currentTask.icon}}</text>
           <view class="header-text">
@@ -23,50 +33,43 @@
       </view>
     </view>
 
-    <view class="polaroid-frame {{loading ? 'developing-pulse' : 'floating-updown'}}" bindtap="{{!pendingSave ? 'onCapture' : ''}}">
+    <view class="polaroid-frame {{loading ? 'developing-pulse' : 'floating-updown'}}" 
+          bindtap="{{loading ? '' : (!pendingSave ? 'onCapture' : 'previewImage')}}">
+      
       <view class="photo-area">
-        
-        <image 
-          src="{{displayImage}}" 
-          mode="aspectFill" 
-          class="the-photo"
-          wx:if="{{displayImage}}"
-        ></image>
+        <block wx:if="{{displayImage}}">
+          <image src="{{displayImage}}" mode="aspectFill" class="the-photo"></image>
+          <view class="score-stamp stamp-anim" wx:if="{{pendingSave && aiEvaluation}}">
+            <view class="stamp-circle">
+              <text class="stamp-label">AI 鉴定</text>
+              <text class="stamp-score">{{aiEvaluation.score}}</text>
+            </view>
+          </view>
+        </block>
 
         <view class="empty-state-cover" wx:else>
-          
-          <image 
-            src="{{randomSampleImg}}" 
-            mode="aspectFill" 
-            class="sample-img-bg"
-          ></image> 
-          
-          <image 
-            src="{{randomSampleImg}}" 
-            mode="aspectFit" 
-            class="sample-img-main"
-          ></image> 
-          
+          <image src="{{randomSampleImg}}" mode="aspectFill" class="sample-img"></image> 
           <view class="empty-overlay">
             <view class="camera-btn-circle">
               <view class="btn-ripple"></view>
               <image src="../../images/camera-icon.png" class="camera-icon-img"></image>
             </view>
-            <text class="empty-hint">点击此处 记录心动</text>
+            <text class="empty-hint">点这里，定格此刻 ✨</text>
+            <text class="quota-hint">今日剩余额度：{{remainingCount}}</text>
           </view>
         </view>
 
         <view class="loading-mask" wx:if="{{loading}}">
           <view class="loading-spinner"></view>
-          <text class="loading-text">AI 正在绘图中...</text>
+          <text class="loading-text">甜蜜生成中❤...</text>
         </view>
-
       </view>
       
       <view class="handwriting-caption">
-        <text wx:if="{{loading}}">正在施展魔法...</text>
-        <text wx:elif="{{displayImage}}" class="success-text">✨ Our Magic Moment ✨</text>
-        <text wx:else class="waiting-text">Create your memory</text>
+        <block wx:if="{{loading}}">正在施展魔法...</block>
+        <block wx:elif="{{pendingSave && aiEvaluation}}">“ {{aiEvaluation.comment}} ”</block>
+        <block wx:elif="{{pendingSave}}">✨ Our Magic Moment ✨</block>
+        <block wx:else>Our Story Starts Here...</block>
       </view>
     </view>
 
@@ -76,22 +79,28 @@
     </view>
 
     <view class="action-bar slide-in-up" wx:if="{{pendingSave}}">
+      <view class="replace-tip" wx:if="{{hasCheckedInToday}}">
+        ⚠️ 今日已打卡，确认将覆盖原图
+      </view>
+
       <view class="confirm-actions">
         <view class="action-btn-wrapper" catchtap="onSaveToPhone">
           <view class="btn-circle sub"><text>⬇️</text></view>
-          <text class="btn-label">保存</text>
+          <text class="btn-label">私藏</text>
         </view>
 
         <view class="action-btn-wrapper" catchtap="onRetry">
           <view class="btn-circle sub"><text>🔄</text></view>
-          <text class="btn-label">重拍 ({{remainingCount}})</text>
+          <text class="btn-label">再来一张 ({{remainingCount}})</text>
         </view>
 
         <button class="btn-confirm-main" catchtap="onConfirmSave">
-          确认打卡
+          存入纪念册 ❤️
         </button>
       </view>
     </view>
+
+    <view class="placeholder-box" wx:if="{{!pendingSave}}"></view>
 
   </view>
 </view>

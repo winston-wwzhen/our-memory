@@ -3,50 +3,51 @@ const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const _ = db.command; // 引入数据库操作符 (Command)
+const _ = db.command;
 
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const myOpenID = wxContext.OPENID;
   
+  const { page = 0, pageSize = 20 } = event;
+
   try {
-    // 1. 先查询用户信息，获取 partner_id
-    const userRes = await db.collection('users')
-      .where({ _openid: myOpenID })
-      .get();
-
-    let targetIDs = [myOpenID]; // 默认查看列表：只有我自己
-
-    // 如果找到了用户，并且有伴侣
+    // 1. 确定查询范围 (我 + 伴侣)
+    const userRes = await db.collection('users').where({ _openid: myOpenID }).get();
+    let targetIDs = [myOpenID]; 
     if (userRes.data.length > 0) {
       const userData = userRes.data[0];
       if (userData.partner_id) {
-        targetIDs.push(userData.partner_id); // 把 TA 加入查看列表
-        console.log('🔗 Found partner:', userData.partner_id);
+        targetIDs.push(userData.partner_id); 
       }
     }
 
-    // 2. 核心查询：使用 _.in 操作符
-    // 意思就是：找出 _openid 在 [我, TA] 这个数组里的所有记录
+    // 🆕 2. 核心新增：查询总记录数 (打卡天数)
+    const countResult = await db.collection('logs')
+      .where({ _openid: _.in(targetIDs) })
+      .count();
+    const totalDays = countResult.total;
+
+    // 3. 分页查询列表
     const result = await db.collection('logs')
-      .where({
-        _openid: _.in(targetIDs) 
-      })
-      .orderBy('createdAt', 'desc') // 按时间倒序
-      .limit(20) // 分页限制
+      .where({ _openid: _.in(targetIDs) })
+      .orderBy('createdAt', 'desc') 
+      .skip(page * pageSize) 
+      .limit(pageSize)       
       .get();
 
-    // 3. (可选优化) 标记每条记录是谁发的，方便前端区分
     const processedData = result.data.map(log => {
       return {
         ...log,
-        isMine: log._openid === myOpenID // 增加一个字段，告诉前端这图是不是我发的
+        isMine: log._openid === myOpenID 
       };
     });
 
     return {
       status: 200,
-      data: processedData
+      data: processedData,
+      totalDays: totalDays, // 👈 返回总天数
+      hasMore: processedData.length === pageSize 
     };
 
   } catch (err) {
