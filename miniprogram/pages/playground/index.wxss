@@ -94,7 +94,9 @@ page {
   margin-bottom: 10rpx;
 }
 .progress-inner {
-  height: 100%; background: #4caf50; border-radius: 10rpx;
+  height: 100%; 
+  background: #ff6b81;
+  border-radius: 10rpx;
   transition: width 0.5s ease;
 }
 .level-text { font-size: 22rpx; color: #8d6e63; display: block; text-align: center; font-weight: 500;}

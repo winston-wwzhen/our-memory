@@ -35,12 +35,14 @@ Page({
 
           const currentG = g % 100;
           const harvests = garden.harvest_count || 0;
+
+          let finalProgress = (lv >= 4) ? 100 : (currentG / 100) * 100;
           
           this.setData({
             waterCount: water,
             growth: currentG,
             level: lv,
-            progress: (currentG / 100) * 100,
+            progress: finalProgress + '%',
             harvestCount: harvests
           });
         }

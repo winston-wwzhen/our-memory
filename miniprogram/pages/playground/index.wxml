@@ -23,7 +23,7 @@
 
     <view class="progress-box">
       <view class="progress-bar">
-        <view class="progress-inner" style="width: {{level >= 4 ? 100 : progress}}%; background: #ff6b81;"></view>
+        <view class="progress-inner" style="width: {{progress}};"></view>
       </view>
       <text class="level-text" wx:if="{{level < 4}}">Lv.{{level}} 培育进度 ({{growth}}/{{maxGrowth}})</text>
       <text class="level-text max-level" wx:else>🌟 玫瑰已盛开，快去收获吧！ 🌟</text>
