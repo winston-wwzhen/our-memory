@@ -165,3 +165,43 @@ button:active { transform: scale(0.98); opacity: 0.9; }
 .timer-unit { font-size: 28rpx; color: #8d6e63; margin-left: 10rpx; font-weight: bold; }
 
 .timer-footer { font-size: 20rpx; color: #d7ccc8; letter-spacing: 4rpx; text-transform: uppercase; }
+
+/* === 🆕 单人模式提醒卡片样式 (替代计时器卡片) === */
+.welcome-card {
+  background: linear-gradient(135deg, #f0f8ff 0%, #fff 100%); /* 柔和的淡蓝色渐变 */
+  text-align: center;
+  padding: 40rpx !important;
+  border: 2rpx dashed #aed9e9; /* 淡蓝色边框 */
+}
+
+.welcome-header {
+  margin-bottom: 20rpx;
+}
+
+.welcome-title {
+  font-size: 32rpx;
+  color: #5d4037;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.welcome-subtitle {
+  font-size: 20rpx;
+  color: #a1887f;
+  letter-spacing: 2rpx;
+  text-transform: uppercase;
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 24rpx;
+  color: #795548;
+  line-height: 1.8;
+}
+
+.welcome-content text:first-child {
+  font-weight: 500;
+}

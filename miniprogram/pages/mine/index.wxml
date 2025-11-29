@@ -1,22 +1,37 @@
 <view class="mine-container">
-  <view class="timer-card paper-texture">
-    <view class="timer-header">
-      <text class="timer-title">我们已经相爱</text>
-      <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
-        <view class="timer-setting">
-          <text wx:if="{{anniversary}}">起始日: {{anniversary}}</text>
-          <text wx:else>⚙️ 设置纪念日</text>
-        </view>
-      </picker>
-    </view>
-    
-    <view class="timer-content">
-      <text class="timer-number">{{daysCount}}</text>
-      <text class="timer-unit">天</text>
-    </view>
-    <view class="timer-footer">Love is a long journey.</view>
-  </view>
   
+  <block wx:if="{{userData.partner_id}}">
+    <view class="timer-card paper-texture">
+      <view class="timer-header">
+        <text class="timer-title">我们已经相爱</text>
+        <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
+          <view class="timer-setting">
+            <text wx:if="{{anniversary}}">起始日: {{anniversary}}</text>
+            <text wx:else>⚙️ 设置纪念日</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="timer-content">
+        <text class="timer-number">{{daysCount}}</text>
+        <text class="timer-unit">天</text>
+      </view>
+      <view class="timer-footer">Love is a long journey.</view>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="welcome-card paper-texture">
+      <view class="welcome-header">
+        <text class="welcome-title">欢迎使用我们的纪念册！</text>
+        <text class="welcome-subtitle">Welcome, Single Chapter Creator</text>
+      </view>
+      <view class="welcome-content">
+        <text>🎉 你当前处于单人模式，所有回忆将为你个人珍藏。</text>
+        <text>👫 想要解锁共同回忆？请在下方关联你的另一半！</text>
+      </view>
+    </view>
+  </block>
+
   <view class="user-card paper-texture">
     <button 
       class="avatar-wrapper" 
