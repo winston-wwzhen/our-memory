@@ -1,14 +1,14 @@
 // cloudfunctions/process_anime/index.js
-const cloud = require('wx-server-sdk');
+const cloud = require("wx-server-sdk");
 const tencentcloud = require("tencentcloud-sdk-nodejs");
 const AiartClient = tencentcloud.aiart.v20221229.Client;
-const config = require('./config');
+const config = require("./config");
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const DAILY_LIMIT = 3;
+const DAILY_LIMIT = 1;
 
 // ============================================================
 // 🤖 AI 毒舌/高甜文案库
@@ -59,21 +59,21 @@ const AI_COMMENTS = [
   "晚安，愿你们梦里也有二次元的星空。🌙",
   "又是被你们治愈的一天。✨",
   "平凡的日常，因为有你而闪闪发光。🌟",
-  "记录下这一刻，以后老了拿出来嘲笑对方。👴👵"
+  "记录下这一刻，以后老了拿出来嘲笑对方。👴👵",
 ];
 
 function getBeijingDateStr() {
   const now = new Date();
   const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  return beijingTime.toISOString().split('T')[0]; 
+  return beijingTime.toISOString().split("T")[0];
 }
 
 function generateEvaluation(taskTitle) {
   let score;
   if (Math.random() < 0.2) {
-    score = Math.floor(Math.random() * 2) + 99; 
+    score = Math.floor(Math.random() * 2) + 99;
   } else {
-    score = Math.floor(Math.random() * (98 - 85 + 1)) + 85; 
+    score = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
   }
   let comment = AI_COMMENTS[Math.floor(Math.random() * AI_COMMENTS.length)];
 
@@ -82,14 +82,14 @@ function generateEvaluation(taskTitle) {
       const funnyComments = [
         "虽然很用力在扮丑，但还是掩盖不住可爱啊！🤪",
         "这鬼脸... AI 差点报警了哈哈哈哈！👮‍♂️",
-        "毫无偶像包袱，这才是真爱！💖"
+        "毫无偶像包袱，这才是真爱！💖",
       ];
       comment = funnyComments[Math.floor(Math.random() * funnyComments.length)];
     } else if (taskTitle.includes("吻") || taskTitle.includes("亲")) {
       const kissComments = [
         "警告：画面过于亲密，AI 害羞地捂住了眼睛。🙈",
         "亲亲的时候眼睛要闭上哦~ (AI 偷看中) 👀",
-        "这一口下去，甜度爆表了！🍬"
+        "这一口下去，甜度爆表了！🍬",
       ];
       comment = kissComments[Math.floor(Math.random() * kissComments.length)];
     }
@@ -100,71 +100,88 @@ function generateEvaluation(taskTitle) {
 // 🆕 辅助函数：读取全局配置
 async function getSudoUsers() {
   try {
-    const res = await db.collection('app_config').doc('global_settings').get();
+    const res = await db.collection("app_config").doc("global_settings").get();
     return res.data.sudo_users || [];
   } catch (err) {
-    console.error('读取全局配置失败:', err);
-    return []; 
+    console.error("读取全局配置失败:", err);
+    return [];
   }
 }
 
 exports.main = async (event, context) => {
-  const { imageFileID, taskTitle } = event; 
+  const { imageFileID, taskTitle } = event;
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
   const todayStr = getBeijingDateStr();
-  
-  let remainingAttempts = 0; 
-  
+
+  let remainingAttempts = 0;
+
   // 🆕 获取动态白名单
   const SUDO_USERS = await getSudoUsers();
   const isVip = SUDO_USERS.includes(openid);
 
   // 1. 频次检查
   if (!isVip) {
-    const userRes = await db.collection('users').where({ _openid: openid }).get();
+    const userRes = await db
+      .collection("users")
+      .where({ _openid: openid })
+      .get();
     if (userRes.data.length > 0) {
       const user = userRes.data[0];
-      const stats = user.daily_usage || { date: '', count: 0 };
-      let currentUsed = (stats.date === todayStr) ? stats.count : 0;
+      const stats = user.daily_usage || { date: "", count: 0 };
+      let currentUsed = stats.date === todayStr ? stats.count : 0;
 
       if (currentUsed >= DAILY_LIMIT) {
         return { status: 403, msg: `今日次数已用完，明日再来！` };
       }
-      const updateData = (stats.date === todayStr) 
-        ? { 'daily_usage.count': _.inc(1) }
-        : { 'daily_usage': { date: todayStr, count: 1 } };
-      await db.collection('users').where({ _openid: openid }).update({ data: updateData });
+      const updateData =
+        stats.date === todayStr
+          ? { "daily_usage.count": _.inc(1) }
+          : { daily_usage: { date: todayStr, count: 1 } };
+      await db
+        .collection("users")
+        .where({ _openid: openid })
+        .update({ data: updateData });
       remainingAttempts = Math.max(0, DAILY_LIMIT - (currentUsed + 1));
     }
   } else {
-    remainingAttempts = 999; 
+    remainingAttempts = 999;
   }
 
   let finalBuffer = null;
 
   try {
-    if (!imageFileID) throw new Error('Missing imageFileID');
+    if (!imageFileID) throw new Error("Missing imageFileID");
 
     const downloadRes = await cloud.downloadFile({ fileID: imageFileID });
-    const base64Img = downloadRes.fileContent.toString('base64');
+    const base64Img = downloadRes.fileContent.toString("base64");
 
     const clientConfig = {
-      credential: { secretId: config.TENCENT.SID, secretKey: config.TENCENT.SKEY },
+      credential: {
+        secretId: config.TENCENT.SID,
+        secretKey: config.TENCENT.SKEY,
+      },
       region: config.TENCENT.REGION || "ap-shanghai",
       profile: { httpProfile: { endpoint: "aiart.tencentcloudapi.com" } },
     };
     const client = new AiartClient(clientConfig);
-    
-    const params = { InputImage: base64Img, Styles: ["201"], RspImgType: "base64" };
+
+    const params = {
+      InputImage: base64Img,
+      Styles: ["201"],
+      RspImgType: "base64",
+    };
     const result = await client.ImageToImage(params);
     if (!result.ResultImage) throw new Error("腾讯云未返回图片数据");
-    
-    finalBuffer = Buffer.from(result.ResultImage, 'base64');
 
+    finalBuffer = Buffer.from(result.ResultImage, "base64");
   } catch (aiError) {
-    console.error('⚠️ AI Failed:', aiError);
-    return { status: 500, msg: 'AI 绘图失败，请换张图片重试', error: aiError.message };
+    console.error("⚠️ AI Failed:", aiError);
+    return {
+      status: 500,
+      msg: "AI 绘图失败，请换张图片重试",
+      error: aiError.message,
+    };
   }
 
   const fileName = `tencent_${openid}_${Date.now()}.jpg`;
@@ -178,8 +195,8 @@ exports.main = async (event, context) => {
   return {
     status: 200,
     result: uploadRes.fileID,
-    msg: '✨ 变身成功 ✨',
+    msg: "✨ 变身成功 ✨",
     remaining: remainingAttempts,
-    evaluation: evaluation 
+    evaluation: evaluation,
   };
 };

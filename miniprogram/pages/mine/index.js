@@ -12,7 +12,9 @@ Page({
     inputPartnerCode: "", // 对方的密钥
     needSave: false, 
     partnerShortID: "",
-    isShowingRequest: false // 防止重复弹窗
+    isShowingRequest: false, // 防止重复弹窗
+    daysCount: 0,
+    anniversary: '', // YYYY-MM-DD
   },
 
   // 1. 页面加载：处理 Deep Linking (自动填入)
@@ -56,6 +58,8 @@ Page({
           this.setData({
             userData: user,
             partnerData: partner,
+            anniversary: user.anniversaryDate || '',
+            daysCount: this.calculateDays(user.anniversaryDate),
             partnerShortID: user.partner_id
               ? "..." + user.partner_id.slice(-6)
               : "",
@@ -69,6 +73,33 @@ Page({
         }
       },
       fail: (err) => { console.error(err); }
+    });
+  },
+
+  // 🆕 计算相恋天数
+  calculateDays: function(dateStr) {
+    if (!dateStr) return 0;
+    const start = new Date(dateStr).getTime();
+    const now = new Date().getTime();
+    const diff = now - start;
+    if (diff < 0) return 0; // 未来时间
+    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1; // +1 表示“第N天”
+  },
+
+  onDateChange: function(e) {
+    const date = e.detail.value;
+    this.setData({ 
+      anniversary: date,
+      daysCount: this.calculateDays(date)
+    });
+    
+    // 同步到云端
+    wx.cloud.callFunction({
+      name: 'user_center',
+      data: { action: 'update_anniversary', date: date },
+      success: res => {
+        wx.showToast({ title: '纪念日已保存', icon: 'none' });
+      }
     });
   },
 
