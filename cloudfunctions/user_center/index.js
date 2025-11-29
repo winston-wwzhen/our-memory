@@ -11,25 +11,51 @@ const SUDO_USERS = ['oLvaA10cMDUGkrFaNAXTVbTBa19s'];
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const myOpenID = wxContext.OPENID;
-  const { action, partnerCode, decision, userInfo } = event;
+  const { action, partnerCode, decision, userInfo, imageFileID } = event;
 
-  // 1. 登录 (Login)
+  // 1. 登录 (Login) - 修改版：支持返回伴侣信息
   if (action === 'login') {
+    let currentUser = null;
+    
+    // A. 获取或创建我的信息
     const res = await db.collection('users').where({ _openid: myOpenID }).get();
     if (res.data.length > 0) {
-      return { status: 200, user: res.data[0] };
+      currentUser = res.data[0];
     } else {
       const newUser = {
         _openid: myOpenID,
         nickName: userInfo?.nickName || '微信用户',
         avatarUrl: userInfo?.avatarUrl || '',
         partner_id: null,
-        bind_request_from: null, // 新增：记录谁请求绑定我
+        bind_request_from: null,
         createdAt: db.serverDate()
       };
       await db.collection('users').add({ data: newUser });
-      return { status: 201, user: newUser };
+      currentUser = newUser;
     }
+
+    // B. (新增) 如果有伴侣，获取伴侣的信息
+    let partnerInfo = null;
+    if (currentUser.partner_id) {
+      const partnerRes = await db.collection('users')
+        .where({ _openid: currentUser.partner_id })
+        .field({ // 隐私保护：只取昵称和头像，不取其他敏感字段
+          nickName: true,
+          avatarUrl: true,
+          _openid: true
+        })
+        .get();
+        
+      if (partnerRes.data.length > 0) {
+        partnerInfo = partnerRes.data[0];
+      }
+    }
+
+    return { 
+      status: 200, 
+      user: currentUser, 
+      partner: partnerInfo // 👈 将伴侣信息一起返回
+    };
   }
 
   // 2. 发起绑定请求 (Request Bind)
@@ -108,5 +134,23 @@ exports.main = async (event, context) => {
       await db.collection('users').where({ _openid: partnerID }).update({ data: { partner_id: null } });
     }
     return { status: 200, msg: '已解绑' };
+  }
+
+  // 🆕 新增：确认打卡 (Check In)
+  if (action === 'check_in') {
+    if (!imageFileID) return { status: 400, msg: '无图无真相' };
+
+    await db.collection('logs').add({
+      data: {
+        _openid: myOpenID,
+        createdAt: db.serverDate(),
+        imageFileID: imageFileID,
+        originalDate: new Date().toLocaleDateString(),
+        type: 'daily_check_in',
+        engine: 'tencent', // 或者你可以让前端把引擎名也传过来，这里简化处理
+        style: 'success'
+      }
+    });
+    return { status: 200, msg: '打卡成功！' };
   }
 };

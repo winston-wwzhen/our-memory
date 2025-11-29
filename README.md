@@ -1,49 +1,48 @@
-📡 CP-IP: Couple Protocol
+# 📖 我们的纪念册 (Our Memory)
 
-404 Loneliness Not Found.
+> **把平淡的日常，画成漫画里的模样。**
 
-CP-IP is a high-availability, distributed synchronization system designed to maintain eventual consistency between two biological nodes (User A and User B).
+一款专为情侣和热爱生活的个人打造的 **AI 互动纪念册**。
+在这里，你们可以完成每日的趣味挑战，通过 AI 魔法将照片变成唯美的二次元画作，并永久珍藏在云端时光轴中。
 
-It implements a daily 3-way handshake mechanism to ensure emotional packets are delivered without loss.
+---
 
-🧩 Protocol Modules
+### ✨ 核心功能 (Features)
 
-1. Handshake (每日握手)
+#### 1. 每日心动挑战 (Daily Mission)
+每天解锁一个不同的互动灵感（如“摸头杀”、“搞怪鬼脸”、“天空合影”）。不再为“今天拍什么”发愁，让生活充满仪式感。
 
-SYN: System pushes a daily quest (e.g., "Send a Heart").
+#### 2. AI 魔法变身 (AI Anime Filter)
+不需要复杂的修图技巧。上传随手拍的照片，内置的 **腾讯云 AI 绘画引擎** 会自动将其转化为日漫风格，让每一次记录都像电影画面一样美好。
 
-SYN-ACK: Users upload photo evidence via WeChat Mini Program.
+#### 3. 时光胶囊 (Memory Lane)
+所有的打卡记录都会生成精美的拍立得卡片，按时间轴串联成属于你们的独家回忆录。
 
-ACK: AI verifies the payload and renders it into anime style using Baidu Smart Cloud.
+#### 4. 双人专属空间 (Couple Space)
+支持 **“专属编号”** 关联。绑定另一半后，双方的头像将并列展示，共同书写这份纪念册。单身用户同样可以完整体验所有功能，记录自己的美好生活。
 
-2. Packet Inspection (AI 处理)
+---
 
-Utilizes Generative AI for edge computing.
+### 🛠️ 技术实现 (Tech Stack)
 
-Transforms raw RGB data into 2D dimension vectors.
+本项目基于 **微信小程序云开发 (WeChat Cloud Development)** 构建，无需维护服务器。
 
-3. Log Retention (时光回溯)
+* **前端**：微信小程序原生 (WXML, WXSS, JS)
+* **后端**：微信云函数 (Node.js)
+* **AI 引擎**：腾讯云 AI 绘画 (ImageToImage)
+* **数据存储**：云开发数据库 + 云存储
 
-Immutable ledger stored in WeChat Cloud Database.
+---
 
-Supports historical query via Timeline View (Memory Lane).
+### 🚀 快速开始 (Getting Started)
 
-4. Connection Management (连接控制)
+1.  **克隆项目** 到本地。
+2.  在微信开发者工具中导入项目。
+3.  **开通云开发环境** 并替换 `project.config.json` 中的 `appid`。
+4.  **配置密钥**：在 `cloudfunctions/process_anime/config.js` 中填入你的腾讯云 SecretId 和 SecretKey。
+5.  **部署云函数**：右键 `cloudfunctions` 目录下的所有函数，选择“上传并部署：云端安装依赖”。
 
-Binding: Secure 3-way handshake via OpenID Key exchange.
+---
 
-Profile: Support dynamic avatar/nickname updates (WeChat 2025 Standard).
-
-Termination: sudo unbind command available for authorized users (Whitelist protected).
-
-🛠 Tech Stack
-
-Frontend: WeChat Mini Program (WXML, WXSS, TS/JS)
-
-Backend: WeChat Cloud Functions (Node.js)
-
-AI Core: Baidu Intelligent Cloud API
-
-Database: JSON NoSQL (Cloud Database)
-
-Running on WeChatOS. Powered by Love & Caffeine.
+### 📝 版权说明
+Designed with ❤️ for love.

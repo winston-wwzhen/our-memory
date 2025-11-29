@@ -1,8 +1,7 @@
 <view class="mine-container">
   
-  <view class="user-card">
-    
-    <button 
+  <view class="profile-card">
+    <view class="pin-decoration"></view> <button 
       class="avatar-wrapper" 
       open-type="chooseAvatar" 
       bind:chooseavatar="onChooseAvatar"
@@ -12,88 +11,88 @@
         src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
         mode="aspectFill"
       ></image>
-      <view class="edit-hint" wx:if="{{!userData.avatarUrl}}">📷</view>
+      <view class="edit-badge" wx:if="{{!userData.avatarUrl}}">点击设置</view>
     </button>
 
-    <view class="nickname-box">
+    <view class="info-area">
       <input 
         type="nickname" 
         class="nickname-input" 
-        placeholder="点击输入昵称" 
+        placeholder="请填写昵称" 
+        placeholder-class="placeholder-style"
         value="{{userData.nickName}}" 
         bind:change="onInputNickname"
       />
-      <view class="edit-icon">✎</view>
-    </view>
-    
-    <view class="status-badge {{userData.partner_id ? 'connected' : 'single'}}">
-      <text wx:if="{{userData.partner_id}}">❤️ 已连接</text>
-      <text wx:else>💔 单身模式</text>
-    </view>
-
-    <button 
-      class="btn-save" 
-      bindtap="saveProfile" 
-      size="mini"
-      wx:if="{{needSave}}"
-    >保存资料</button>
-
-  </view>
-
-  <view class="action-card" wx:if="{{!userData.partner_id}}">
-    <view class="section-title">建立连接 / Handshake</view>
-    
-    <view class="key-box">
-      <text class="label">我的通信密钥 (My Key):</text>
       
-      <!-- 密钥显示区 -->
-      <view class="key-display">
-        <text class="key-text">{{userData._openid || 'Loading...'}}</text>
+      <view class="save-hint" bindtap="saveProfile" wx:if="{{needSave}}">
+        <text>点击保存修改</text>
       </view>
-
-      <!-- 操作按钮组 -->
-      <view class="key-actions">
-        <button 
-          class="btn-mini btn-copy" 
-          bindtap="copyMyKey"
-        >📄 复制</button>
-        
-        <button 
-          class="btn-mini btn-share" 
-          open-type="share"
-        >📤 发送给 TA</button>
-      </view>
-      
-      <text class="hint">对方点击分享卡片可自动填入</text>
     </view>
 
-    <view class="divider"></view>
-
-    <view class="input-box">
-      <text class="label">对方密钥 (Target Key):</text>
-      <input 
-        class="key-input" 
-        placeholder="粘贴 TA 的密钥..." 
-        bindinput="onInputKey"
-      />
-      <button class="btn-connect" bindtap="bindPartner">执行连接</button>
+    <view class="status-stamp {{userData.partner_id ? 'stamp-connected' : 'stamp-single'}}">
+      {{userData.partner_id ? '已 关 联' : '单 人 篇'}}
     </view>
   </view>
 
-  <view class="action-card" wx:else>
-    <view class="love-info">
-      <text>Current Protocol: CP-IP v1.0</text>
-      <text>Latency: 0ms (In Heart)</text>
-      <text style="margin-top: 20rpx; color: #ff6b81;">Linked with [{{partnerShortID}}]</text>
+  <view class="envelope-card" wx:if="{{!userData.partner_id}}">
+    <view class="envelope-header">
+      <text class="envelope-title">邀请另一半</text>
+      <text class="envelope-sub">共同书写我们的纪念册</text>
     </view>
+
+    <view class="step-box">
+      <text class="step-label">① 我的专属编号</text>
+      <view class="code-ticket" bindtap="copyMyKey">
+        <text class="ticket-num">{{userData._openid || '生成中...'}}</text>
+        <text class="ticket-action">复制</text>
+      </view>
+      <button class="btn-share" open-type="share">发送给 TA</button>
+    </view>
+
+    <view class="dashed-line"></view>
+
+    <view class="step-box">
+      <text class="step-label">② 填入 TA 的编号</text>
+      <view class="input-paper">
+        <input 
+          class="hand-input" 
+          placeholder="在此粘贴 TA 的编号..." 
+          bindinput="onInputKey"
+          value="{{inputPartnerCode}}"
+        />
+      </view>
+      <button class="btn-bind" bindtap="bindPartner">确认关联</button>
+    </view>
+  </view>
+
+  <view class="connected-card" wx:else>
     
-    <view class="danger-zone">
-      <button 
-        class="btn-unbind" 
-        bindtap="onUnbind" 
-      >⚠️ Terminate Connection</button>
-      <text class="danger-hint">*此操作仅限管理员/付费用户</text>
+    <view class="cp-avatars">
+      <image 
+        class="cp-avatar mine" 
+        src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
+        mode="aspectFill"
+      ></image>
+      
+      <view class="cp-link-heart">❤</view>
+      
+      <image 
+        class="cp-avatar partner" 
+        src="{{partnerData.avatarUrl || '../../images/default-avatar.png'}}" 
+        mode="aspectFill"
+      ></image>
     </view>
+
+    <text class="connected-text">与 {{partnerData.nickName || 'TA'}} 共同记录中</text>
+    <text class="connected-sub">美好的回忆正在发生...</text>
+
+    <view class="unbind-area" bindtap="onUnbind">
+      <text>解除关联</text>
+    </view>
+  </view>
+
+  <view class="footer">
+    <text>Our Memory · 我们的纪念册</text>
   </view>
 
 </view>

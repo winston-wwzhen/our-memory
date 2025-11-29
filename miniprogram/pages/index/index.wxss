@@ -202,3 +202,79 @@ page {
   text-transform: uppercase;
   opacity: 0.8;
 }
+
+.confirm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-around; /* 分散对齐 */
+  width: 100%;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+/* 垂直排列的图标按钮容器 */
+.action-btn-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 圆形图标按钮 */
+.btn-icon {
+  width: 80rpx !important;
+  height: 80rpx !important;
+  border-radius: 50% !important;
+  background: #f0f2f5 !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.05);
+  color: #333;
+}
+
+/* 按钮下方的文字 */
+.btn-label {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 10rpx;
+  font-weight: 500;
+}
+
+/* 主确认按钮 - 胶囊形状，更突出 */
+.btn-confirm-main {
+  background: #333 !important;
+  color: #fff !important;
+  border-radius: 40rpx !important;
+  padding: 0 60rpx !important;
+  height: 80rpx !important;
+  line-height: 80rpx !important;
+  font-size: 28rpx !important;
+  font-weight: bold;
+  box-shadow: 0 8rpx 16rpx rgba(0,0,0,0.2);
+  margin: 0 0 0 30rpx !important; /* 离左边按钮远一点 */
+}
+
+/* 异地小贴士样式 */
+.remote-tip-box {
+  margin-top: 16rpx;
+  background-color: #f0f7ff; /* 浅蓝色背景，以此区分 */
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+}
+
+.remote-icon {
+  font-size: 24rpx;
+  margin-right: 10rpx;
+}
+
+.remote-text {
+  font-size: 22rpx;
+  color: #6a8bad; /* 较深的蓝色文字 */
+  line-height: 1.4;
+}

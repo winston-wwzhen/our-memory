@@ -7,6 +7,7 @@ Page({
       avatarUrl: DEFAULT_AVATAR,
       nickName: "微信用户",
     },
+    partnerData: null, // 🆕 新增：用于存伴侣的信息
     inputPartnerCode: "", // 对方的密钥
     needSave: false, 
     partnerShortID: "",
@@ -50,9 +51,10 @@ Page({
       data: { action: "login" },
       success: (res) => {
         if (res.result.status === 200 || res.result.status === 201) {
-          const user = res.result.user;
+          const { user, partner } = res.result; // 👈 解构出 partner
           this.setData({
             userData: user,
+            partnerData: partner,
             partnerShortID: user.partner_id
               ? "..." + user.partner_id.slice(-6)
               : "",

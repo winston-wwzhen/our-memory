@@ -13,6 +13,12 @@
           <text class="note-title">今日限定：{{currentTask.title}}</text>
         </view>
         <text class="note-desc">{{currentTask.description}}</text>
+
+        <view class="remote-tip-box">
+          <text class="remote-icon">📡</text>
+          <text class="remote-text">异地恋小贴士：视频通话截图也能甜蜜暴击哦！</text>
+        </view>
+
         <view class="note-footer">
           <text class="difficulty-tag">甜蜜度 Lv.{{currentTask.difficulty}}</text>
           <text class="date-tag">{{todayDateStr}}</text>
@@ -47,17 +53,40 @@
     </view>
 
     <view class="action-bar">
-      <button 
-        class="shutter-button" 
-        bindtap="onCapture" 
-        disabled="{{loading}}"
-        hover-class="shutter-hover"
-      >
-        <view class="shutter-inner">
-          <view class="shutter-icon"></view>
+      
+      <block wx:if="{{!pendingSave}}">
+        <button 
+          class="shutter-button" 
+          bindtap="onCapture" 
+          disabled="{{loading}}"
+          hover-class="shutter-hover"
+        >
+          <view class="shutter-inner">
+            <view class="shutter-icon"></view>
+          </view>
+        </button>
+        <text class="action-hint">Tap to mark</text>
+      </block>
+
+      <block wx:else>
+        <view class="confirm-actions">
+          
+          <view class="action-btn-wrapper" bindtap="onSaveToPhone">
+            <button class="btn-icon" size="mini">⬇️</button>
+            <text class="btn-label">保存</text>
+          </view>
+
+          <view class="action-btn-wrapper" bindtap="onRetry">
+            <button class="btn-icon" size="mini">🔄</button>
+            <text class="btn-label">重拍 (剩{{remainingCount}}次)</text>
+          </view>
+
+          <button class="btn-confirm-main" bindtap="onConfirmSave">
+            确认打卡
+          </button>
+
         </view>
-      </button>
-      <text class="action-hint">Tap to mark</text>
+      </block>
     </view>
   </view>
 </view>
