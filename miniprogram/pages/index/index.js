@@ -1,7 +1,7 @@
 // miniprogram/pages/index/index.js
 const app = getApp();
 
-const DAILY_LIMIT = 1; // 与云端保持一致
+const DAILY_LIMIT = 3; 
 
 Page({
   data: {
@@ -12,9 +12,9 @@ Page({
     
     pendingSave: false,
     tempFileID: "",
-    remainingCount: 3, // 默认为 3
+    remainingCount: 3, 
     
-    hasCheckedInToday: false, // 🆕 新增：今日是否已打卡
+    hasCheckedInToday: false, // 核心状态：今日是否已打卡
     
     randomSampleImg: "", 
     sampleImages: [
@@ -36,7 +36,6 @@ Page({
   },
 
   onShow: function() {
-    // 每次显示页面都刷新一下状态
     this.checkUserStatus();
   },
 
@@ -44,23 +43,30 @@ Page({
     this.fetchDailyMission();
     this.pickRandomSample();
     this.pickDailyQuote();
-    // this.checkUserStatus(); // onShow 里已经调了
   },
 
   checkUserStatus: function() {
-    // 1. 获取用户信息
+    // 1. 获取用户信息 (水滴、VIP等)
     wx.cloud.callFunction({
       name: 'user_center',
       data: { action: 'login' },
       success: res => {
         if (res.result.status === 200 || res.result.status === 201) {
-          const { user, isVip } = res.result; // 👈 解构出 isVip
+          const { user, isVip, loginBonus } = res.result; 
+          
+          if (loginBonus && loginBonus > 0) {
+            wx.showToast({
+              title: `每日登录 +${loginBonus}g 爱意`,
+              icon: 'none',
+              duration: 3000
+            });
+          }
+
           const stats = user.daily_usage || { date: '', count: 0 };
           
-          // 计算剩余次数
           let remaining;
           if (isVip) {
-             remaining = 999; // 👑 VIP 显示无限 (或999)
+             remaining = 999; 
           } else {
              const now = new Date();
              const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -74,25 +80,23 @@ Page({
     });
 
     // 2. 获取最新回忆 (查今日是否已打卡)
+    // 🔴 修复核心：确保日期格式与数据库一致 (YYYY-MM-DD)
     wx.cloud.callFunction({
       name: 'get_memory_lane',
-      data: { page: 0, pageSize: 1 }, // 只查最新的一条
+      data: { page: 0, pageSize: 1 }, 
       success: res => {
         if (res.result.status === 200 && res.result.data.length > 0) {
           const latestLog = res.result.data[0];
-          // 这里的 dateStr 是云函数返回的 'YYYY-MM-DD'
-          // this.data.todayDateStr 在 fetchDailyMission 里获取，可能有时差，建议统一用返回的日期对比
-          // 简单做法：直接看 latestLog.originalDate 是否等于今天的日期
           
-          // 重新获取一下今天的标准字符串
+          // 手动构造标准日期字符串 YYYY-MM-DD
           const now = new Date();
-          const todayStr = now.toLocaleDateString(); // 小程序的 toLocaleDateString 格式可能不统一，建议用下面的标准格式
-          const todayStandard = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`; // 数据库存的是 YYYY/M/D 或 YYYY-MM-DD，视之前实现而定
-          
-          // 更加稳妥的对比：
-          // 假设 get_daily_mission 返回的 todayDateStr 是标准格式
-          // 我们这里简单判断一下
-          if (latestLog.originalDate === this.data.todayDateStr) {
+          const y = now.getFullYear();
+          const m = String(now.getMonth() + 1).padStart(2, '0');
+          const d = String(now.getDate()).padStart(2, '0');
+          const todayStandard = `${y}-${m}-${d}`;
+
+          // 对比数据库中的 originalDate
+          if (latestLog.originalDate === todayStandard) {
             this.setData({ hasCheckedInToday: true });
           } else {
             this.setData({ hasCheckedInToday: false });
@@ -127,7 +131,7 @@ Page({
             currentTask: res.result.task,
             todayDateStr: res.result.dateStr,
           });
-          // 拿到日期后，再检查一下状态比较稳妥
+          // 拿到任务后再次检查状态，确保万无一失
           this.checkUserStatus();
         }
       },
@@ -139,7 +143,6 @@ Page({
   },
 
   onCapture: function () {
-    // 检查剩余次数
     if (this.data.remainingCount <= 0) {
       wx.showModal({
         title: '今日额度已尽',
@@ -214,15 +217,17 @@ Page({
     });
   },
 
+  // 🔴 核心修复：保存前的二次确认逻辑
   onConfirmSave: function() {
     if (!this.data.tempFileID) return;
     
-    // 🆕 二次确认逻辑：如果今天已打卡，弹出提示
+    // 检查 hasCheckedInToday 状态
     if (this.data.hasCheckedInToday) {
       wx.showModal({
         title: '确认覆盖？',
-        content: '今天已经打过卡啦，确认要用这张新照片替换掉原来的吗？',
-        confirmText: '替换',
+        content: '今天已经打过卡啦，保存新照片将覆盖旧照片哦。\n(注：今日的打卡奖励已领取)',
+        confirmText: '覆盖',
+        cancelText: '取消',
         confirmColor: '#ff6b81',
         success: (res) => {
           if (res.confirm) {
@@ -231,11 +236,11 @@ Page({
         }
       });
     } else {
+      // 没打过卡，直接保存
       this.doSave();
     }
   },
 
-  // 抽离保存逻辑
   doSave: function() {
     wx.showLoading({ title: '正在珍藏...' });
     wx.cloud.callFunction({
@@ -247,14 +252,15 @@ Page({
       success: res => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          wx.showToast({ title: '已存入纪念册', icon: 'success' });
+          wx.showToast({ title: res.result.msg, icon: 'none', duration: 2500 });
+          
           this.setData({ 
             pendingSave: false,
             hasCheckedInToday: true // 更新状态为已打卡
           }); 
           this.pickDailyQuote(); 
           this.pickRandomSample(); 
-          this.checkUserStatus(); // 刷新一下次数
+          this.checkUserStatus(); 
         } else {
           wx.showToast({ title: '保存失败', icon: 'none' });
         }

@@ -13,11 +13,11 @@
           已珍藏 <text class="days-highlight">{{totalDays}}</text> 个心动瞬间
         </view>
         
-        <view class="gift-desc" wx:if="{{totalDays < 100}}">
-          再坚持 <text class="days-left">{{100 - totalDays}}</text> 天，解锁【动态时光影集】✨
+        <view class="gift-desc" wx:if="{{totalDays < 30}}">
+          再坚持 <text class="days-left">{{30 - totalDays}}</text> 天，解锁【动态时光影集】✨
         </view>
         <view class="gift-desc" wx:else>
-          🎉 恭喜达成百日成就！神秘惊喜准备中...
+          🎉 恭喜达成30天成就！神秘惊喜准备中...
         </view>
       </view>
     </view>

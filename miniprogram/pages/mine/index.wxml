@@ -19,6 +19,7 @@
       <view class="timer-footer">Love is a long journey.</view>
     </view>
   </block>
+
   <block wx:else>
     <view class="welcome-card paper-texture">
       <view class="welcome-header">

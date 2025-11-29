@@ -1,0 +1,70 @@
+<view class="playground-container">
+  
+  <view class="garden-card paper-texture">
+    <view class="card-header">
+      <text class="card-title">🌹 爱情结晶·玫瑰</text>
+      <view class="harvest-badge" wx:if="{{harvestCount > 0}}">
+        <text>🏆 已收获: {{harvestCount}}朵</text>
+      </view>
+      <view class="water-badge" wx:else>
+        <text>💧 爱意: {{waterCount}}g</text>
+      </view>
+    </view>
+
+    <view class="water-info-sub" wx:if="{{harvestCount > 0}}">
+        <text>💧 当前爱意: {{waterCount}}g</text>
+    </view>
+
+    <view class="plant-stage">
+      <image wx:if="{{level === 1}}" src="../../images/flower_stage_1.png" mode="aspectFit" class="flower-img bounce-anim"></image>
+      <image wx:elif="{{level === 2}}" src="../../images/flower_stage_2.png" mode="aspectFit" class="flower-img bounce-anim"></image>
+      <image wx:else src="../../images/flower_stage_3.png" mode="aspectFit" class="flower-img {{level >= 4 ? 'glow-anim' : 'bounce-anim'}}"></image>
+    </view>
+
+    <view class="progress-box">
+      <view class="progress-bar">
+        <view class="progress-inner" style="width: {{level >= 4 ? 100 : progress}}%; background: #ff6b81;"></view>
+      </view>
+      <text class="level-text" wx:if="{{level < 4}}">Lv.{{level}} 培育进度 ({{growth}}/{{maxGrowth}})</text>
+      <text class="level-text max-level" wx:else>🌟 玫瑰已盛开，快去收获吧！ 🌟</text>
+    </view>
+
+    <button class="btn-harvest" bindtap="onHarvest" wx:if="{{level >= 4}}">
+      <text>🏆 收获这朵玫瑰</text>
+    </button>
+
+    <button class="btn-water" bindtap="onWater" disabled="{{loading}}" style="background: #ff6b81; box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);" wx:else>
+      <text>注入爱意 (10g)</text>
+    </button>
+    
+    <view class="tip-text" wx:if="{{level < 4}}">📸 每日合照打卡，收集爱的养分 (+50g)</view>
+    <view class="tip-text" wx:else>收获后将开启新的一轮种植 🌱</view>
+  </view>
+
+  <view class="grid-menu">
+    <view class="grid-item paper-texture" bindtap="onTodo">
+      <view class="grid-icon">🎲</view>
+      <text class="grid-title">决定转盘</text>
+      <text class="grid-desc">治愈选择困难</text>
+    </view>
+    
+    <view class="grid-item paper-texture" bindtap="onTodo">
+      <view class="grid-icon">💊</view>
+      <text class="grid-title">时光胶囊</text>
+      <text class="grid-desc">寄给未来</text>
+    </view>
+
+    <view class="grid-item paper-texture" bindtap="onTodo">
+      <view class="grid-icon">📝</view>
+      <text class="grid-title">默契问答</text>
+      <text class="grid-desc">每日一测</text>
+    </view>
+
+    <view class="grid-item paper-texture" bindtap="onTodo">
+      <view class="grid-icon">🎁</view>
+      <text class="grid-title">心愿卡券</text>
+      <text class="grid-desc">爱的承诺</text>
+    </view>
+  </view>
+
+</view>
