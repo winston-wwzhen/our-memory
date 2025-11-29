@@ -1,7 +1,7 @@
 // miniprogram/pages/index/index.js
 const app = getApp();
 
-const DAILY_LIMIT = 3; // 与云端保持一致
+const DAILY_LIMIT = 1; // 与云端保持一致
 
 Page({
   data: {
