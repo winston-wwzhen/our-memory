@@ -16,9 +16,8 @@ Page({
     // 随机插画数据
     randomSampleImg: "", 
     sampleImages: [
-      '../../images/default-photo.png', 
-      '../../images/default-photo2.png', 
-      '../../images/default-photo3.png'
+      '../../images/default-photo1.png', 
+      '../../images/default-photo2.png'
     ],
 
     // 每日一句数据

@@ -8,7 +8,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const DAILY_LIMIT = 3;
+const DAILY_LIMIT = 5;
 // 👑 白名单
 const SUDO_USERS = [];
 

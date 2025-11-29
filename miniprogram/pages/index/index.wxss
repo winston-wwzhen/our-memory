@@ -49,7 +49,7 @@ page {
 
 /* === 顶部任务卡片 (更通透) === */
 .task-note-container {
-  margin-bottom: 20rpx; position: relative;
+  margin-bottom: 60rpx; position: relative;
 }
 
 .task-note {
@@ -136,8 +136,33 @@ page {
 .empty-state-cover {
   width: 100%; height: 100%; position: relative; background-color: #fff5ee; 
 }
-.sample-img {
-  width: 100%; height: 100%; object-fit: cover; opacity: 1; filter: none; 
+/* === 空状态优化 (高斯模糊版) === */
+.empty-state-cover {
+  width: 100%; height: 100%; position: relative; 
+  background-color: #f0f0f0; 
+  overflow: hidden; /* 防止模糊边缘溢出 */
+  border-radius: 4rpx;
+}
+
+/* 1. 背景层：模糊、放大、变暗 */
+.sample-img-bg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  filter: blur(20rpx) brightness(0.8); /* 模糊20px，亮度调低凸显前景 */
+  transform: scale(1.2); /* 放大一点，防止模糊边缘露出白边 */
+  z-index: 1;
+}
+
+/* 2. 前景层：清晰、居中、完整 */
+.sample-img-main {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 2; /* 浮在背景之上 */
+}
+
+.empty-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: transparent;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 5; /* 确保按钮在最上层 */
 }
 
 .empty-overlay {
@@ -177,6 +202,33 @@ page {
   text-align: center; margin-top: 40rpx;
   font-family: 'Courier New', serif; 
   color: #a1887f; font-size: 26rpx; letter-spacing: 2rpx; /* 暖棕色手写字 */
+}
+
+/* === 🆕 新增：Loading 遮罩样式 === */
+.loading-mask {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.85); /* 半透明白底 */
+  backdrop-filter: blur(4px); /* 毛玻璃效果 */
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 20;
+}
+
+.loading-spinner {
+  width: 60rpx; height: 60rpx;
+  border: 6rpx solid #ffd1dc; /* 浅粉底色 */
+  border-top: 6rpx solid #ff6b81; /* 深粉转动色 */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+.loading-text {
+  font-size: 26rpx; color: #ff6b81; font-weight: bold; letter-spacing: 2rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* === 每日一句样式 (文字颜色加深) === */

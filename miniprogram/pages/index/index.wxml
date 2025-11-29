@@ -34,7 +34,18 @@
         ></image>
 
         <view class="empty-state-cover" wx:else>
-          <image src="{{randomSampleImg}}" mode="aspectFill" class="sample-img"></image> 
+          
+          <image 
+            src="{{randomSampleImg}}" 
+            mode="aspectFill" 
+            class="sample-img-bg"
+          ></image> 
+          
+          <image 
+            src="{{randomSampleImg}}" 
+            mode="aspectFit" 
+            class="sample-img-main"
+          ></image> 
           
           <view class="empty-overlay">
             <view class="camera-btn-circle">
@@ -43,6 +54,11 @@
             </view>
             <text class="empty-hint">点击此处 记录心动</text>
           </view>
+        </view>
+
+        <view class="loading-mask" wx:if="{{loading}}">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">AI 正在绘图中...</text>
         </view>
 
       </view>

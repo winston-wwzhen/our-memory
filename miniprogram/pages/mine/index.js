@@ -1,3 +1,4 @@
+// miniprogram/pages/mine/index.js
 const app = getApp();
 const DEFAULT_AVATAR = ''; 
 
@@ -39,7 +40,7 @@ Page({
     if (!myKey) return;
 
     return {
-      title: 'CP-IP 协议握手请求: 请与我连接',
+      title: '邀请你共同开启我们的纪念册', // 这里的文案也可以改得更温馨
       path: '/pages/mine/index?inviteCode=' + myKey,
       imageUrl: '/images/share-cover.png' 
     }
@@ -79,8 +80,8 @@ Page({
     const shortID = "..." + requesterID.slice(-6);
 
     wx.showModal({
-      title: '收到连接请求',
-      content: `用户 [${shortID}] 请求与你建立 CP 关系，是否同意？`,
+      title: '收到关联请求',
+      content: `用户 [${shortID}] 请求与你建立纪念册关联，是否同意？`,
       confirmText: '同意',
       confirmColor: '#ff6b81',
       cancelText: '拒绝',
@@ -122,24 +123,24 @@ Page({
     });
   },
 
-// 用户点击解除关联
-onUnbind: function () {
-  wx.showModal({
-    title: "解除关联", // 去掉 ⚠️ 警告
-    content: "确定要解除与 TA 的关联吗？\n解除后将无法再共同记录回忆。", // 更感性的描述
-    confirmText: "解除", // 去掉“断开”
-    confirmColor: "#ccc", // 确认按钮改淡一点，降低攻击性
-    cancelText: "再想想", // 挽留文案保留
-    cancelColor: "#5d4037", // 取消按钮设为深色（主色调），引导用户留下来
-    success: (res) => {
-      if (res.confirm) { this.executeUnbind(); }
-    },
-  });
-},
+  // 用户点击解除关联
+  onUnbind: function () {
+    wx.showModal({
+      title: "解除关联",
+      content: "确定要解除与 TA 的关联吗？\n解除后将无法再共同记录回忆。",
+      confirmText: "解除",
+      confirmColor: "#ccc",
+      cancelText: "再想想",
+      cancelColor: "#5d4037",
+      success: (res) => {
+        if (res.confirm) { this.executeUnbind(); }
+      },
+    });
+  },
 
   // 执行解除逻辑
   executeUnbind: function () {
-    wx.showLoading({ title: "处理中..." }); // 去掉“正在断开”
+    wx.showLoading({ title: "处理中..." });
     
     wx.cloud.callFunction({
       name: "user_center",
@@ -147,7 +148,7 @@ onUnbind: function () {
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          wx.showToast({ title: "已解除关联", icon: "success" }); // 去掉“恢复单身”
+          wx.showToast({ title: "已解除关联", icon: "success" });
           this.setData({ partnerShortID: "", partnerData: null }); // 清空伴侣数据
           this.checkLogin(); 
         } else if (res.result.status === 403) {
@@ -167,7 +168,7 @@ onUnbind: function () {
     if (!this.data.userData._openid) return;
     wx.setClipboardData({
       data: this.data.userData._openid,
-      success: () => wx.showToast({ title: "密钥已复制", icon: "none" }),
+      success: () => wx.showToast({ title: "编号已复制", icon: "none" }),
     });
   },
 
@@ -175,24 +176,23 @@ onUnbind: function () {
     this.setData({ inputPartnerCode: e.detail.value });
   },
 
-  // ✏️ 修改：现在是发送“请求”，而不是直接绑定
+  // 发送关联请求
   bindPartner: function () {
     const code = this.data.inputPartnerCode;
-    if (!code) return wx.showToast({ title: "请输入密钥", icon: "none" });
+    if (!code) return wx.showToast({ title: "请输入对方编号", icon: "none" });
 
     wx.showLoading({ title: "发送请求..." });
     
     wx.cloud.callFunction({
       name: "user_center",
       data: { 
-        action: "request_bind", // 修改动作：请求绑定
+        action: "request_bind",
         partnerCode: code 
       },
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: "请求已发送", icon: "success" });
-          // 清空输入框
           this.setData({ inputPartnerCode: '' });
         } else {
           wx.showModal({ title: "发送失败", content: res.result.msg, showCancel: false });
