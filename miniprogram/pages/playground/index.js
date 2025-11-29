@@ -42,7 +42,7 @@ Page({
             waterCount: water,
             growth: currentG,
             level: lv,
-            progress: finalProgress + '%',
+            progress: finalProgress,
             harvestCount: harvests
           });
         }
