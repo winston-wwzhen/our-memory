@@ -1,20 +1,30 @@
 /* pages/mine/index.wxss */
 page { 
-  background: #fdfbf7; /* 暖米色背景 */
+  background: #fdfbf7; 
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  height: 100vh; /* 锁定高度 */
+  overflow: hidden; /* 禁止滚动 */
 }
 
-.mine-container { padding: 40rpx; }
+.mine-container { 
+  padding: 30rpx 40rpx; /* 减小上下 padding */
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 上下对齐 */
+}
 
-/* 通用卡片样式：纸张质感 */
+/* 通用卡片样式：减小 padding */
 .paper-texture {
   background: #fff;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 24rpx rgba(149, 157, 165, 0.08); /* 柔和阴影 */
-  padding: 50rpx 40rpx;
-  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 24rpx rgba(149, 157, 165, 0.08); 
+  padding: 30rpx; /* 50rpx -> 30rpx */
+  margin-bottom: 20rpx; /* 40rpx -> 20rpx */
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* 允许头像徽章溢出 */
+  flex-shrink: 0; /* 防止被过度压缩 */
 }
 
 /* === 用户卡片 === */
@@ -22,75 +32,97 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: 20rpx; /* 底部留少一点 */
 }
 
 .avatar-wrapper {
   padding: 0;
-  width: 160rpx !important;
-  height: 160rpx !important;
+  width: 140rpx !important; /* 160 -> 140 */
+  height: 140rpx !important;
   border-radius: 50%;
-  margin-bottom: 20rpx;
+  margin-bottom: 20rpx; /* 30 -> 20 */
   background: none;
   box-shadow: 0 8rpx 16rpx rgba(0,0,0,0.1);
   border: 6rpx solid #fff; 
+  overflow: visible; 
+  position: relative;
 }
 .avatar-wrapper::after { border: none; }
 
-.avatar-img { width: 100%; height: 100%; border-radius: 50%; background-color: #f0f0f0; }
+.avatar-img { width: 100%; height: 100%; border-radius: 50%; background-color: #f0f0f0; display: block; }
 
-.edit-hint {
-  position: absolute; bottom: 0; left: 0; width: 100%;
-  background: rgba(0,0,0,0.5); color: #fff; font-size: 20rpx; text-align: center;
+/* 徽章微调 */
+.edit-badge {
+  position: absolute; bottom: -4rpx; right: -4rpx;
+  width: 44rpx; height: 44rpx; /* 50 -> 44 */
+  background: #fff; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24rpx; /* 28 -> 24 */
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15);
+  border: 4rpx solid #fdfbf7; color: #5d4037; z-index: 10;
 }
 
-.nickname-input {
-  font-size: 36rpx; font-weight: 600; color: #5d4037; text-align: center; margin-bottom: 10rpx;
+.nickname-row { margin-bottom: 16rpx; display: flex; justify-content: center; width: 100%; }
+.nickname-box {
+  display: flex; align-items: center; justify-content: center;
+  background: #fffbf0; padding: 10rpx 30rpx; /* 减小 padding */
+  border-radius: 40rpx; border: 2rpx dashed #e0d6c6; transition: all 0.2s;
 }
+.nickname-input { font-size: 30rpx; font-weight: 600; color: #5d4037; text-align: center; min-width: 120rpx; max-width: 300rpx; }
 .nickname-placeholder { color: #ccc; font-weight: normal; }
+.edit-icon { font-size: 26rpx; color: #a1887f; margin-left: 10rpx; opacity: 0.6; }
 
-.status-tag {
-  font-size: 24rpx; padding: 8rpx 24rpx; border-radius: 30rpx; margin-top: 10rpx; margin-bottom: 20rpx;
-}
+.status-tag { font-size: 22rpx; padding: 6rpx 20rpx; border-radius: 30rpx; margin-top: 6rpx; margin-bottom: 16rpx; }
 .status-tag.waiting { background: #f5f5f5; color: #999; }
 .status-tag.connected { background: #ffe4e8; color: #ff6b81; }
 
-.btn-save { background: #5d4037; color: #fff; border-radius: 30rpx; }
+.btn-save { background: #5d4037; color: #fff; border-radius: 30rpx; margin-top: 0; font-size: 24rpx; }
 
-/* === 邀请卡片 === */
-.card-header { text-align: center; margin-bottom: 40rpx; }
-.card-title { font-size: 32rpx; font-weight: bold; color: #5d4037; display: block; }
-.card-subtitle { font-size: 20rpx; color: #b0a4a4; letter-spacing: 2rpx; margin-top: 6rpx; text-transform: uppercase; }
-
-.label { font-size: 24rpx; color: #8d6e63; margin-bottom: 16rpx; display: block; font-weight: 500; }
-
-.code-display {
-  background: #fdf6e3; padding: 24rpx; border-radius: 16rpx; border: 2rpx dashed #dcc8ba;
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx;
+/* === 邀请卡片 (让它自适应) === */
+.action-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 内容居中 */
+  flex: 1; /* 自动占据剩余空间 */
+  margin-bottom: 10rpx; /* 底部留白减小 */
 }
-.code-text { font-family: monospace; color: #5d4037; font-size: 24rpx; width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.copy-tag { font-size: 20rpx; color: #ff9a9e; border: 2rpx solid #ff9a9e; padding: 4rpx 12rpx; border-radius: 20rpx; }
+
+.card-header { text-align: center; margin-bottom: 20rpx; }
+.card-title { font-size: 30rpx; font-weight: bold; color: #5d4037; display: block; }
+.card-subtitle { font-size: 18rpx; color: #b0a4a4; letter-spacing: 2rpx; margin-top: 4rpx; text-transform: uppercase; }
+
+.label { font-size: 22rpx; color: #8d6e63; margin-bottom: 10rpx; display: block; font-weight: 500; }
+
+.code-section { margin-bottom: 20rpx; }
+.code-display {
+  background: #fdf6e3; padding: 16rpx 20rpx; /* 减小 padding */
+  border-radius: 12rpx; border: 2rpx dashed #dcc8ba;
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx;
+}
+.code-text { font-family: monospace; color: #5d4037; font-size: 22rpx; width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.copy-tag { font-size: 18rpx; color: #ff9a9e; border: 2rpx solid #ff9a9e; padding: 2rpx 10rpx; border-radius: 20rpx; }
 
 .btn-share-pill {
   width: 100% !important; background: #5d4037; color: #fff; border-radius: 40rpx;
-  font-size: 26rpx; padding: 20rpx 0; font-weight: normal; box-shadow: 0 6rpx 12rpx rgba(93, 64, 55, 0.2);
+  font-size: 24rpx; padding: 16rpx 0; font-weight: normal; box-shadow: 0 4rpx 8rpx rgba(93, 64, 55, 0.2);
 }
 
-.divider-line { height: 2rpx; background: #eee; margin: 40rpx 0; position: relative; }
+.divider-line { height: 2rpx; background: #eee; margin: 20rpx 0; position: relative; }
 .divider-line::after {
   content: "OR"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  background: #fff; padding: 0 20rpx; color: #ccc; font-size: 20rpx;
+  background: #fff; padding: 0 16rpx; color: #ccc; font-size: 18rpx;
 }
 
-.input-wrapper { background: #f9f9f9; padding: 24rpx; border-radius: 16rpx; margin-bottom: 24rpx; }
-.code-input { font-size: 26rpx; color: #333; }
+.input-wrapper { background: #f9f9f9; padding: 16rpx 20rpx; border-radius: 12rpx; margin-bottom: 16rpx; }
+.code-input { font-size: 24rpx; color: #333; }
 
 .btn-connect-pill {
   width: 100% !important; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-  color: #fff; border-radius: 40rpx; font-size: 26rpx; padding: 20rpx 0; font-weight: bold;
-  box-shadow: 0 6rpx 12rpx rgba(255, 154, 158, 0.3);
+  color: #fff; border-radius: 40rpx; font-size: 26rpx; padding: 18rpx 0; font-weight: bold;
+  box-shadow: 0 4rpx 8rpx rgba(255, 154, 158, 0.3);
 }
 
-/* === 已连接状态 (全新设计) === */
+/* === 已连接状态 === */
 .connected-state {
   text-align: center;
   border: 2rpx solid #fff0f6;
@@ -101,44 +133,13 @@ page {
   justify-content: center;
 }
 
-.bg-decoration {
-  position: absolute; top: 20rpx; right: 20rpx; font-size: 40rpx; opacity: 0.5;
+/* ... (connected-state 内部样式稍微缩小字号即可，此处省略，因为通常连接后内容较少，不太会溢出) ... */
+/* ... 建议把 avatar 大小也稍微调小到 100rpx ... */
+
+/* === 底部版权 === */
+.footer-info {
+  text-align: center; font-size: 18rpx; color: #e0e0e0; margin-top: 10rpx; margin-bottom: 10rpx;
 }
-
-.cp-avatars-box {
-  display: flex; align-items: center; margin-bottom: 30rpx; position: relative;
-}
-
-.cp-avatar {
-  width: 120rpx; height: 120rpx; border-radius: 50%;
-  border: 6rpx solid #fff; box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.1);
-  background: #f0f0f0;
-}
-/* 头像部分重叠效果 */
-.cp-avatar.mine { margin-right: -20rpx; z-index: 2; }
-.cp-avatar.partner { margin-left: -20rpx; z-index: 1; filter: brightness(0.95); }
-
-.heart-beat {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  font-size: 40rpx; color: #ff6b81; z-index: 3;
-  text-shadow: 0 0 10rpx rgba(255, 255, 255, 0.8);
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.2); }
-  100% { transform: translate(-50%, -50%) scale(1); }
-}
-
-.love-title { font-size: 34rpx; font-weight: bold; color: #5d4037; margin-bottom: 8rpx; display: block; }
-.love-partner { font-size: 28rpx; color: #ff6b81; font-weight: 500; display: block; }
-.love-desc-sub { font-size: 22rpx; color: #b0a4a4; margin-top: 30rpx; display: block; }
-
-.footer-actions { margin-top: 60rpx; border-top: 2rpx dashed #f0f0f0; padding-top: 30rpx; width: 100%; }
-.unbind-link { font-size: 22rpx; color: #ccc; text-decoration: underline; }
-
-.footer-info { text-align: center; font-size: 20rpx; color: #e0e0e0; margin-top: 40rpx; }
 
 /* 按钮点击态 */
 button:active { transform: scale(0.98); opacity: 0.9; }

@@ -11,23 +11,26 @@
         src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
         mode="aspectFill"
       ></image>
-      <view class="edit-hint" wx:if="{{!userData.avatarUrl}}">点我变好看 ✨</view>
+      <view class="edit-badge">📷</view>
     </button>
 
-    <view class="nickname-box">
-      <input 
-        type="nickname" 
-        class="nickname-input" 
-        placeholder="写下你的名字" 
-        placeholder-class="nickname-placeholder"
-        value="{{userData.nickName}}" 
-        bind:change="onInputNickname"
-      />
+    <view class="nickname-row">
+      <view class="nickname-box">
+        <input 
+          type="nickname" 
+          class="nickname-input" 
+          placeholder="点击设置昵称" 
+          placeholder-class="nickname-placeholder"
+          value="{{userData.nickName}}" 
+          bind:change="onInputNickname"
+        />
+        <text class="edit-icon">✎</text>
+      </view>
     </view>
     
     <view class="status-tag {{userData.partner_id ? 'connected' : 'waiting'}}">
       <text wx:if="{{userData.partner_id}}">❤️ 恋爱纪念册</text>
-      <text wx:else>✨ 等待爱的连接</text>
+      <text wx:else>✨ 开启单人篇章</text>
     </view>
 
     <button 
@@ -35,39 +38,39 @@
       bindtap="saveProfile" 
       size="mini"
       wx:if="{{needSave}}"
-    >保存我的名片</button>
+    >保存资料</button>
   </view>
 
   <view class="action-card paper-texture" wx:if="{{!userData.partner_id}}">
     <view class="card-header">
-      <text class="card-title">💌 呼叫另一半</text>
-      <text class="card-subtitle">Connect with Love</text>
+      <text class="card-title">邀请另一半</text>
+      <text class="card-subtitle">Invite your love</text>
     </view>
     
     <view class="code-section">
-      <text class="label">我的恋爱暗号</text>
+      <text class="label">我的专属编号</text>
       <view class="code-display" bindtap="copyMyKey">
         <text class="code-text">{{userData._openid || '生成中...'}}</text>
         <view class="copy-tag">复制</view>
       </view>
       <button class="btn-share-pill" open-type="share">
-        🚀 发送邀请函
+        📤 发送给 TA
       </button>
     </view>
 
     <view class="divider-line"></view>
 
     <view class="input-section">
-      <text class="label">输入 TA 的暗号</text>
+      <text class="label">填入 TA 的编号</text>
       <view class="input-wrapper">
         <input 
           class="code-input" 
-          placeholder="在此粘贴 TA 的暗号..." 
+          placeholder="在此粘贴 TA 的编号..." 
           bindinput="onInputKey"
           value="{{inputPartnerCode}}"
         />
       </view>
-      <button class="btn-connect-pill" bindtap="bindPartner">🔒 锁定彼此</button>
+      <button class="btn-connect-pill" bindtap="bindPartner">确认关联</button>
     </view>
   </view>
 
@@ -92,21 +95,21 @@
     </view>
 
     <view class="love-content">
-      <text class="love-title">👩‍❤️‍💋‍👨 甜蜜连线中</text>
+      <text class="love-title">我们正在共同记录</text>
       
-      <text class="love-partner" wx:if="{{partnerData.nickName}}">与 {{partnerData.nickName}} 一起书写回忆</text>
-      <text class="love-partner" wx:else>与 TA ({{partnerShortID}}) 一起书写回忆</text>
+      <text class="love-partner" wx:if="{{partnerData.nickName}}">与 {{partnerData.nickName}}</text>
+      <text class="love-partner" wx:else>与 TA ({{partnerShortID}})</text>
       
-      <text class="love-desc-sub">往后余生，请多指教。</text>
+      <text class="love-desc-sub">未来的每一天，都值得被珍藏。</text>
     </view>
     
     <view class="footer-actions">
-      <view class="unbind-link" bindtap="onUnbind">💔 暂时断开</view>
+      <view class="unbind-link" bindtap="onUnbind">解除关联</view>
     </view>
   </view>
 
   <view class="footer-info">
-    <text>Made with ❤️ for Us</text>
+    <text>Designed for Love</text>
   </view>
 
 </view>

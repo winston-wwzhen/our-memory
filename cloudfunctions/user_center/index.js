@@ -5,21 +5,28 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 📅 辅助函数：获取北京时间日期字符串 (YYYY-MM-DD)
-function getBeijingDateStr() {
-  const now = new Date();
-  // UTC+8
-  const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  return beijingTime.toISOString().split('T')[0]; 
+// 🆕 文艺昵称库
+const RANDOM_NAMES = [
+  "予你星河", "满眼星辰", "温柔本身", "限定温柔", 
+  "捕获月亮", "追光者", "心动嘉宾", "贩卖快乐", 
+  "揉碎星光", "山河入梦", "清风徐来", "一纸情书", 
+  "半夏微凉", "时光笔录", "岁岁平安", "三餐四季",
+  "可乐加冰", "全糖去冰", "偷得浮生", "朝朝暮暮",
+  "白茶清欢", "云朵偷喝我酒", "星河滚烫", "人间理想"
+]
+
+// 🆕 辅助函数：随机获取名字
+function getRandomName() {
+  const idx = Math.floor(Math.random() * RANDOM_NAMES.length);
+  return RANDOM_NAMES[idx];
 }
 
-// 🆕 辅助函数：读取全局配置
+// 辅助函数：读取全局配置
 async function getSudoUsers() {
   try {
     const res = await db.collection('app_config').doc('global_settings').get();
     return res.data.sudo_users || [];
   } catch (err) {
-    console.error('读取全局配置失败:', err);
     return []; 
   }
 }
@@ -28,25 +35,30 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const myOpenID = wxContext.OPENID;
   const { action, partnerCode, decision, userInfo, imageFileID } = event;
-  
-  // 获取今日日期 (用于打卡查重)
-  const todayStr = getBeijingDateStr();
 
-  // 获取动态白名单
   const SUDO_USERS = await getSudoUsers();
 
   // 1. 登录 (Login)
   if (action === 'login') {
     let currentUser = null;
-    
-    // ... (这一段获取/创建用户的逻辑保持不变) ...
     const res = await db.collection('users').where({ _openid: myOpenID }).get();
+    
     if (res.data.length > 0) {
       currentUser = res.data[0];
+      // 🆕 如果老用户还是“微信用户”，趁机给他改个名 (可选优化)
+      if (currentUser.nickName === '微信用户') {
+         const newName = getRandomName();
+         await db.collection('users').doc(currentUser._id).update({ data: { nickName: newName }});
+         currentUser.nickName = newName;
+      }
     } else {
+      // 🆕 新用户注册：随机取名
+      const randomNick = getRandomName();
+      
       const newUser = {
         _openid: myOpenID,
-        nickName: userInfo?.nickName || '微信用户',
+        // 如果前端没传名字，或者传的是默认值，就用随机名
+        nickName: (userInfo?.nickName && userInfo.nickName !== '微信用户') ? userInfo.nickName : randomNick,
         avatarUrl: userInfo?.avatarUrl || '',
         partner_id: null,
         bind_request_from: null,
@@ -56,7 +68,6 @@ exports.main = async (event, context) => {
       currentUser = newUser;
     }
 
-    // ... (这一段获取伴侣的逻辑保持不变) ...
     let partnerInfo = null;
     if (currentUser.partner_id) {
       const partnerRes = await db.collection('users')
@@ -66,14 +77,11 @@ exports.main = async (event, context) => {
       if (partnerRes.data.length > 0) partnerInfo = partnerRes.data[0];
     }
 
-    // 🆕 新增：判断是否是 VIP
-    const isVip = SUDO_USERS.includes(myOpenID);
-
     return { 
       status: 200, 
       user: currentUser, 
       partner: partnerInfo,
-      isVip: isVip // 👈 把身份告诉前端
+      isVip: SUDO_USERS.includes(myOpenID)
     };
   }
 
@@ -95,7 +103,7 @@ exports.main = async (event, context) => {
     return { status: 200, msg: '请求已发送' };
   }
 
-  // 3. 响应绑定请求
+  // 3. 响应绑定
   if (action === 'respond_bind') {
     if (!partnerCode) return { status: 400, msg: '参数缺失' };
 
@@ -133,6 +141,7 @@ exports.main = async (event, context) => {
 
   // 5. 解除绑定
   if (action === 'unbind') {
+    // 恢复限制：只有白名单用户可以解绑
     if (!SUDO_USERS.includes(myOpenID)) {
       return { status: 403, msg: '分手服务暂未开放 (需要冷静期)' };
     }
@@ -150,48 +159,44 @@ exports.main = async (event, context) => {
     return { status: 200, msg: '已解除关联' };
   }
 
-  // 6. 🆕 确认打卡 (支持覆盖旧记录)
+  // 6. 确认打卡
   if (action === 'check_in') {
     if (!imageFileID) return { status: 400, msg: '无图无真相' };
+    
+    // 获取北京时间
+    const now = new Date();
+    const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const todayStr = beijingTime.toISOString().split('T')[0];
 
-    try {
-      // 6.1 先查今天有没有打过卡
-      // 注意：这里用 originalDate 来判断是否是“同一天”的任务
-      const oldLogRes = await db.collection('logs').where({
-        _openid: myOpenID,
-        originalDate: todayStr // 今天的日期
-      }).get();
+    // 查重逻辑
+    const oldLogRes = await db.collection('logs').where({
+      _openid: myOpenID,
+      originalDate: todayStr
+    }).get();
 
-      if (oldLogRes.data.length > 0) {
-        // ➤ 情况 A: 今天已打卡 -> 执行替换 (Update)
-        const oldLogId = oldLogRes.data[0]._id;
-        await db.collection('logs').doc(oldLogId).update({
-          data: {
-            imageFileID: imageFileID, // 替换图片
-            updatedAt: db.serverDate(), // 记录更新时间
-            style: 'success'
-          }
-        });
-        return { status: 200, msg: '今日打卡已更新！' };
-        
-      } else {
-        // ➤ 情况 B: 今天没打卡 -> 执行新增 (Add)
-        await db.collection('logs').add({
-          data: {
-            _openid: myOpenID,
-            createdAt: db.serverDate(),
-            imageFileID: imageFileID,
-            originalDate: todayStr,
-            type: 'daily_check_in',
-            engine: 'tencent',
-            style: 'success'
-          }
-        });
-        return { status: 200, msg: '打卡成功！' };
-      }
-    } catch (err) {
-      console.error(err);
-      return { status: 500, msg: '打卡失败，请重试' };
+    if (oldLogRes.data.length > 0) {
+      const oldLogId = oldLogRes.data[0]._id;
+      await db.collection('logs').doc(oldLogId).update({
+        data: {
+          imageFileID: imageFileID,
+          updatedAt: db.serverDate(),
+          style: 'success'
+        }
+      });
+      return { status: 200, msg: '今日打卡已更新！' };
+    } else {
+      await db.collection('logs').add({
+        data: {
+          _openid: myOpenID,
+          createdAt: db.serverDate(),
+          imageFileID: imageFileID,
+          originalDate: todayStr,
+          type: 'daily_check_in',
+          engine: 'tencent',
+          style: 'success'
+        }
+      });
+      return { status: 200, msg: '打卡成功！' };
     }
   }
 };
