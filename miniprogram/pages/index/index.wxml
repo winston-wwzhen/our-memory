@@ -1,22 +1,19 @@
 <view class="journal-container">
   
-  <view class="ambient-light top-light"></view>
-  <view class="ambient-light bottom-light"></view>
-
   <view class="content-wrapper">
-    <view class="task-note-container" wx:if="{{currentTask}}">
-      <view class="washi-tape tape-top-left"></view>
-      
+    <view class="task-note-container slide-in-down" wx:if="{{currentTask}}">
       <view class="task-note">
         <view class="note-header">
           <text class="note-icon">{{currentTask.icon}}</text>
-          <text class="note-title">今日限定：{{currentTask.title}}</text>
+          <view class="header-text">
+            <text class="note-label">今日限定</text>
+            <text class="note-title">{{currentTask.title}}</text>
+          </view>
         </view>
         <text class="note-desc">{{currentTask.description}}</text>
-
+        
         <view class="remote-tip-box">
-          <text class="remote-icon">📡</text>
-          <text class="remote-text">异地恋小贴士：视频通话截图也能甜蜜暴击哦！</text>
+          <text>💡 异地贴士：视频通话截图也能甜蜜暴击哦！</text>
         </view>
 
         <view class="note-footer">
@@ -26,67 +23,59 @@
       </view>
     </view>
 
-    <view class="polaroid-frame {{loading ? 'developing-pulse' : ''}}">
+    <view class="polaroid-frame {{loading ? 'developing-pulse' : 'floating-updown'}}" bindtap="{{!pendingSave ? 'onCapture' : ''}}">
       <view class="photo-area">
+        
         <image 
           src="{{displayImage}}" 
           mode="aspectFill" 
           class="the-photo"
           wx:if="{{displayImage}}"
         ></image>
-        <view class="placeholder-state" wx:else>
-           <view class="css-camera-icon">
-            <view class="cam-body">
-              <view class="cam-lens"></view>
-              <view class="cam-flash"></view>
+
+        <view class="empty-state-cover" wx:else>
+          <image src="{{randomSampleImg}}" mode="aspectFill" class="sample-img"></image> 
+          
+          <view class="empty-overlay">
+            <view class="camera-btn-circle">
+              <view class="btn-ripple"></view>
+              <image src="../../images/camera-icon.png" class="camera-icon-img"></image>
             </view>
+            <text class="empty-hint">点击此处 记录心动</text>
           </view>
-          <text class="placeholder-text">点击快门，捕捉今日份心动</text>
         </view>
+
       </view>
       
       <view class="handwriting-caption">
-        <text wx:if="{{loading}}">正在冲洗爱的影像...</text>
+        <text wx:if="{{loading}}">正在施展魔法...</text>
         <text wx:elif="{{displayImage}}" class="success-text">✨ Our Magic Moment ✨</text>
-        <text wx:else class="waiting-text">Waiting for us...</text>
+        <text wx:else class="waiting-text">Create your memory</text>
       </view>
     </view>
 
-    <view class="action-bar">
-      
-      <block wx:if="{{!pendingSave}}">
-        <button 
-          class="shutter-button" 
-          bindtap="onCapture" 
-          disabled="{{loading}}"
-          hover-class="shutter-hover"
-        >
-          <view class="shutter-inner">
-            <view class="shutter-icon"></view>
-          </view>
-        </button>
-        <text class="action-hint">Tap to mark</text>
-      </block>
-
-      <block wx:else>
-        <view class="confirm-actions">
-          
-          <view class="action-btn-wrapper" bindtap="onSaveToPhone">
-            <button class="btn-icon" size="mini">⬇️</button>
-            <text class="btn-label">保存</text>
-          </view>
-
-          <view class="action-btn-wrapper" bindtap="onRetry">
-            <button class="btn-icon" size="mini">🔄</button>
-            <text class="btn-label">重拍 (剩{{remainingCount}}次)</text>
-          </view>
-
-          <button class="btn-confirm-main" bindtap="onConfirmSave">
-            确认打卡
-          </button>
-
-        </view>
-      </block>
+    <view class="daily-quote-box fade-in" wx:if="{{!pendingSave}}">
+      <text class="quote-text">“{{dailyQuote.text}}”</text>
+      <text class="quote-author">— {{dailyQuote.author}} —</text>
     </view>
+
+    <view class="action-bar slide-in-up" wx:if="{{pendingSave}}">
+      <view class="confirm-actions">
+        <view class="action-btn-wrapper" catchtap="onSaveToPhone">
+          <view class="btn-circle sub"><text>⬇️</text></view>
+          <text class="btn-label">保存</text>
+        </view>
+
+        <view class="action-btn-wrapper" catchtap="onRetry">
+          <view class="btn-circle sub"><text>🔄</text></view>
+          <text class="btn-label">重拍 ({{remainingCount}})</text>
+        </view>
+
+        <button class="btn-confirm-main" catchtap="onConfirmSave">
+          确认打卡
+        </button>
+      </view>
+    </view>
+
   </view>
 </view>

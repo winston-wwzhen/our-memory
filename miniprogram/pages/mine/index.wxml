@@ -1,7 +1,7 @@
 <view class="mine-container">
   
-  <view class="profile-card">
-    <view class="pin-decoration"></view> <button 
+  <view class="user-card paper-texture">
+    <button 
       class="avatar-wrapper" 
       open-type="chooseAvatar" 
       bind:chooseavatar="onChooseAvatar"
@@ -11,70 +11,78 @@
         src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
         mode="aspectFill"
       ></image>
-      <view class="edit-badge" wx:if="{{!userData.avatarUrl}}">点击设置</view>
+      <view class="edit-hint" wx:if="{{!userData.avatarUrl}}">点击设置头像</view>
     </button>
 
-    <view class="info-area">
+    <view class="nickname-box">
       <input 
         type="nickname" 
         class="nickname-input" 
-        placeholder="请填写昵称" 
-        placeholder-class="placeholder-style"
+        placeholder="点击设置昵称" 
+        placeholder-class="nickname-placeholder"
         value="{{userData.nickName}}" 
         bind:change="onInputNickname"
       />
-      
-      <view class="save-hint" bindtap="saveProfile" wx:if="{{needSave}}">
-        <text>点击保存修改</text>
-      </view>
+    </view>
+    
+    <view class="status-tag {{userData.partner_id ? 'connected' : 'waiting'}}">
+      <text wx:if="{{userData.partner_id}}">❤️ 恋爱纪念册</text>
+      <text wx:else>✨ 开启单人篇章</text>
     </view>
 
-    <view class="status-stamp {{userData.partner_id ? 'stamp-connected' : 'stamp-single'}}">
-      {{userData.partner_id ? '已 关 联' : '单 人 篇'}}
-    </view>
+    <button 
+      class="btn-save" 
+      bindtap="saveProfile" 
+      size="mini"
+      wx:if="{{needSave}}"
+    >保存资料</button>
   </view>
 
-  <view class="envelope-card" wx:if="{{!userData.partner_id}}">
-    <view class="envelope-header">
-      <text class="envelope-title">邀请另一半</text>
-      <text class="envelope-sub">共同书写我们的纪念册</text>
+  <view class="action-card paper-texture" wx:if="{{!userData.partner_id}}">
+    <view class="card-header">
+      <text class="card-title">邀请另一半</text>
+      <text class="card-subtitle">Invite your love</text>
     </view>
-
-    <view class="step-box">
-      <text class="step-label">① 我的专属编号</text>
-      <view class="code-ticket" bindtap="copyMyKey">
-        <text class="ticket-num">{{userData._openid || '生成中...'}}</text>
-        <text class="ticket-action">复制</text>
+    
+    <view class="code-section">
+      <text class="label">我的专属编号</text>
+      <view class="code-display" bindtap="copyMyKey">
+        <text class="code-text">{{userData._openid || '生成中...'}}</text>
+        <view class="copy-tag">复制</view>
       </view>
-      <button class="btn-share" open-type="share">发送给 TA</button>
+      <button class="btn-share-pill" open-type="share">
+        📤 发送给 TA
+      </button>
     </view>
 
-    <view class="dashed-line"></view>
+    <view class="divider-line"></view>
 
-    <view class="step-box">
-      <text class="step-label">② 填入 TA 的编号</text>
-      <view class="input-paper">
+    <view class="input-section">
+      <text class="label">填入 TA 的编号</text>
+      <view class="input-wrapper">
         <input 
-          class="hand-input" 
+          class="code-input" 
           placeholder="在此粘贴 TA 的编号..." 
           bindinput="onInputKey"
           value="{{inputPartnerCode}}"
         />
       </view>
-      <button class="btn-bind" bindtap="bindPartner">确认关联</button>
+      <button class="btn-connect-pill" bindtap="bindPartner">确认关联</button>
     </view>
   </view>
 
-  <view class="connected-card" wx:else>
+  <view class="action-card paper-texture connected-state" wx:else>
     
-    <view class="cp-avatars">
+    <view class="bg-decoration">✨</view>
+
+    <view class="cp-avatars-box">
       <image 
         class="cp-avatar mine" 
         src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
         mode="aspectFill"
       ></image>
       
-      <view class="cp-link-heart">❤</view>
+      <view class="heart-beat">❤</view>
       
       <image 
         class="cp-avatar partner" 
@@ -83,16 +91,22 @@
       ></image>
     </view>
 
-    <text class="connected-text">与 {{partnerData.nickName || 'TA'}} 共同记录中</text>
-    <text class="connected-sub">美好的回忆正在发生...</text>
-
-    <view class="unbind-area" bindtap="onUnbind">
-      <text>解除关联</text>
+    <view class="love-content">
+      <text class="love-title">我们正在共同记录</text>
+      
+      <text class="love-partner" wx:if="{{partnerData.nickName}}">与 {{partnerData.nickName}}</text>
+      <text class="love-partner" wx:else>与 TA ({{partnerShortID}})</text>
+      
+      <text class="love-desc-sub">未来的每一天，都值得被珍藏。</text>
+    </view>
+    
+    <view class="footer-actions">
+      <view class="unbind-link" bindtap="onUnbind">解除关联</view>
     </view>
   </view>
 
-  <view class="footer">
-    <text>Our Memory · 我们的纪念册</text>
+  <view class="footer-info">
+    <text>Designed for Love</text>
   </view>
 
 </view>

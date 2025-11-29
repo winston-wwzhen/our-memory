@@ -122,39 +122,43 @@ Page({
     });
   },
 
-  onUnbind: function () {
-    wx.showModal({
-      title: "⚠️ 警告 (Warning)",
-      content: "确定要断开连接吗？此操作不可撤销。",
-      confirmText: "断开",
-      confirmColor: "#ff4d4f",
-      cancelText: "再想想",
-      success: (res) => {
-        if (res.confirm) { this.executeUnbind(); }
-      },
-    });
-  },
+// 用户点击解除关联
+onUnbind: function () {
+  wx.showModal({
+    title: "解除关联", // 去掉 ⚠️ 警告
+    content: "确定要解除与 TA 的关联吗？\n解除后将无法再共同记录回忆。", // 更感性的描述
+    confirmText: "解除", // 去掉“断开”
+    confirmColor: "#ccc", // 确认按钮改淡一点，降低攻击性
+    cancelText: "再想想", // 挽留文案保留
+    cancelColor: "#5d4037", // 取消按钮设为深色（主色调），引导用户留下来
+    success: (res) => {
+      if (res.confirm) { this.executeUnbind(); }
+    },
+  });
+},
 
+  // 执行解除逻辑
   executeUnbind: function () {
-    wx.showLoading({ title: "正在断开..." });
+    wx.showLoading({ title: "处理中..." }); // 去掉“正在断开”
+    
     wx.cloud.callFunction({
       name: "user_center",
       data: { action: "unbind" },
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          wx.showToast({ title: "恢复单身", icon: "success" });
-          this.setData({ partnerShortID: "" });
+          wx.showToast({ title: "已解除关联", icon: "success" }); // 去掉“恢复单身”
+          this.setData({ partnerShortID: "", partnerData: null }); // 清空伴侣数据
           this.checkLogin(); 
         } else if (res.result.status === 403) {
-          wx.showModal({ title: "权限不足", content: res.result.msg, showCancel: false });
+          wx.showModal({ title: "提示", content: res.result.msg, showCancel: false });
         } else {
           wx.showToast({ title: "操作失败", icon: "none" });
         }
       },
       fail: (err) => {
         wx.hideLoading();
-        wx.showToast({ title: "网络错误", icon: "none" });
+        wx.showToast({ title: "网络开小差了", icon: "none" });
       },
     });
   },

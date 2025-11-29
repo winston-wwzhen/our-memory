@@ -1,318 +1,144 @@
-/* miniprogram/pages/mine/index.wxss */
-page {
-  background-color: #f6f3e8; /* 柔和的米黄色背景 */
-  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-  color: #5d4037; /* 深棕色文字，比黑色更温暖 */
+/* pages/mine/index.wxss */
+page { 
+  background: #fdfbf7; /* 暖米色背景 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
 }
 
-.mine-container {
-  padding: 40rpx;
-}
+.mine-container { padding: 40rpx; }
 
-/* === 个人身份卡 (拍立得风格) === */
-.profile-card {
+/* 通用卡片样式：纸张质感 */
+.paper-texture {
   background: #fff;
-  border-radius: 12rpx;
-  padding: 60rpx 40rpx 40rpx;
-  box-shadow: 0 4rpx 16rpx rgba(139, 126, 102, 0.1);
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(149, 157, 165, 0.08); /* 柔和阴影 */
+  padding: 50rpx 40rpx;
+  margin-bottom: 40rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* === 用户卡片 === */
+.user-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-  margin-bottom: 50rpx;
-  transform: rotate(-1deg); /* 微微倾斜，更自然 */
-}
-
-/* 装饰图钉 */
-.pin-decoration {
-  width: 24rpx;
-  height: 24rpx;
-  background: #ed7876; /* 红色图钉 */
-  border-radius: 50%;
-  position: absolute;
-  top: 20rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.2);
 }
 
 .avatar-wrapper {
   padding: 0;
-  width: 180rpx !important;
-  height: 180rpx !important;
+  width: 160rpx !important;
+  height: 160rpx !important;
   border-radius: 50%;
-  background: #f0f0f0;
-  border: 8rpx solid #fff;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
-  margin-bottom: 24rpx;
-  overflow: hidden;
+  margin-bottom: 20rpx;
+  background: none;
+  box-shadow: 0 8rpx 16rpx rgba(0,0,0,0.1);
+  border: 6rpx solid #fff; 
 }
 .avatar-wrapper::after { border: none; }
 
-.avatar-img { width: 100%; height: 100%; }
+.avatar-img { width: 100%; height: 100%; border-radius: 50%; background-color: #f0f0f0; }
 
-.edit-badge {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: rgba(93, 64, 55, 0.6);
-  color: #fff;
-  font-size: 20rpx;
-  text-align: center;
-  padding: 4rpx 0;
-}
-
-.info-area {
-  width: 100%;
-  text-align: center;
-  margin-bottom: 30rpx;
+.edit-hint {
+  position: absolute; bottom: 0; left: 0; width: 100%;
+  background: rgba(0,0,0,0.5); color: #fff; font-size: 20rpx; text-align: center;
 }
 
 .nickname-input {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #5d4037;
-  height: 60rpx;
+  font-size: 36rpx; font-weight: 600; color: #5d4037; text-align: center; margin-bottom: 10rpx;
+}
+.nickname-placeholder { color: #ccc; font-weight: normal; }
+
+.status-tag {
+  font-size: 24rpx; padding: 8rpx 24rpx; border-radius: 30rpx; margin-top: 10rpx; margin-bottom: 20rpx;
+}
+.status-tag.waiting { background: #f5f5f5; color: #999; }
+.status-tag.connected { background: #ffe4e8; color: #ff6b81; }
+
+.btn-save { background: #5d4037; color: #fff; border-radius: 30rpx; }
+
+/* === 邀请卡片 === */
+.card-header { text-align: center; margin-bottom: 40rpx; }
+.card-title { font-size: 32rpx; font-weight: bold; color: #5d4037; display: block; }
+.card-subtitle { font-size: 20rpx; color: #b0a4a4; letter-spacing: 2rpx; margin-top: 6rpx; text-transform: uppercase; }
+
+.label { font-size: 24rpx; color: #8d6e63; margin-bottom: 16rpx; display: block; font-weight: 500; }
+
+.code-display {
+  background: #fdf6e3; padding: 24rpx; border-radius: 16rpx; border: 2rpx dashed #dcc8ba;
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx;
+}
+.code-text { font-family: monospace; color: #5d4037; font-size: 24rpx; width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.copy-tag { font-size: 20rpx; color: #ff9a9e; border: 2rpx solid #ff9a9e; padding: 4rpx 12rpx; border-radius: 20rpx; }
+
+.btn-share-pill {
+  width: 100% !important; background: #5d4037; color: #fff; border-radius: 40rpx;
+  font-size: 26rpx; padding: 20rpx 0; font-weight: normal; box-shadow: 0 6rpx 12rpx rgba(93, 64, 55, 0.2);
+}
+
+.divider-line { height: 2rpx; background: #eee; margin: 40rpx 0; position: relative; }
+.divider-line::after {
+  content: "OR"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  background: #fff; padding: 0 20rpx; color: #ccc; font-size: 20rpx;
+}
+
+.input-wrapper { background: #f9f9f9; padding: 24rpx; border-radius: 16rpx; margin-bottom: 24rpx; }
+.code-input { font-size: 26rpx; color: #333; }
+
+.btn-connect-pill {
+  width: 100% !important; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  color: #fff; border-radius: 40rpx; font-size: 26rpx; padding: 20rpx 0; font-weight: bold;
+  box-shadow: 0 6rpx 12rpx rgba(255, 154, 158, 0.3);
+}
+
+/* === 已连接状态 (全新设计) === */
+.connected-state {
   text-align: center;
-}
-.placeholder-style { color: #d7ccc8; }
-
-.save-hint {
-  font-size: 22rpx;
-  color: #ed7876;
-  text-decoration: underline;
-  margin-top: 10rpx;
-}
-
-/* 状态印章 */
-.status-stamp {
-  border: 4rpx solid;
-  padding: 10rpx 30rpx;
-  border-radius: 8rpx;
-  font-size: 24rpx;
-  font-weight: bold;
-  transform: rotate(-5deg); /* 印章倾斜 */
-  opacity: 0.8;
-}
-.stamp-single {
-  border-color: #a1887f;
-  color: #a1887f;
-}
-.stamp-connected {
-  border-color: #ed7876;
-  color: #ed7876;
-}
-
-/* === 邀请信封卡片 === */
-.envelope-card {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 40rpx;
-  box-shadow: 0 4rpx 20rpx rgba(139, 126, 102, 0.1);
-  background-image: repeating-linear-gradient(#fff 0px, #fff 48rpx, #f5f0e1 50rpx); /* 信纸纹路 */
-}
-
-.envelope-header {
-  text-align: center;
-  margin-bottom: 40rpx;
-}
-.envelope-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #5d4037;
-  display: block;
-}
-.envelope-sub {
-  font-size: 22rpx;
-  color: #8d6e63;
-  margin-top: 8rpx;
-  display: block;
-}
-
-.step-box { margin-bottom: 30rpx; }
-
-.step-label {
-  font-size: 26rpx;
-  color: #8d6e63;
-  margin-bottom: 16rpx;
-  display: block;
-  font-weight: bold;
-}
-
-/* 票据样式的编号显示 */
-.code-ticket {
-  background: #fcf4dd;
-  border: 2rpx dashed #d7ccc8;
-  padding: 20rpx;
-  border-radius: 12rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-.ticket-num {
-  font-family: "Courier New", monospace;
-  font-size: 24rpx;
-  color: #5d4037;
-  width: 80%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.ticket-action {
-  font-size: 22rpx;
-  color: #ed7876;
-  font-weight: bold;
-}
-
-.btn-share {
-  background: #8d6e63;
-  color: #fff;
-  font-size: 26rpx;
-  border-radius: 40rpx;
-  padding: 16rpx 0;
-  width: 100% !important;
-  font-weight: normal;
-}
-
-.dashed-line {
-  border-top: 2rpx dashed #d7ccc8;
-  margin: 40rpx 0;
-  position: relative;
-}
-.dashed-line::after {
-  content: "✂"; /* 剪刀图标 */
-  position: absolute;
-  right: -10rpx;
-  top: -16rpx;
-  color: #d7ccc8;
-  font-size: 24rpx;
-}
-
-.input-paper {
-  background: #f9f9f9;
-  border-bottom: 2rpx solid #8d6e63; /* 下划线风格 */
-  padding: 10rpx 20rpx;
-  margin-bottom: 30rpx;
-}
-.hand-input {
-  font-size: 26rpx;
-  color: #5d4037;
-  width: 100%;
-}
-
-.btn-bind {
-  background: #ed7876;
-  color: #fff;
-  font-size: 28rpx;
-  border-radius: 40rpx;
-  padding: 20rpx 0;
-  width: 100% !important;
-  box-shadow: 0 6rpx 12rpx rgba(237, 120, 118, 0.3);
-}
-
-/* === 已关联卡片 === */
-.connected-card {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 60rpx 40rpx;
-  text-align: center;
-  box-shadow: 0 4rpx 20rpx rgba(139, 126, 102, 0.1);
+  border: 2rpx solid #fff0f6;
+  background: #fffdfd;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.love-line {
-  display: flex;
-  align-items: center;
-  width: 60%;
-  margin-bottom: 30rpx;
-}
-.line { flex: 1; height: 2rpx; background: #ed7876; }
-.dot { width: 8rpx; height: 8rpx; background: #ed7876; border-radius: 50%; }
-.heart { color: #ed7876; margin: 0 20rpx; font-size: 32rpx; }
-
-.connected-text {
-  font-size: 28rpx;
-  color: #5d4037;
-  font-weight: bold;
-}
-.connected-sub {
-  font-size: 24rpx;
-  color: #a1887f;
-  margin-top: 10rpx;
-}
-
-.unbind-area {
-  margin-top: 60rpx;
-}
-.unbind-area text {
-  font-size: 22rpx;
-  color: #d7ccc8;
-  border-bottom: 1rpx solid #d7ccc8;
-}
-
-/* 底部 */
-.footer {
-  text-align: center;
-  margin-top: 60rpx;
-  padding-bottom: 20rpx;
-}
-.footer text {
-  font-size: 20rpx;
-  color: #d7ccc8;
-  font-style: italic;
-  font-family: serif;
-}
-
-/* 按钮点击态 */
-button:active, .ticket-action:active {
-  opacity: 0.8;
-  transform: scale(0.98);
-}
-
-/* === 双人头像区域 === */
-.cp-avatars {
-  display: flex;
-  align-items: center;
   justify-content: center;
-  margin-bottom: 30rpx;
+}
+
+.bg-decoration {
+  position: absolute; top: 20rpx; right: 20rpx; font-size: 40rpx; opacity: 0.5;
+}
+
+.cp-avatars-box {
+  display: flex; align-items: center; margin-bottom: 30rpx; position: relative;
 }
 
 .cp-avatar {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  border: 6rpx solid #fff; /* 白边 */
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
-  background-color: #f0f0f0;
+  width: 120rpx; height: 120rpx; border-radius: 50%;
+  border: 6rpx solid #fff; box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.1);
+  background: #f0f0f0;
+}
+/* 头像部分重叠效果 */
+.cp-avatar.mine { margin-right: -20rpx; z-index: 2; }
+.cp-avatar.partner { margin-left: -20rpx; z-index: 1; filter: brightness(0.95); }
+
+.heart-beat {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font-size: 40rpx; color: #ff6b81; z-index: 3;
+  text-shadow: 0 0 10rpx rgba(255, 255, 255, 0.8);
+  animation: pulse 1.5s infinite ease-in-out;
 }
 
-/* 让两个头像稍微靠近一点，产生重叠感，更亲密 */
-.cp-avatar.mine {
-  margin-right: -10rpx; /* 向右挤 */
-  z-index: 2; /* 压在上面 */
-}
-.cp-avatar.partner {
-  margin-left: -10rpx; /* 向左挤 */
-  z-index: 1;
+@keyframes pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
-.cp-link-heart {
-  font-size: 32rpx;
-  color: #ed7876;
-  margin: 0 24rpx;
-  /* 加个小心跳动画 */
-  animation: heartBeat 1.5s infinite ease-in-out;
-  position: relative;
-  top: -20rpx; /* 稍微往上飘一点 */
-  z-index: 3;
-}
+.love-title { font-size: 34rpx; font-weight: bold; color: #5d4037; margin-bottom: 8rpx; display: block; }
+.love-partner { font-size: 28rpx; color: #ff6b81; font-weight: 500; display: block; }
+.love-desc-sub { font-size: 22rpx; color: #b0a4a4; margin-top: 30rpx; display: block; }
 
-@keyframes heartBeat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
-}
+.footer-actions { margin-top: 60rpx; border-top: 2rpx dashed #f0f0f0; padding-top: 30rpx; width: 100%; }
+.unbind-link { font-size: 22rpx; color: #ccc; text-decoration: underline; }
+
+.footer-info { text-align: center; font-size: 20rpx; color: #e0e0e0; margin-top: 40rpx; }
+
+/* 按钮点击态 */
+button:active { transform: scale(0.98); opacity: 0.9; }

@@ -1,280 +1,232 @@
-/* index.wxss - 浪漫手账风 */
+/* miniprogram/pages/index/index.wxss */
 page {
-  /* 柔和的暖色渐变背景，像清晨的霞光 */
-  background: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%);
+  /* 基础底色：淡粉 */
+  background: #fff0f5; 
   font-family: -apple-system, 'Helvetica Neue', sans-serif;
-  overflow: hidden; /* 防止背景光晕溢出 */
+  height: 100vh; 
+  overflow: hidden; 
 }
 
 .journal-container {
   position: relative;
-  height: 100vh;
+  height: 100%;
   width: 100%;
+  /* 🌅 浪漫升级：从淡粉色流向奶油黄的渐变 */
+  background: linear-gradient(180deg, #fff0f5 0%, #fff5e6 100%);
 }
 
-/* 背景氛围光晕 */
-.ambient-light {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80rpx);
-  opacity: 0.4;
-  z-index: 1;
+/* 装饰背景 (保留爱心，增加一点透明度变化) */
+.bg-decoration {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0; overflow: hidden;
 }
-.top-light {
-  width: 400rpx;
-  height: 400rpx;
-  background: #ffcad4;
-  top: -100rpx;
-  left: -100rpx;
+.floating-heart {
+  position: absolute; bottom: -50rpx;
+  font-size: 30rpx; color: #ffdee9; opacity: 0.6; /* 爱心颜色更粉嫩 */
+  animation: floatUp linear infinite;
+  text-shadow: 0 0 10rpx rgba(255, 182, 193, 0.5); /* 增加发光感 */
 }
-.bottom-light {
-  width: 500rpx;
-  height: 500rpx;
-  background: #b5e2fa;
-  bottom: -150rpx;
-  right: -150rpx;
+.h1 { left: 10%; animation-duration: 8s; font-size: 24rpx; }
+.h2 { left: 30%; animation-duration: 12s; animation-delay: 2s; font-size: 36rpx; color: #ffb7b2; }
+.h3 { left: 60%; animation-duration: 10s; animation-delay: 4s; }
+.h4 { left: 80%; animation-duration: 15s; animation-delay: 1s; font-size: 20rpx; }
+.h5 { left: 90%; animation-duration: 9s; animation-delay: 6s; font-size: 28rpx; }
+
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
 }
 
 .content-wrapper {
-  position: relative;
-  z-index: 10; /* 确保内容在光晕上方 */
-  display: flex;
-  flex-direction: column;
+  position: relative; z-index: 10;
+  display: flex; flex-direction: column; 
   height: 100%;
-  padding: 40rpx;
-  box-sizing: border-box;
-  justify-content: space-between;
+  padding: 20rpx 40rpx 50rpx 40rpx; /* 顶部padding稍微减小，因为导航栏颜色融为一体了 */
+  box-sizing: border-box; 
+  justify-content: space-between; 
 }
 
-/* === 任务便签区 === */
+/* === 顶部任务卡片 (更通透) === */
 .task-note-container {
-  position: relative;
-  margin-top: 30rpx;
-}
-
-/* 模拟和纸胶带 */
-.washi-tape {
-  position: absolute;
-  height: 24rpx;
-  width: 100rpx;
-  background-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
-  z-index: 20;
-}
-.tape-top-left {
-  top: -10rpx;
-  left: 20rpx;
-  transform: rotate(-5deg);
-  background-image: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
-  background-size: 10rpx 10rpx;
+  margin-bottom: 20rpx; position: relative;
 }
 
 .task-note {
-  background: #fffaf0; /* 米黄色纸张感 */
-  padding: 30rpx;
-  border-radius: 12rpx;
-  box-shadow: 2rpx 4rpx 12rpx rgba(0,0,0,0.08);
-  transform: rotate(-1deg); /* 微微倾斜，更随意 */
-  border: 2rpx dashed #e0d6c6; /* 虚线边框 */
+  /* 半透明乳白玻璃质感 */
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40rpx 30rpx 30rpx;
+  border-radius: 24rpx;
+  /* 暖色阴影：用粉色代替灰色 */
+  box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.2); 
+  border: 2rpx solid #fff;
+  position: relative;
+  transform-origin: center top;
 }
 
-.note-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16rpx;
+/* 📌 图钉装饰 */
+.pin-icon {
+  position: absolute; top: -16rpx; left: 50%; transform: translateX(-50%);
+  font-size: 32rpx; text-shadow: 0 4rpx 4rpx rgba(0,0,0,0.1);
+  filter: hue-rotate(-20deg); /* 让图钉颜色更红一点 */
 }
-.note-icon { font-size: 40rpx; margin-right: 16rpx; }
-.note-title { font-size: 32rpx; font-weight: bold; color: #5a5a5a; }
-.note-desc { font-size: 28rpx; color: #7a7a7a; line-height: 1.5; }
-.note-footer {
-  margin-top: 24rpx;
-  display: flex;
-  justify-content: space-between;
-  font-size: 22rpx;
-  color: #999;
+
+.floating-sway { animation: sway 4s ease-in-out infinite; }
+@keyframes sway {
+  0%, 100% { transform: rotate(-0.5deg); }
+  50% { transform: rotate(0.5deg); }
 }
-.difficulty-tag {
-  background: #ffe4e8;
+
+.note-header { display: flex; align-items: center; margin-bottom: 20rpx; }
+.note-icon { 
+  font-size: 44rpx; margin-right: 20rpx; 
+  background: #fff0f5; /* 与背景呼应 */
+  padding: 10rpx; border-radius: 50%; 
   color: #ff6b81;
-  padding: 4rpx 12rpx;
-  border-radius: 20rpx;
+}
+.header-text { display: flex; flex-direction: column; }
+.note-label { font-size: 20rpx; color: #ff8fa3; font-weight: bold; letter-spacing: 2rpx; }
+.note-title { font-size: 32rpx; font-weight: 800; color: #5d4037; margin-top: 4rpx; } /* 暖棕色标题 */
+.note-desc { font-size: 26rpx; color: #8d6e63; line-height: 1.6; margin-bottom: 20rpx; } /* 浅棕色正文 */
+
+.remote-tip-box {
+  background: #f0f7ff; padding: 12rpx 20rpx; border-radius: 12rpx;
+  font-size: 22rpx; color: #8daac7; margin-bottom: 20rpx;
+  border: 1rpx dashed #dbe9fe;
 }
 
-/* === 拍立得相框区 === */
+.note-footer { display: flex; justify-content: space-between; font-size: 22rpx; color: #d7ccc8; }
+.difficulty-tag { background: #ffe4e8; color: #ff6b81; padding: 4rpx 16rpx; border-radius: 20rpx; font-weight: bold;}
+
+/* === 拍立得区域 (暖色调) === */
 .polaroid-frame {
-  background: white;
-  padding: 24rpx 24rpx 70rpx 24rpx;
-  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.15);
-  transform: rotate(1.5deg); /* 向另一侧倾斜 */
-  margin: 30rpx 0;
-  transition: all 0.3s ease;
+  background: #fff;
+  padding: 24rpx 24rpx 80rpx 24rpx;
+  /* 阴影改为暖色，更有氛围感 */
+  box-shadow: 0 20rpx 50rpx rgba(139, 69, 19, 0.1); 
+  border-radius: 8rpx;
+  position: relative;
+  flex-shrink: 0;
+  transform: rotate(2deg);
+  margin: auto 0; 
 }
 
-/* 处理中的呼吸灯特效 - 更柔和 */
-.developing-pulse {
-  animation: softPulse 2s infinite ease-in-out;
+/* 浮动动画 */
+.floating-updown { animation: float-tilted-right 5s ease-in-out infinite; }
+@keyframes float-tilted-right {
+  0%, 100% { transform: rotate(2deg) translateY(0); }
+  50% { transform: rotate(2deg) translateY(-8rpx); }
 }
-@keyframes softPulse {
-  0% { box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.3); }
-  50% { box-shadow: 0 15rpx 40rpx rgba(255, 182, 193, 0.7); transform: rotate(1.5deg) scale(1.01); }
-  100% { box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.3); }
+
+/* 顶部胶带 (改为粉色半透明) */
+.polaroid-frame::after {
+  content: ""; position: absolute; top: -12rpx; left: 50%; transform: translateX(-50%);
+  width: 120rpx; height: 32rpx; 
+  background: rgba(255, 228, 225, 0.8); /* 迷雾玫瑰色胶带 */
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.05); border-radius: 2rpx;
 }
 
 .photo-area {
-  width: 100%;
-  height: 580rpx;
-  background-color: #f8f8f8;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-bottom: 2rpx solid #eee;
+  width: 100%; height: 550rpx; background: #fffaf0; /* 花卉白底色 */
+  overflow: hidden; position: relative; border-radius: 4rpx;
 }
-
 .the-photo { width: 100%; height: 100%; object-fit: cover; }
 
-/* CSS画的占位相机 */
-.placeholder-state { display: flex; flex-direction: column; align-items: center; opacity: 0.6; }
-.css-camera-icon { margin-bottom: 20rpx; }
-.cam-body {
-  width: 100rpx; height: 70rpx; background: #d0d0d0; border-radius: 10rpx; position: relative;
+/* 空状态 */
+.empty-state-cover {
+  width: 100%; height: 100%; position: relative; background-color: #fff5ee; 
 }
-.cam-lens {
-  width: 40rpx; height: 40rpx; background: #eef; border: 6rpx solid #fff; border-radius: 50%;
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  box-shadow: inset 0 0 10rpx rgba(0,0,0,0.1);
+.sample-img {
+  width: 100%; height: 100%; object-fit: cover; opacity: 1; filter: none; 
 }
-.cam-flash {
-  width: 12rpx; height: 8rpx; background: #fff; position: absolute; top: 10rpx; right: 14rpx; border-radius: 2rpx;
+
+.empty-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: transparent;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 5;
 }
-.placeholder-text { font-size: 26rpx; color: #999; letter-spacing: 1rpx; }
+
+/* 粉色呼吸按钮 (加深一点颜色，更突出) */
+.camera-btn-circle {
+  width: 130rpx; height: 130rpx; 
+  /* 更加鲜艳浪漫的渐变 */
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); 
+  margin-bottom: 24rpx; position: relative;
+  animation: pulse-strong 2s infinite;
+  overflow: visible; 
+}
+
+.btn-ripple {
+  position: absolute; top: -10rpx; left: -10rpx; right: -10rpx; bottom: -10rpx;
+  border: 4rpx solid #ffb6c1; /* 浅粉色涟漪 */
+  border-radius: 50%;
+  opacity: 0; animation: ripple 2s infinite; z-index: 1;
+}
+
+.camera-icon-img { width: 64rpx; height: 64rpx; z-index: 10; }
+
+.empty-hint { 
+  color: #8d6e63; font-size: 28rpx; letter-spacing: 4rpx; font-weight: bold;
+  text-shadow: 0 2rpx 10rpx rgba(255,255,255,0.9);
+}
 
 .handwriting-caption {
-  margin-top: 30rpx;
+  text-align: center; margin-top: 40rpx;
+  font-family: 'Courier New', serif; 
+  color: #a1887f; font-size: 26rpx; letter-spacing: 2rpx; /* 暖棕色手写字 */
+}
+
+/* === 每日一句样式 (文字颜色加深) === */
+.daily-quote-box {
   text-align: center;
-  /* 尝试使用系统自带的手写风格字体作为回退 */
-  font-family: 'Bradley Hand', 'Brush Script MT', cursive, sans-serif;
-  font-size: 34rpx;
-  color: #555;
+  margin-top: 60rpx; 
+  opacity: 0.9; /* 提高不透明度，更清晰 */
 }
-.success-text { color: #ff6b81; }
+.quote-text {
+  font-family: "PingFang SC", serif;
+  font-size: 26rpx; color: #5d4037; /* 加深颜色，防止看不清 */
+  letter-spacing: 2rpx; font-style: italic;
+  display: block; margin-bottom: 10rpx;
+  text-shadow: 0 2rpx 0 rgba(255,255,255,0.5); /* 增加一点立体感 */
+}
+.quote-author {
+  font-size: 20rpx; color: #bcaaa4; 
+  text-transform: uppercase; letter-spacing: 4rpx;
+}
 
-/* === 底部操作区 === */
+/* === 底部按钮区 === */
 .action-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 40rpx;
+  position: absolute; bottom: 60rpx; left: 0; width: 100%;
+  display: flex; justify-content: center; z-index: 20;
 }
-
-.shutter-button {
-  width: 150rpx;
-  height: 150rpx;
-  border-radius: 50%;
-  /* 渐变按钮背景 */
-  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0;
-  border: none;
-  box-shadow: 0 12rpx 24rpx rgba(255, 154, 158, 0.4);
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative;
+.confirm-actions { display: flex; width: 100%; justify-content: center; align-items: center; gap: 40rpx; }
+.action-btn-wrapper { display: flex; flex-direction: column; align-items: center; }
+.btn-circle {
+  width: 90rpx; height: 90rpx; border-radius: 50%; background: #fff;
+  box-shadow: 0 6rpx 20rpx rgba(139, 69, 19, 0.1); /* 暖棕色阴影 */
+  display: flex; align-items: center; justify-content: center; margin-bottom: 12rpx;
+  color: #8d6e63;
 }
-
-.shutter-inner {
-  width: 60rpx; height: 60rpx; border-radius: 50%; border: 6rpx solid white;
-}
-
-.shutter-hover {
-  transform: scale(0.92);
-  box-shadow: 0 6rpx 12rpx rgba(255, 154, 158, 0.3);
-}
-
-.action-hint {
-  margin-top: 20rpx;
-  font-size: 22rpx;
-  color: #fff; /* 在深色渐变背景上用白色字 */
-  text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.2);
-  letter-spacing: 2rpx;
-  text-transform: uppercase;
-  opacity: 0.8;
-}
-
-.confirm-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-around; /* 分散对齐 */
-  width: 100%;
-  padding: 0 40rpx;
-  box-sizing: border-box;
-}
-
-/* 垂直排列的图标按钮容器 */
-.action-btn-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 圆形图标按钮 */
-.btn-icon {
-  width: 80rpx !important;
-  height: 80rpx !important;
-  border-radius: 50% !important;
-  background: #f0f2f5 !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  padding: 0 !important;
-  margin: 0 !important;
-  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.05);
-  color: #333;
-}
-
-/* 按钮下方的文字 */
-.btn-label {
-  font-size: 20rpx;
-  color: #999;
-  margin-top: 10rpx;
-  font-weight: 500;
-}
-
-/* 主确认按钮 - 胶囊形状，更突出 */
+.btn-label { font-size: 22rpx; color: #8d6e63; }
 .btn-confirm-main {
-  background: #333 !important;
-  color: #fff !important;
-  border-radius: 40rpx !important;
-  padding: 0 60rpx !important;
-  height: 80rpx !important;
-  line-height: 80rpx !important;
-  font-size: 28rpx !important;
-  font-weight: bold;
-  box-shadow: 0 8rpx 16rpx rgba(0,0,0,0.2);
-  margin: 0 0 0 30rpx !important; /* 离左边按钮远一点 */
+  background: #5d4037; color: #fff; border-radius: 50rpx; padding: 0 70rpx;
+  height: 90rpx; line-height: 90rpx; font-size: 30rpx;
+  box-shadow: 0 10rpx 20rpx rgba(93, 64, 55, 0.25);
 }
 
-/* 异地小贴士样式 */
-.remote-tip-box {
-  margin-top: 16rpx;
-  background-color: #f0f7ff; /* 浅蓝色背景，以此区分 */
-  padding: 12rpx 16rpx;
-  border-radius: 8rpx;
-  display: flex;
-  align-items: center;
+@keyframes pulse-strong {
+  0% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 12rpx 40rpx rgba(255, 105, 180, 0.6); }
+  100% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); }
 }
-
-.remote-icon {
-  font-size: 24rpx;
-  margin-right: 10rpx;
+@keyframes ripple {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
 }
-
-.remote-text {
-  font-size: 22rpx;
-  color: #6a8bad; /* 较深的蓝色文字 */
-  line-height: 1.4;
-}
+.slide-in-down { animation: slideInDown 0.8s ease-out; }
+.slide-in-up { animation: slideInUp 0.5s ease-out; }
+@keyframes slideInDown { from { transform: translateY(-30rpx); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideInUp { from { transform: translateY(30rpx); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
