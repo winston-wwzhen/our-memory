@@ -2,18 +2,12 @@
 page { 
   background: #fdfbf7; 
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  /* 🔴 核心修改：恢复锁定高度，确保一屏显示，无滚动条 */
   height: 100vh;
   overflow: hidden; 
 }
 
 .mine-container { 
-  /* 🔴 核心修改：调整整体边距 */
-  /* 上: 60rpx (增加顶部呼吸感，解决"太靠上"的问题) */
-  /* 左右: 40rpx */
-  /* 下: 40rpx (底部预留安全距离，配合 footer 的 margin) */
   padding: 60rpx 40rpx 40rpx 40rpx;
-  
   height: 100%;
   box-sizing: border-box;
   display: flex;
@@ -21,14 +15,12 @@ page {
   justify-content: space-between;
 }
 
-/* 通用卡片样式：进一步紧凑化 */
+/* 通用卡片样式 */
 .paper-texture {
   background: #fff;
   border-radius: 24rpx;
   box-shadow: 0 8rpx 24rpx rgba(149, 157, 165, 0.08);
-  /* 🔴 修改：稍微减小卡片内部 padding，节省垂直空间 */
   padding: 24rpx 30rpx; 
-  /* 🔴 修改：减小卡片间距 */
   margin-bottom: 16rpx; 
   position: relative;
   overflow: visible;
@@ -39,27 +31,52 @@ page {
 .timer-card {
   background: linear-gradient(135deg, #fff0f5 0%, #fff 100%);
   text-align: center;
-  /* 计时器卡片保持原有 padding */
   padding: 30rpx !important; 
 }
 .timer-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10rpx;
+  display: flex;
+  justify-content: space-between;
+  /* 🔴 修改：align-items 改为 flex-start，防止右侧多行文字导致左侧标题跑偏 */
+  align-items: flex-start; 
+  margin-bottom: 10rpx;
 }
-.timer-title { font-size: 28rpx; color: #5d4037; font-weight: bold; }
+.timer-title { 
+  font-size: 28rpx; 
+  color: #5d4037; 
+  font-weight: bold; 
+  /* 微调标题位置，使其与右侧第一行对齐 */
+  margin-top: 6rpx; 
+}
+
+/* 🆕 日期选择器包装容器 */
+.date-picker-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* 右对齐 */
+}
+
 .timer-setting { font-size: 22rpx; color: #a1887f; background: rgba(255,255,255,0.6); padding: 4rpx 12rpx; border-radius: 20rpx; }
+
+/* 🆕 修改人提示文字 */
+.modifier-note {
+  font-size: 18rpx;
+  color: #bcaaa4;
+  margin-top: 8rpx;
+  margin-right: 4rpx;
+  font-style: italic;
+}
+
 .timer-content { margin: 10rpx 0; display: flex; align-items: baseline; justify-content: center; }
-.timer-number { font-size: 70rpx; /* 稍微调小数字 */ font-weight: 900; color: #ff6b81; font-family: 'Courier New', monospace; line-height: 1; }
+.timer-number { font-size: 70rpx; font-weight: 900; color: #ff6b81; font-family: 'Courier New', monospace; line-height: 1; }
 .timer-unit { font-size: 26rpx; color: #8d6e63; margin-left: 10rpx; font-weight: bold; }
 .timer-footer { font-size: 20rpx; color: #d7ccc8; letter-spacing: 4rpx; text-transform: uppercase; }
 
-/* === 顶部：单人欢迎卡片 (优化高度) === */
+/* === 顶部：单人欢迎卡片 === */
 .welcome-card {
   background: linear-gradient(135deg, #f0f8ff 0%, #fff 100%);
   text-align: center;
-  padding: 30rpx !important; /* 减小内边距 */
+  padding: 30rpx !important;
   border: 2rpx dashed #aed9e9;
-  
-  /* 🔴 核心修改：设置合理的最小高度，不让它占太多地 */
   min-height: 200rpx; 
   display: flex;
   flex-direction: column;
@@ -75,14 +92,14 @@ page {
 /* === 中部：用户头像卡片 === */
 .user-card {
   display: flex; flex-direction: column; align-items: center;
-  padding-bottom: 16rpx; /* 紧凑底部 */
+  padding-bottom: 16rpx; 
 }
 .avatar-wrapper {
   padding: 0;
-  width: 130rpx !important; /* 稍微调小头像 140->130 */
+  width: 130rpx !important; 
   height: 130rpx !important;
   border-radius: 50%;
-  margin-bottom: 16rpx; /* 减小间距 */
+  margin-bottom: 16rpx; 
   background: none;
   box-shadow: 0 8rpx 16rpx rgba(0,0,0,0.1);
   border: 6rpx solid #fff; 
@@ -92,7 +109,7 @@ page {
 .avatar-img { width: 100%; height: 100%; border-radius: 50%; background-color: #f0f0f0; display: block; }
 .edit-badge {
   position: absolute; bottom: -4rpx; right: -4rpx;
-  width: 40rpx; height: 40rpx; /* 调小徽章 */
+  width: 40rpx; height: 40rpx; 
   background: #fff; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 22rpx;
@@ -101,7 +118,7 @@ page {
 .nickname-row { margin-bottom: 12rpx; display: flex; justify-content: center; width: 100%; }
 .nickname-box {
   display: flex; align-items: center; justify-content: center;
-  background: #fffbf0; padding: 8rpx 24rpx; /* 紧凑 */
+  background: #fffbf0; padding: 8rpx 24rpx; 
   border-radius: 40rpx; border: 2rpx dashed #e0d6c6; transition: all 0.2s;
 }
 .nickname-input { font-size: 28rpx; font-weight: 600; color: #5d4037; text-align: center; min-width: 120rpx; max-width: 300rpx; }
@@ -112,13 +129,12 @@ page {
 .status-tag.connected { background: #ffe4e8; color: #ff6b81; }
 .btn-save { background: #5d4037; color: #fff; border-radius: 30rpx; margin-top: 0; font-size: 22rpx; }
 
-/* === 底部：邀请/操作卡片 (弹性区域) === */
+/* === 底部：邀请/操作卡片 === */
 .action-card {
   display: flex; flex-direction: column; justify-content: center;
-  /* 🔴 核心：让这个卡片占据剩余空间，但不至于撑破屏幕 */
   flex: 1; 
   margin-bottom: 10rpx;
-  min-height: 0; /* 防止 flex 子项溢出 */
+  min-height: 0; 
 }
 .card-header { text-align: center; margin-bottom: 16rpx; }
 .card-title { font-size: 28rpx; font-weight: bold; color: #5d4037; display: block; }
@@ -173,7 +189,6 @@ page {
 .footer-info {
   text-align: center;
   font-size: 18rpx; color: #e0e0e0; 
-  /* 🔴 修改：确保有底部间距，不贴底 */
   margin-top: 10rpx; 
   margin-bottom: 30rpx; 
   flex-shrink: 0;

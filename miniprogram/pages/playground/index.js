@@ -14,7 +14,13 @@ Page({
     this.fetchGardenData();
   },
 
-  fetchGardenData: function () {
+  onPullDownRefresh: function() {
+    this.fetchGardenData(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  fetchGardenData: function (callback) {
     wx.cloud.callFunction({
       name: 'user_center',
       data: { action: 'get_garden' },
@@ -38,9 +44,11 @@ Page({
             harvestCount: harvests
           });
         }
+        if (callback) callback();
       },
       fail: err => {
         console.error("加载花园数据失败", err);
+        if (callback) callback();
       }
     });
   },

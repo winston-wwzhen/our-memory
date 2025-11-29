@@ -8,6 +8,20 @@ Page({
     totalDays: 0 // 🆕 新增：打卡天数
   },
 
+// 1. 添加下拉刷新
+onPullDownRefresh: function () {
+  // 重置状态
+  this.setData({
+    page: 0,
+    isEnd: false,
+    memories: [] 
+  });
+  // 重新加载
+  this.fetchMemories(() => {
+    wx.stopPullDownRefresh();
+  });
+},
+  
   onShow: function () {
     this.setData({
       page: 0,
@@ -23,7 +37,7 @@ Page({
     }
   },
 
-  fetchMemories: function () {
+  fetchMemories: function (callback) {
     if (this.data.isLoading) return;
 
     this.setData({ isLoading: true });
@@ -51,11 +65,13 @@ Page({
             isLoading: false
           });
         }
+        if (callback) callback();
       },
       fail: (err) => {
         wx.hideLoading();
         console.error(err);
         this.setData({ isLoading: false });
+        if (callback) callback();
       },
     });
   },

@@ -14,7 +14,7 @@ Page({
     tempFileID: "",
     remainingCount: 3, 
     
-    hasCheckedInToday: false, // 核心状态：今日是否已打卡
+    hasCheckedInToday: false, 
     
     randomSampleImg: "", 
     sampleImages: [
@@ -39,14 +39,24 @@ Page({
     this.checkUserStatus();
   },
 
+  // 添加下拉刷新支持
+  onPullDownRefresh: function() {
+    this.fetchDailyMission();
+    this.pickRandomSample();
+    this.pickDailyQuote();
+    this.checkUserStatus(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
   onLoad: function () {
     this.fetchDailyMission();
     this.pickRandomSample();
     this.pickDailyQuote();
   },
 
-  checkUserStatus: function() {
-    // 1. 获取用户信息 (水滴、VIP等)
+  checkUserStatus: function(callback) {
+    // 1. 获取用户信息
     wx.cloud.callFunction({
       name: 'user_center',
       data: { action: 'login' },
@@ -76,11 +86,14 @@ Page({
           
           this.setData({ remainingCount: remaining });
         }
+        if (callback && typeof callback === 'function') callback();
+      },
+      fail: () => {
+        if (callback && typeof callback === 'function') callback();
       }
     });
 
-    // 2. 获取最新回忆 (查今日是否已打卡)
-    // 🔴 修复核心：确保日期格式与数据库一致 (YYYY-MM-DD)
+    // 2. 获取最新回忆 (查今日是否已打卡 & 获取封面图)
     wx.cloud.callFunction({
       name: 'get_memory_lane',
       data: { page: 0, pageSize: 1 }, 
@@ -88,14 +101,18 @@ Page({
         if (res.result.status === 200 && res.result.data.length > 0) {
           const latestLog = res.result.data[0];
           
-          // 手动构造标准日期字符串 YYYY-MM-DD
+          // 🆕 核心修改：如果有打卡记录，直接用最后一张图作为首页背景
+          if (latestLog.imageFileID) {
+            this.setData({ randomSampleImg: latestLog.imageFileID });
+          }
+
+          // 检查日期
           const now = new Date();
           const y = now.getFullYear();
           const m = String(now.getMonth() + 1).padStart(2, '0');
           const d = String(now.getDate()).padStart(2, '0');
           const todayStandard = `${y}-${m}-${d}`;
 
-          // 对比数据库中的 originalDate
           if (latestLog.originalDate === todayStandard) {
             this.setData({ hasCheckedInToday: true });
           } else {
@@ -108,6 +125,8 @@ Page({
 
   pickRandomSample: function() {
     const imgs = this.data.sampleImages;
+    // 这里的逻辑只在页面加载且没有数据时起作用作为兜底
+    // 真正的数据会在 checkUserStatus 里被最新照片覆盖
     if (imgs.length > 0) {
       const idx = Math.floor(Math.random() * imgs.length);
       this.setData({ randomSampleImg: imgs[idx] });
@@ -131,7 +150,6 @@ Page({
             currentTask: res.result.task,
             todayDateStr: res.result.dateStr,
           });
-          // 拿到任务后再次检查状态，确保万无一失
           this.checkUserStatus();
         }
       },
@@ -217,11 +235,9 @@ Page({
     });
   },
 
-  // 🔴 核心修复：保存前的二次确认逻辑
   onConfirmSave: function() {
     if (!this.data.tempFileID) return;
     
-    // 检查 hasCheckedInToday 状态
     if (this.data.hasCheckedInToday) {
       wx.showModal({
         title: '确认覆盖？',
@@ -236,7 +252,6 @@ Page({
         }
       });
     } else {
-      // 没打过卡，直接保存
       this.doSave();
     }
   },
@@ -256,7 +271,7 @@ Page({
           
           this.setData({ 
             pendingSave: false,
-            hasCheckedInToday: true // 更新状态为已打卡
+            hasCheckedInToday: true 
           }); 
           this.pickDailyQuote(); 
           this.pickRandomSample(); 

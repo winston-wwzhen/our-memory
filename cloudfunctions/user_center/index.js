@@ -125,73 +125,78 @@ exports.main = async (event, context) => {
     };
   }
 
+ // ============================================================
+  // 2. 获取花园数据 (智能合并版) 🌻
   // ============================================================
-  // 2. 获取花园数据 (Get Garden) - 修复水滴读取
-  // ============================================================
-  if (action === "get_garden") {
-    // 1. 优先获取最新的个人水滴数 (这是为了解决 Fun 页面显示为 0 的关键)
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .get();
-    let currentWater = 0;
-    if (userRes.data.length > 0) {
-      currentWater = userRes.data[0].water_count || 0;
+  if (action === 'get_garden') {
+    // 1. 获取我的信息和伴侣ID
+    const userRes = await db.collection('users').where({ _openid: myOpenID }).get();
+    const me = userRes.data[0];
+    const currentWater = me.water_count || 0;
+    const partnerId = me.partner_id;
+
+    // 2. 构造查询条件：查找 拥有者包含“我” 或者 “我的伴侣” 的所有花园
+    let conditions = [{ owners: myOpenID }];
+    if (partnerId) {
+      conditions.push({ owners: partnerId });
     }
 
-    // 2. 查找包含我的花园
-    const gardenRes = await db
-      .collection("gardens")
-      .where({
-        owners: myOpenID,
-      })
+    // 按成长值倒序排列（为了在冲突时保留最好的那一个）
+    const gardenRes = await db.collection('gardens')
+      .where(_.or(conditions))
+      .orderBy('growth_value', 'desc') 
       .get();
 
     let myGarden = null;
 
     if (gardenRes.data.length > 0) {
-      myGarden = gardenRes.data[0];
-    } else {
-      // 没花园？尝试创建或加入伴侣的
-      const userRes2 = await db
-        .collection("users")
-        .where({ _openid: myOpenID })
-        .get();
-      const me = userRes2.data[0];
+      const allGardens = gardenRes.data;
+      
+      // === 情况 A: 找到了花园 (可能是1个，也可能是2个冲突的) ===
+      
+      // 默认取第一个（成长值最高的）作为主花园
+      myGarden = allGardens[0];
+      
+      // 检查：如果我有伴侣，但这个花园的 owners 里没有伴侣，加上 TA！
+      if (partnerId && !myGarden.owners.includes(partnerId)) {
+         await db.collection('gardens').doc(myGarden._id).update({
+           data: { owners: _.addToSet(partnerId) }
+         });
+      }
+      // 检查：如果这个花园 owners 里没我（可能是伴侣的花园），加上我！
+      if (!myGarden.owners.includes(myOpenID)) {
+         await db.collection('gardens').doc(myGarden._id).update({
+           data: { owners: _.addToSet(myOpenID) }
+         });
+      }
 
-      let owners = [myOpenID];
-      if (me.partner_id) {
-        const partnerGardenRes = await db
-          .collection("gardens")
-          .where({ owners: me.partner_id })
-          .get();
-        if (partnerGardenRes.data.length > 0) {
-          // 加入伴侣的花园
-          await db
-            .collection("gardens")
-            .doc(partnerGardenRes.data[0]._id)
-            .update({
-              data: { owners: _.addToSet(myOpenID) },
-            });
-          myGarden = partnerGardenRes.data[0];
-        } else {
-          owners.push(me.partner_id);
+      // === 冲突处理：如果发现多于1个花园 (即两人之前各玩各的) ===
+      if (allGardens.length > 1) {
+        console.log('发现花园冲突，开始合并...');
+        // 保留第一个(最好的)，删除其余的
+        const gardensToDelete = allGardens.slice(1);
+        for (let g of gardensToDelete) {
+          await db.collection('gardens').doc(g._id).remove();
         }
       }
 
-      if (!myGarden) {
-        // 初始化新花园
-        const newGarden = {
-          owners: owners,
-          level: 1,
-          growth_value: 0,
-          updatedAt: db.serverDate(),
-        };
-        await db.collection("gardens").add({ data: newGarden });
-        myGarden = newGarden;
-      }
+    } else {
+      // === 情况 B: 咱们俩谁都没花园 ===
+      // 创建一个新的，把两人都加进去
+      let owners = [myOpenID];
+      if (partnerId) owners.push(partnerId);
+      
+      const newGarden = {
+        owners: owners,
+        level: 1,
+        growth_value: 0,
+        harvest_count: 0,
+        updatedAt: db.serverDate()
+      };
+      await db.collection('gardens').add({ data: newGarden });
+      myGarden = newGarden;
     }
-
+    
     return { status: 200, garden: myGarden, water: currentWater };
   }
 
@@ -389,15 +394,34 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "OK" };
   }
 
-  if (action === "update_anniversary") {
+  if (action === 'update_anniversary') {
     const { date } = event;
-    await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .update({
-        data: { anniversaryDate: date },
+    
+    // 1. 获取我的当前信息，主要是为了拿 partner_id
+    const userRes = await db.collection('users').where({ _openid: myOpenID }).get();
+    const me = userRes.data[0];
+    
+    // 2. 准备更新的数据包
+    // 增加 updatedBy 字段，记录是谁修改的
+    const updateData = {
+      anniversaryDate: date,
+      anniversaryModifier: me.nickName || '伴侣', // 记录修改人的昵称
+      anniversaryUpdatedAt: db.serverDate()
+    };
+
+    // 3. 更新我自己
+    await db.collection('users').doc(me._id).update({
+      data: updateData
+    });
+
+    // 4. 关键：如果有伴侣，同步更新伴侣的数据
+    if (me.partner_id) {
+      await db.collection('users').where({ _openid: me.partner_id }).update({
+        data: updateData
       });
-    return { status: 200, msg: "纪念日已更新" };
+    }
+
+    return { status: 200, msg: '纪念日已同步更新' };
   }
 
   if (action === "unbind") {

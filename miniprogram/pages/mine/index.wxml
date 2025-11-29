@@ -4,12 +4,20 @@
     <view class="timer-card paper-texture">
       <view class="timer-header">
         <text class="timer-title">我们已经相爱</text>
+        
         <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
-          <view class="timer-setting">
-            <text wx:if="{{anniversary}}">起始日: {{anniversary}}</text>
-            <text wx:else>⚙️ 设置纪念日</text>
+          <view class="date-picker-wrap">
+            <view class="timer-setting">
+              <text wx:if="{{anniversary}}">起始日: {{anniversary}}</text>
+              <text wx:else>⚙️ 设置纪念日</text>
+            </view>
+            
+            <view class="modifier-note" wx:if="{{userData.anniversaryModifier}}">
+              <text>✎ 由 {{userData.anniversaryModifier}} 更新</text>
+            </view>
           </view>
         </picker>
+
       </view>
       
       <view class="timer-content">
