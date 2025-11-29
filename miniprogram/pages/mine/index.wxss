@@ -143,3 +143,25 @@ page {
 
 /* 按钮点击态 */
 button:active { transform: scale(0.98); opacity: 0.9; }
+
+/* 🆕 恋爱计时器样式 */
+.timer-card {
+  background: linear-gradient(135deg, #fff0f5 0%, #fff 100%);
+  text-align: center;
+  padding: 40rpx !important;
+}
+
+.timer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.timer-title { font-size: 28rpx; color: #5d4037; font-weight: bold; }
+.timer-setting { font-size: 22rpx; color: #a1887f; background: rgba(255,255,255,0.6); padding: 4rpx 12rpx; border-radius: 20rpx; }
+
+.timer-content { margin: 20rpx 0; display: flex; align-items: baseline; justify-content: center; }
+.timer-number { font-size: 80rpx; font-weight: 900; color: #ff6b81; font-family: 'Courier New', monospace; line-height: 1; }
+.timer-unit { font-size: 28rpx; color: #8d6e63; margin-left: 10rpx; font-weight: bold; }
+
+.timer-footer { font-size: 20rpx; color: #d7ccc8; letter-spacing: 4rpx; text-transform: uppercase; }

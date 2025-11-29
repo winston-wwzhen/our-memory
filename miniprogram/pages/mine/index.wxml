@@ -1,4 +1,21 @@
 <view class="mine-container">
+  <view class="timer-card paper-texture">
+    <view class="timer-header">
+      <text class="timer-title">我们已经相爱</text>
+      <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
+        <view class="timer-setting">
+          <text wx:if="{{anniversary}}">起始日: {{anniversary}}</text>
+          <text wx:else>⚙️ 设置纪念日</text>
+        </view>
+      </picker>
+    </view>
+    
+    <view class="timer-content">
+      <text class="timer-number">{{daysCount}}</text>
+      <text class="timer-unit">天</text>
+    </view>
+    <view class="timer-footer">Love is a long journey.</view>
+  </view>
   
   <view class="user-card paper-texture">
     <button 

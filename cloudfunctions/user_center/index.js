@@ -139,6 +139,15 @@ exports.main = async (event, context) => {
     return { status: 200, msg: 'OK' };
   }
 
+  // 🆕 新增：更新纪念日
+  if (action === 'update_anniversary') {
+    const { date } = event;
+    await db.collection('users').where({ _openid: myOpenID }).update({
+      data: { anniversaryDate: date }
+    });
+    return { status: 200, msg: '纪念日已更新' };
+  }
+
   // 5. 解除绑定
   if (action === 'unbind') {
     // 恢复限制：只有白名单用户可以解绑
