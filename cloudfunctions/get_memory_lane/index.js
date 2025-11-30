@@ -22,15 +22,19 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 🆕 2. 核心新增：查询总记录数 (打卡天数)
-    const countResult = await db.collection('logs')
-      .where({ _openid: _.in(targetIDs) })
-      .count();
+    // 2. 构造查询条件
+    const query = {
+      _openid: _.in(targetIDs),
+      type: 'daily_check_in' // 🔴 关键修改：只查询打卡记录，过滤掉浇水、收获等纯文本日志
+    };
+
+    // 3. 查询总记录数
+    const countResult = await db.collection('logs').where(query).count();
     const totalDays = countResult.total;
 
-    // 3. 分页查询列表
+    // 4. 分页查询列表
     const result = await db.collection('logs')
-      .where({ _openid: _.in(targetIDs) })
+      .where(query)
       .orderBy('createdAt', 'desc') 
       .skip(page * pageSize) 
       .limit(pageSize)       
@@ -46,7 +50,7 @@ exports.main = async (event, context) => {
     return {
       status: 200,
       data: processedData,
-      totalDays: totalDays, // 👈 返回总天数
+      totalDays: totalDays,
       hasMore: processedData.length === pageSize 
     };
 
