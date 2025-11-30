@@ -16,9 +16,8 @@ const DAILY_AD_LIMIT = 1;
 // 腾讯云风格ID参考：201(日漫), 101(水彩), 401(3D), 等等
 const STYLE_CONFIG = {
   "201": { isVip: false, name: "日漫风" },
-  "104": { isVip: false, name: "水彩风" }, 
-  "116": { isVip: false,  name: "3D 卡通" },
-  "210": { isVip: false,  name: "2.5D 动画" },
+  "116": { isVip: false,  name: "3D卡通" },
+  "210": { isVip: false,  name: "2.5D动画" },
   "121": { isVip: false,  name: "黏土" },
   "125": { isVip: false,  name: "国风工笔" },
   "127": { isVip: false,  name: "瓷器" },

@@ -17,21 +17,19 @@ Page({
     
     // 🎨 风格配置 (建议配置多一点，体现丰富度)
     styleList: [
-            { id: "201", name: "日漫风", img: "../../images/default-photo1.png", isVip: false },
-            { id: "104", name: "水彩风", img: "../../images/default-photo2.png", isVip: false },
-            { id: "107", name: "卡通插画", img: "../../images/default-photo1.png", isVip: false },
-            { id: "116", name: "3D 卡通", img: "../../images/default-photo2.png", isVip: false },
-            { id: "210", name: "2.5D 动画", img: "../../images/default-photo2.png", isVip: false },
-            { id: "120", name: "木雕", img: "../../images/default-photo2.png", isVip: false },
-            { id: "121", name: "黏土", img: "../../images/default-photo2.png", isVip: false },
-            { id: "125", name: "国风工笔", img: "../../images/default-photo2.png", isVip: false },
-            { id: "127", name: "瓷器", img: "../../images/default-photo2.png", isVip: false },
-            { id: "129", name: "美式复古", img: "../../images/default-photo2.png", isVip: false },
-            { id: "130", name: "蒸汽朋克", img: "../../images/default-photo2.png", isVip: false },
-            { id: "132", name: "素描", img: "../../images/default-photo2.png", isVip: false },
-            { id: "133", name: "莫奈花园", img: "../../images/default-photo2.png", isVip: false },
-            { id: "134", name: "厚涂手绘", img: "../../images/default-photo2.png", isVip: false },
-            { id: "126", name: "玉石", img: "../../images/default-photo1.png", isVip: false }
+            { id: "201", name: "日漫风", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/日漫风.png", isVip: false },
+            { id: "107", name: "卡通插画", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/卡通插图.png", isVip: false },
+            { id: "116", name: "3D卡通", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/3D卡通.png", isVip: false },
+            { id: "210", name: "2.5D动画", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/2.5D动画.png", isVip: false },
+            { id: "121", name: "黏土", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/黏土.png", isVip: false },
+            { id: "125", name: "国风工笔", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/国风工笔.png", isVip: false },
+            { id: "127", name: "瓷器", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/瓷器.png", isVip: false },
+            { id: "129", name: "美式复古", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/美式复古.png", isVip: false },
+            { id: "130", name: "蒸汽朋克", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/蒸汽朋克.png", isVip: false },
+            { id: "132", name: "素描", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/素描.png", isVip: false },
+            { id: "133", name: "莫奈花园", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/莫奈花园.png", isVip: false },
+            { id: "134", name: "厚涂手绘", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/厚涂手绘.png", isVip: false },
+            { id: "126", name: "玉石", img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/碧绿风.png", isVip: false }
           ],
     currentStyleIndex: 0, 
 
@@ -375,11 +373,14 @@ Page({
 
   doSave: function() {
     wx.showLoading({ title: '正在珍藏...' });
+    const currentStyleName = this.data.styleList[this.data.currentStyleIndex].name;
+
     wx.cloud.callFunction({
       name: 'user_center',
       data: {
         action: 'check_in',
-        imageFileID: this.data.tempFileID
+        imageFileID: this.data.tempFileID,
+        style: currentStyleName
       },
       success: res => {
         wx.hideLoading();

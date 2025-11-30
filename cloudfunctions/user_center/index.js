@@ -53,7 +53,7 @@ async function addLog(openid, type, content, extra = {}) {
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const myOpenID = wxContext.OPENID;
-  const { action, partnerCode, decision, userInfo, imageFileID } = event;
+  const { action, partnerCode, decision, userInfo, imageFileID, style} = event;
   const todayStr = getTodayStr();
 
   const SUDO_USERS = await getSudoUsers();
@@ -300,7 +300,7 @@ exports.main = async (event, context) => {
 
     if (oldLogRes.data.length > 0) {
       await db.collection("logs").doc(oldLogRes.data[0]._id).update({
-        data: { imageFileID: imageFileID, updatedAt: db.serverDate(), style: "success" },
+        data: { imageFileID: imageFileID, updatedAt: db.serverDate(), style: style || "Sweet Moment"},
       });
       msg = "照片已更新！(今日奖励已领取)";
     } else {
@@ -313,7 +313,7 @@ exports.main = async (event, context) => {
           originalDate: todayStr,
           createdAt: db.serverDate(),
           engine: "tencent",
-          style: "success",
+          style: style || "Sweet Moment",
         },
       });
       await db.collection("users").where({ _openid: myOpenID }).update({
