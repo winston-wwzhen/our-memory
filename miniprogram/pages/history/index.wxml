@@ -14,7 +14,7 @@
         </view>
         
         <view class="gift-desc" wx:if="{{totalDays < 30}}">
-          再坚持 <text class="days-left">{{30 - totalDays}}</text> 天，解锁【动态时光影集】✨
+          再记录 <text class="days-left">{{30 - totalDays}}</text> 个心动瞬间，解锁【动态时光影集】✨
         </view>
         <view class="gift-desc" wx:else>
           🎉 恭喜达成30天成就！神秘惊喜准备中...
