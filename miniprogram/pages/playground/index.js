@@ -5,9 +5,11 @@ Page({
     waterCount: 0,
     growth: 0,
     level: 1,
-    maxGrowth: 100, // 每级 100
+    maxGrowth: 100, 
     progress: 0,
-    harvestCount: 0 // 🆕 收获数量
+    harvestCount: 0,
+    logs: [], // 🆕 新增日志数组
+    showLogModal: false // 🆕 控制日志弹窗显示
   },
 
   onShow: function () {
@@ -15,9 +17,7 @@ Page({
   },
 
   onPullDownRefresh: function() {
-    this.fetchGardenData(() => {
-      wx.stopPullDownRefresh();
-    });
+    this.fetchGardenData(() => wx.stopPullDownRefresh());
   },
 
   fetchGardenData: function (callback) {
@@ -26,24 +26,30 @@ Page({
       data: { action: 'get_garden' },
       success: res => {
         if (res.result.status === 200) {
-          const { garden, water } = res.result;
+          const { garden, water, logs } = res.result; // 🆕 获取 logs
           
           const g = garden.growth_value || 0;
-          // 计算等级：成长值 0-99 Lv1, 100-199 Lv2, 200-299 Lv3, 300+ Lv4(满级)
           let lv = Math.floor(g / 100) + 1;
-          if (lv > 4) lv = 4; // 锁定最高等级
+          if (lv > 4) lv = 4; 
 
           const currentG = g % 100;
-          const harvests = garden.harvest_count || 0;
-
-          let finalProgress = (lv >= 4) ? 100 : (currentG / 100) * 100;
+          const harvests = garden.harvest_total || 0; 
           
+          let finalProgress = (lv >= 4) ? 100 : (currentG / 100) * 100;
+
+          // 🆕 格式化日志时间
+          const formattedLogs = (logs || []).map(item => {
+            item.timeAgo = this.formatTimeAgo(item.date);
+            return item;
+          });
+
           this.setData({
             waterCount: water,
             growth: currentG,
             level: lv,
-            progress: finalProgress,
-            harvestCount: harvests
+            progress: finalProgress + '%', 
+            harvestCount: harvests,
+            logs: formattedLogs // 🆕 设置日志数据
           });
         }
         if (callback) callback();
@@ -53,6 +59,19 @@ Page({
         if (callback) callback();
       }
     });
+  },
+
+  // 🆕 简易时间格式化
+  formatTimeAgo: function(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = (now - date) / 1000; // 秒
+
+    if (diff < 60) return '刚刚';
+    if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+    if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+    return Math.floor(diff / 86400) + '天前';
   },
 
   onWater: function () {
@@ -80,37 +99,32 @@ Page({
       }
     });
   },
+  
+  // 🆕 切换日志弹窗
+  toggleLogModal: function() {
+    this.setData({ showLogModal: !this.data.showLogModal });
+  },
 
-  // 🆕 收获逻辑
   onHarvest: function () {
     wx.showModal({
       title: '收获玫瑰',
       content: '恭喜你们培育出了真爱玫瑰！确认收获并开启下一轮种植吗？',
       confirmText: '收获',
       confirmColor: '#ff6b81',
-      success: (res) => {
-        if (res.confirm) {
-          this.doHarvest();
-        }
-      }
+      success: (res) => { if (res.confirm) this.doHarvest(); }
     });
   },
-
   doHarvest: function() {
     this.setData({ loading: true });
     wx.showLoading({ title: '收获中...' });
-    
     wx.cloud.callFunction({
       name: 'user_center',
       data: { action: 'harvest_garden' },
       success: res => {
         wx.hideLoading();
         this.setData({ loading: false });
-        
         if (res.result.status === 200) {
-          // 播放成功动画或提示
           wx.showToast({ title: '收获成功 🌹', icon: 'success', duration: 2000 });
-          // 刷新数据（会重置为 Lv.1）
           this.fetchGardenData();
         } else {
           wx.showToast({ title: res.result.msg, icon: 'none' });
@@ -123,8 +137,9 @@ Page({
       }
     })
   },
-
-  onTodo: function () {
-    wx.showToast({ title: '功能开发中...', icon: 'none' });
-  }
+  navToCoupons: function() { wx.navigateTo({ url: '/pages/coupons/index' }); },
+  navToDecision: function() {wx.navigateTo({
+    url: '/pages/decision/index',
+  })},
+  onTodo: function () { wx.showToast({ title: '功能开发中...', icon: 'none' }); }
 });

@@ -1,0 +1,79 @@
+<view class="coupon-container">
+  
+  <view class="header-balance">
+    <text class="balance-label">可用玫瑰</text>
+    <view class="balance-val">
+      <text class="num">{{roseBalance}}</text>
+      <text class="icon">🌹</text>
+    </view>
+  </view>
+
+  <view class="tab-header">
+    <view class="tab-item {{currentTab===0?'active':''}}" bindtap="switchTab" data-idx="{{0}}">特权工坊</view>
+    <view class="tab-item {{currentTab===1?'active':''}}" bindtap="switchTab" data-idx="{{1}}">我的卡片</view>
+  </view>
+
+  <view class="shop-view" wx:if="{{currentTab===0}}">
+    <view class="coupon-grid">
+      <block wx:for="{{templates}}" wx:key="id">
+        <view class="shop-item paper-texture" bindtap="onRedeem" data-item="{{item}}">
+          <view class="item-top" style="background: {{item.color}}20;"> 
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-cost">{{item.cost}} 🌹</text>
+          </view>
+          <view class="item-body">
+            <text class="item-desc">{{item.desc}}</text>
+            <button class="btn-buy">制作</button>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="wallet-view" wx:if="{{currentTab===1}}">
+    <view class="empty-state" wx:if="{{myCoupons.length === 0}}">
+      <text>卡包空空如也，快去制作吧~</text>
+    </view>
+
+    <block wx:for="{{myCoupons}}" wx:key="_id">
+      <view class="ticket-card {{item.status > 0 ? 'used' : ''}}">
+        <view class="ticket-main" style="border-left: 10rpx solid {{item.status>0 ? '#ccc' : '#ff6b81'}};">
+          <view class="ticket-info">
+            <text class="t-title">{{item.title}}</text>
+            <text class="t-desc">{{item.desc}}</text>
+            <text class="t-time">制作于 {{item.createTimeStr}}</text>
+          </view>
+          <view class="ticket-status">
+            <text wx:if="{{item.status===0}}" class="status-tag">未使用</text>
+            <text wx:if="{{item.status===1}}" class="status-tag process">核销中</text>
+            <text wx:if="{{item.status===2}}" class="status-tag done">已使用</text>
+          </view>
+        </view>
+        <view class="ticket-rip"></view>
+        <view class="ticket-stub" bindtap="onUseCoupon" data-id="{{item._id}}" data-status="{{item.status}}">
+          <text wx:if="{{item.status===0}}">点击\n使用</text>
+          <text wx:else>票根\n留念</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="custom-modal-mask {{showModal ? 'show' : ''}}" bindtap="closeModal">
+    <view class="custom-modal-content" catchtap="true"> <view class="modal-header">✨ 制作确认</view>
+      <view class="modal-body">
+        <view class="modal-line">
+          即将消耗 <text class="highlight-cost">{{selectedItem.cost}}</text> 朵玫瑰 🌹
+        </view>
+        <view class="modal-line-sub">用于制作一张</view>
+        <view class="modal-card-name">
+          「 {{selectedItem.title}} 」
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-modal-cancel" bindtap="closeModal">再想想</button>
+        <button class="btn-modal-confirm" bindtap="confirmRedeem">确定制作</button>
+      </view>
+    </view>
+  </view>
+
+</view>

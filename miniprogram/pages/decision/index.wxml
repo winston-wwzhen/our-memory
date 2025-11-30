@@ -1,0 +1,86 @@
+<view class="decision-container">
+  
+  <view class="bg-decoration">
+    <view class="glow-blob b1"></view>
+    <view class="glow-blob b2"></view>
+    <view class="sparkle s1">✦</view>
+    <view class="sparkle s2">✦</view>
+    <view class="sparkle s3">✦</view>
+  </view>
+
+  <view class="bubble-stage">
+    <view class="partner-cloud slide-down" wx:if="{{partnerDecision}}">
+      <image class="p-avatar" src="../../images/default-avatar.png"></image>
+      <text>TA 选了：{{partnerDecision.result}}</text>
+    </view>
+
+    <view class="bubble-container">
+      <view class="bubble-item {{currentTab===index?'active':''}}" 
+            wx:for="{{themes}}" wx:key="id" 
+            bindtap="switchTab" data-index="{{index}}">
+        <view class="bubble-glass">
+          <text class="bubble-text">{{item.title}}</text>
+          <view class="bubble-highlight"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card-stage">
+    
+    <view class="result-modal {{showResult ? 'visible' : ''}}">
+      <view class="modal-card bounce-in">
+        <view class="ribbon-top">✨ 命运的指引</view>
+        <text class="modal-emoji">🎁</text>
+        <text class="modal-value">{{finalResult}}</text>
+        <view class="btn-group">
+          <button class="btn-secondary" bindtap="resetGame">再试一次</button>
+          <button class="btn-primary" open-type="share">告诉 TA</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="cards-fan {{showResult ? 'blur-out' : ''}}">
+      <block wx:for="{{cards}}" wx:key="id">
+        <view class="card-wrapper {{isShuffling ? 'shuffling' : ''}} {{item.flipped ? 'flipped' : ''}}"
+              style="--rot: {{item.rotate}}deg; --idx: {{index}};"
+              bindtap="flipCard" data-index="{{index}}">
+          
+          <view class="card-body">
+            <view class="flash-layer"></view> 
+
+            <view class="card-back">
+              <view class="card-design">
+                <text class="corner tl">✦</text>
+                <text class="corner tr">✦</text>
+                <text class="corner bl">✦</text>
+                <text class="corner br">✦</text>
+                <view class="center-symbol">
+                  <text class="symbol-icon">❤</text>
+                </view>
+                <text class="card-hint">Fate</text>
+              </view>
+            </view>
+            <view class="card-face">
+              <view class="face-frame">
+                <text class="face-icon top">✨</text>
+                
+                <text class="face-text">{{item.value}}</text>
+                
+                <text class="face-icon bottom">✨</text>
+                
+                <view class="face-bg-pattern"></view>
+              </view>
+            </view>
+          </view>
+
+        </view>
+      </block>
+    </view>
+
+    <view class="footer-hint" wx:if="{{!showResult && !isShuffling}}">
+      <text>相信直觉，点击一张卡牌</text>
+    </view>
+
+  </view>
+</view>

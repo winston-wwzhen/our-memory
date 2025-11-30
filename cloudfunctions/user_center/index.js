@@ -37,11 +37,11 @@ async function addLog(openid, type, content, extra = {}) {
     await db.collection('logs').add({
       data: {
         _openid: openid,
-        type: type,           // 类型: daily_check_in, water, harvest, bind
+        type: type,           // 类型: daily_check_in, water, harvest, bind, redeem...
         content: content,     // 描述文本
         originalDate: todayStr,
         createdAt: db.serverDate(),
-        ...extra              // 额外数据 (如 imageFileID, water_amount)
+        ...extra              // 额外数据
       }
     });
   } catch (err) {
@@ -58,7 +58,7 @@ exports.main = async (event, context) => {
   const SUDO_USERS = await getSudoUsers();
   const DAILY_LOGIN_BONUS = 50; 
 
-  // === 1. 登录 ===
+  // === 1. 登录 (含每日奖励) ===
   if (action === 'login') {
     let currentUser = null;
     let loginBonus = 0; 
@@ -73,24 +73,18 @@ exports.main = async (event, context) => {
         });
         currentUser.water_count = (currentUser.water_count || 0) + loginBonus;
         currentUser.last_login_date = todayStr;
-        
-        // 🆕 可选：记录每天第一次登录 (暂不开启，避免日志太多，这里仅做示例)
-        // await addLog(myOpenID, 'login', '登录了纪念册');
       }
     } else {
       const newUser = {
         _openid: myOpenID, nickName: (userInfo?.nickName && userInfo.nickName !== '微信用户') ? userInfo.nickName : getRandomName(),
         avatarUrl: userInfo?.avatarUrl || '', partner_id: null, bind_request_from: null,
-        water_count: DAILY_LOGIN_BONUS, last_login_date: todayStr, createdAt: db.serverDate()
+        water_count: DAILY_LOGIN_BONUS, rose_balance: 0, last_login_date: todayStr, createdAt: db.serverDate()
       };
       const addRes = await db.collection('users').add({ data: newUser });
       currentUser = { ...newUser, _id: addRes._id };
       loginBonus = DAILY_LOGIN_BONUS;
-      
-      // 🆕 记录注册日志
       await addLog(myOpenID, 'register', '开启了我们的纪念册');
     }
-    
     let partnerInfo = null;
     if (currentUser.partner_id) {
       const partnerRes = await db.collection('users').where({ _openid: currentUser.partner_id }).field({ nickName: true, avatarUrl: true, _openid: true }).get();
@@ -99,11 +93,12 @@ exports.main = async (event, context) => {
     return { status: 200, user: currentUser, partner: partnerInfo, loginBonus: loginBonus, isVip: SUDO_USERS.includes(myOpenID) };
   }
 
-  // === 2. 获取花园 ===
+  // === 2. 获取花园 (含日志查询与数据合并) ===
   if (action === 'get_garden') {
     const userRes = await db.collection('users').where({ _openid: myOpenID }).get();
     const me = userRes.data[0];
     const currentWater = me.water_count || 0;
+    const myRoseBalance = me.rose_balance || 0;
     const partnerId = me.partner_id;
 
     let conditions = [{ owners: myOpenID }];
@@ -116,6 +111,7 @@ exports.main = async (event, context) => {
       const allGardens = gardenRes.data;
       myGarden = allGardens[0];
       
+      // 智能合并逻辑
       if (partnerId && !myGarden.owners.includes(partnerId)) {
          await db.collection('gardens').doc(myGarden._id).update({ data: { owners: _.addToSet(partnerId) } });
       }
@@ -126,17 +122,56 @@ exports.main = async (event, context) => {
         const gardensToDelete = allGardens.slice(1);
         for (let g of gardensToDelete) { await db.collection('gardens').doc(g._id).remove(); }
       }
+      // 旧数据迁移：把花园里的公共玫瑰转给当前用户
+      if (myGarden.rose_balance && myGarden.rose_balance > 0) {
+        const oldBalance = myGarden.rose_balance;
+        await db.collection('users').doc(me._id).update({ data: { rose_balance: _.inc(oldBalance) } });
+        await db.collection('gardens').doc(myGarden._id).update({ data: { rose_balance: 0 } });
+        myGarden.rose_balance = 0; 
+      }
     } else {
       let owners = [myOpenID];
       if (partnerId) owners.push(partnerId);
-      const newGarden = { owners: owners, level: 1, growth_value: 0, harvest_count: 0, updatedAt: db.serverDate() };
+      const newGarden = { owners: owners, level: 1, growth_value: 0, harvest_count: 0, harvest_total: 0, updatedAt: db.serverDate() };
       await db.collection('gardens').add({ data: newGarden });
       myGarden = newGarden;
     }
-    return { status: 200, garden: myGarden, water: currentWater };
+    
+    // 将个人余额挂载返回
+    myGarden.rose_balance = myRoseBalance;
+
+    // 🆕 查询最近10条浇水记录
+    let recentLogs = [];
+    try {
+      const owners = myGarden.owners || [myOpenID];
+      // 获取头像昵称映射
+      const usersRes = await db.collection('users').where({ _openid: _.in(owners) }).field({ _openid: true, nickName: true, avatarUrl: true }).get();
+      const userMap = {};
+      usersRes.data.forEach(u => userMap[u._openid] = u);
+
+      // 查询日志
+      const logsRes = await db.collection('logs')
+        .where({ type: 'water', _openid: _.in(owners) })
+        .orderBy('createdAt', 'desc')
+        .limit(10)
+        .get();
+
+      recentLogs = logsRes.data.map(log => {
+        const u = userMap[log._openid] || { nickName: 'Ta', avatarUrl: '' };
+        return {
+          nickName: u.nickName,
+          avatarUrl: u.avatarUrl,
+          content: log.content,
+          date: log.createdAt, 
+          isMine: log._openid === myOpenID
+        };
+      });
+    } catch (e) { console.error(e); }
+
+    return { status: 200, garden: myGarden, water: currentWater, logs: recentLogs };
   }
 
-  // === 3. 浇水 (记录日志) 💧 ===
+  // === 3. 浇水 (记录日志) ===
   if (action === 'water_flower') {
     const COST = 10; const GROWTH = 10; 
     const userRes = await db.collection('users').where({ _openid: myOpenID }).get();
@@ -148,14 +183,13 @@ exports.main = async (event, context) => {
     if (gardenRes.data.length > 0) {
       await db.collection('gardens').doc(gardenRes.data[0]._id).update({ data: { growth_value: _.inc(GROWTH), updatedAt: db.serverDate() } });
       
-      // 🆕 记录浇水日志
       await addLog(myOpenID, 'water', `给玫瑰注入了 ${COST}g 爱意`, { growth_added: GROWTH });
       
       return { status: 200, msg: '注入成功，爱意满满！❤️' };
     } else { return { status: 404, msg: '花园数据异常' }; }
   }
 
-  // === 4. 收获 (记录日志) 🏆 ===
+  // === 4. 收获 (分红 + 日志) ===
   if (action === 'harvest_garden') {
     const gardenRes = await db.collection('gardens').where({ owners: myOpenID }).get();
     if (gardenRes.data.length > 0) {
@@ -163,18 +197,22 @@ exports.main = async (event, context) => {
       if (garden.growth_value < 300) return { status: 400, msg: '花朵还没完全盛开哦~' };
 
       await db.collection('gardens').doc(garden._id).update({
-        data: { growth_value: 0, harvest_count: _.inc(1), updatedAt: db.serverDate() }
+        data: { growth_value: 0, harvest_total: _.inc(1), updatedAt: db.serverDate() }
       });
       
-      // 🆕 记录收获日志
-      const newCount = (garden.harvest_count || 0) + 1;
-      await addLog(myOpenID, 'harvest', `收获了第 ${newCount} 朵真爱玫瑰 🌹`);
+      const owners = garden.owners || [];
+      if (owners.length > 0) {
+        await db.collection('users').where({ _openid: _.in(owners) }).update({ data: { rose_balance: _.inc(1) } });
+      }
       
-      return { status: 200, msg: '收获成功！已种下新的种子 🌱' };
+      const newTotal = (garden.harvest_total || 0) + 1;
+      await addLog(myOpenID, 'harvest', `收获了第 ${newTotal} 朵真爱玫瑰 🌹`);
+      
+      return { status: 200, msg: '收获成功！你和 TA 各获得 1 朵玫瑰 🌹' };
     } else { return { status: 404, msg: '花园数据异常' }; }
   }
 
-  // === 5. 打卡 (继续使用 logs 表) ===
+  // === 5. 打卡 (统一日志) ===
   if (action === 'check_in') {
     if (!imageFileID) return { status: 400, msg: '无图无真相' };
     const CHECKIN_REWARD = 50; 
@@ -184,22 +222,15 @@ exports.main = async (event, context) => {
     if (oldLogRes.data.length > 0) {
       await db.collection('logs').doc(oldLogRes.data[0]._id).update({ data: { imageFileID, updatedAt: db.serverDate(), style: 'success' } });
       msg = '照片已更新！(今日奖励已领取)';
-      // 更新日志不需要调 addLog，因为这本身就是 log 表操作
     } else {
-      // 🆕 这里我们复用 addLog 函数，保持格式统一 (type: daily_check_in)
-      await addLog(myOpenID, 'daily_check_in', '完成了今日打卡', { 
-        imageFileID: imageFileID, 
-        engine: 'tencent', 
-        style: 'success' 
-      });
-      
+      await addLog(myOpenID, 'daily_check_in', '完成了今日打卡', { imageFileID, engine: 'tencent', style: 'success' });
       await db.collection('users').where({ _openid: myOpenID }).update({ data: { water_count: _.inc(CHECKIN_REWARD) } });
       msg = `打卡成功！获得 ${CHECKIN_REWARD}g 爱意 💧`;
     }
     return { status: 200, msg };
   }
 
-  // === 6. 绑定 (记录日志) ===
+  // === 6. 绑定 (日志) ===
   if (action === 'request_bind') {
     if (!partnerCode) return { status: 400, msg: '请输入对方编号' };
     if (partnerCode === myOpenID) return { status: 400, msg: '不能关联自己' };
@@ -221,14 +252,29 @@ exports.main = async (event, context) => {
       await db.collection('users').where({ _openid: myOpenID }).update({ data: { partner_id: partnerCode, bind_request_from: null } });
       await db.collection('users').where({ _openid: partnerCode }).update({ data: { partner_id: myOpenID, bind_request_from: null } });
       
-      // 🆕 记录绑定日志 (双方各记一条)
       await addLog(myOpenID, 'bind', '与另一半建立了关联 ❤️');
       await addLog(partnerCode, 'bind', '与另一半建立了关联 ❤️');
-      
       return { status: 200, msg: '绑定成功' };
     }
   }
 
+  // === 7. 兑换卡券 (日志) ===
+  if (action === 'redeem_coupon') {
+    const { templateId, title, desc, cost, type } = event; 
+    const userRes = await db.collection('users').where({ _openid: myOpenID }).get();
+    const me = userRes.data[0];
+    const balance = me.rose_balance || 0; 
+    if (balance < cost) return { status: 400, msg: `玫瑰不足，还差 ${cost - balance} 朵哦~` };
+
+    await db.collection('users').doc(me._id).update({ data: { rose_balance: _.inc(-cost) } });
+    await db.collection('coupons').add({
+      data: { _openid: myOpenID, templateId, title, desc, type, cost, status: 0, createdAt: db.serverDate() }
+    });
+    await addLog(myOpenID, 'redeem', `消耗 ${cost} 朵玫瑰兑换了【${title}】`);
+    return { status: 200, msg: '兑换成功，已放入卡包！' };
+  }
+
+  // === 8. 辅助功能 ===
   if (action === 'update_profile') {
     const { avatarUrl, nickName } = event;
     await db.collection('users').where({ _openid: myOpenID }).update({ data: { avatarUrl, nickName } });
@@ -242,10 +288,7 @@ exports.main = async (event, context) => {
     const updateData = { anniversaryDate: date, anniversaryModifier: me.nickName || '伴侣', anniversaryUpdatedAt: db.serverDate() };
     await db.collection('users').doc(me._id).update({ data: updateData });
     if (me.partner_id) { await db.collection('users').where({ _openid: me.partner_id }).update({ data: updateData }); }
-    
-    // 🆕 记录纪念日修改日志
     await addLog(myOpenID, 'update_anniversary', `将纪念日修改为 ${date}`);
-    
     return { status: 200, msg: '纪念日已同步更新' };
   }
 
@@ -257,10 +300,34 @@ exports.main = async (event, context) => {
     const partnerID = me.partner_id;
     await db.collection('users').where({ _openid: myOpenID }).update({ data: { partner_id: null } });
     if (partnerID) await db.collection('users').where({ _openid: partnerID }).update({ data: { partner_id: null } });
-    
-    // 🆕 记录解绑日志
     await addLog(myOpenID, 'unbind', '解除了关联 💔');
-    
     return { status: 200, msg: '已解除关联' };
+  }
+
+  // 决定与获取决定
+  if (action === 'make_decision') {
+    const { category, result } = event;
+    await addLog(myOpenID, 'decision', `决定${category}：${result}`);
+    const updateData = { last_decision: { category, result, time: db.serverDate() } };
+    await db.collection('users').where({ _openid: myOpenID }).update({ data: updateData });
+    return { status: 200, msg: '决定已生效！' };
+  }
+  if (action === 'get_partner_decision') {
+    const userRes = await db.collection('users').where({ _openid: myOpenID }).get();
+    const me = userRes.data[0];
+    let partnerDecision = null;
+    if (me.partner_id) {
+      const partnerRes = await db.collection('users').where({ _openid: me.partner_id }).field({ last_decision: true, nickName: true }).get();
+      if (partnerRes.data.length > 0) {
+        partnerDecision = partnerRes.data[0].last_decision;
+        if (partnerDecision) { partnerDecision.nickName = partnerRes.data[0].nickName; }
+      }
+    }
+    return { status: 200, data: partnerDecision };
+  }
+  
+  if (action === 'get_my_coupons') {
+    const res = await db.collection('coupons').where({ _openid: myOpenID }).orderBy('createdAt', 'desc').get();
+    return { status: 200, data: res.data };
   }
 };

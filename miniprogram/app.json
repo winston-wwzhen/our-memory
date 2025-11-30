@@ -2,6 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/playground/index", 
+    "pages/decision/index",
+    "pages/coupons/index",
     "pages/history/index",
     "pages/mine/index"
   ],

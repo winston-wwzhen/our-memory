@@ -15,6 +15,11 @@
         <text>💧 当前爱意: {{waterCount}}g</text>
     </view>
 
+    <view class="log-bubble" bindtap="toggleLogModal">
+      <text class="bubble-icon">📝</text>
+      <text class="bubble-txt">呵护记录</text>
+    </view>
+
     <view class="plant-stage">
       <image wx:if="{{level === 1}}" src="../../images/flower_stage_1.png" mode="aspectFit" class="flower-img bounce-anim"></image>
       <image wx:elif="{{level === 2}}" src="../../images/flower_stage_2.png" mode="aspectFit" class="flower-img bounce-anim"></image>
@@ -23,7 +28,7 @@
 
     <view class="progress-box">
       <view class="progress-bar">
-        <view class="progress-inner" style="width: {{progress}}%;"></view>
+        <view class="progress-inner" style="width: {{progress}};"></view>
       </view>
       <text class="level-text" wx:if="{{level < 4}}">Lv.{{level}} 培育进度 ({{growth}}/{{maxGrowth}})</text>
       <text class="level-text max-level" wx:else>🌟 玫瑰已盛开，快去收获吧！ 🌟</text>
@@ -33,7 +38,7 @@
       <text>🏆 收获这朵玫瑰</text>
     </button>
 
-    <button class="btn-water" bindtap="onWater" disabled="{{loading}}" style="background: #ff6b81; box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);" wx:else>
+    <button class="btn-water" bindtap="onWater" disabled="{{loading}}" wx:else>
       <text>注入爱意 (10g)</text>
     </button>
     
@@ -42,7 +47,7 @@
   </view>
 
   <view class="grid-menu">
-    <view class="grid-item paper-texture" bindtap="onTodo">
+    <view class="grid-item paper-texture" bindtap="navToDecision">
       <view class="grid-icon">🎲</view>
       <text class="grid-title">决定转盘</text>
       <text class="grid-desc">治愈选择困难</text>
@@ -60,10 +65,36 @@
       <text class="grid-desc">每日一测</text>
     </view>
 
-    <view class="grid-item paper-texture" bindtap="onTodo">
+    <view class="grid-item paper-texture" bindtap="navToCoupons">
       <view class="grid-icon">🎁</view>
-      <text class="grid-title">心愿卡券</text>
+      <text class="grid-title">特权工坊</text>
       <text class="grid-desc">爱的承诺</text>
+    </view>
+  </view>
+
+  <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
+    <view class="log-modal-container" catchtap="return"> <view class="log-modal-header">
+        <text>📜 呵护日记</text>
+        <view class="close-icon" bindtap="toggleLogModal">×</view>
+      </view>
+      
+      <scroll-view scroll-y class="log-scroll-view">
+        <view class="empty-log" wx:if="{{logs.length === 0}}">
+          <text>暂无记录，快去浇水吧~</text>
+        </view>
+        <block wx:else>
+          <view class="modal-log-item" wx:for="{{logs}}" wx:key="index">
+            <image class="modal-log-avatar" src="{{item.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
+            <view class="modal-log-content">
+              <view class="modal-log-top">
+                <text class="modal-log-name {{item.isMine ? 'mine' : 'partner'}}">{{item.nickName}}</text>
+                <text class="modal-log-time">{{item.timeAgo}}</text>
+              </view>
+              <text class="modal-log-desc">{{item.content}}</text>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
     </view>
   </view>
 
