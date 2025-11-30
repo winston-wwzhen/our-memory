@@ -29,8 +29,8 @@
       {
         "pagePath": "pages/playground/index",
         "text": "Fun",
-        "iconPath": "images/love.png", 
-        "selectedIconPath": "images/love_active.png"
+        "iconPath": "images/gardan.png", 
+        "selectedIconPath": "images/gardan_active.png"
       },
       {
         "pagePath": "pages/history/index",

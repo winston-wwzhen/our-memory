@@ -12,17 +12,17 @@ Page({
     harvestCount: 0,
     logs: [],
     showLogModal: false,
-    
+
     // 导航栏高度配置
     navHeight: app.globalData.navBarHeight,
-    statusBarHeight: app.globalData.statusBarHeight
+    statusBarHeight: app.globalData.statusBarHeight,
   },
 
   onShow: function () {
     if (!this.data.navHeight) {
       this.setData({
         navHeight: app.globalData.navBarHeight,
-        statusBarHeight: app.globalData.statusBarHeight
+        statusBarHeight: app.globalData.statusBarHeight,
       });
     }
     // 每次显示都刷新用户状态(检查是否已绑定)和花园数据
@@ -30,42 +30,43 @@ Page({
     this.fetchGardenData();
   },
 
-  onPullDownRefresh: function() {
+  onPullDownRefresh: function () {
     // 下拉刷新时同步刷新用户状态
     this.updateUserStatus();
     this.fetchGardenData(() => wx.stopPullDownRefresh());
   },
 
   // 🆕 获取最新用户状态 (存入 globalData)
-  updateUserStatus: function() {
+  updateUserStatus: function () {
     wx.cloud.callFunction({
-      name: 'user_center',
-      data: { action: 'login' },
-      success: res => {
+      name: "user_center",
+      data: { action: "login" },
+      success: (res) => {
         if (res.result.status === 200) {
           app.globalData.userInfo = res.result.user;
         }
-      }
+      },
     });
   },
 
   // 🆕 核心拦截器：检查是否有伴侣
-  checkPartner: function() {
+  checkPartner: function () {
     const user = app.globalData.userInfo;
     // 如果没有用户信息或没有 partner_id，视为单身
     if (!user || !user.partner_id) {
       wx.showModal({
-        title: '情侣专属功能',
-        content: '“恋爱游乐园”是情侣专属的互动空间哦 🌱\n\n请先去【Mine】页面邀请另一半绑定，开启你们的甜蜜之旅吧！',
-        confirmText: '去绑定',
-        confirmColor: '#ff6b81',
-        cancelText: '再逛逛',
+        title: "情侣专属功能",
+        content:
+          "“恋爱游乐园”是情侣专属的互动空间哦 🌱\n\n请先去【Mine】页面邀请另一半绑定，开启你们的甜蜜之旅吧！",
+        confirmText: "去绑定",
+        confirmColor: "#ff6b81",
+        cancelText: "再逛逛",
         success: (res) => {
           if (res.confirm) {
             // 跳转到 Mine 页面
-            wx.switchTab({ url: '/pages/mine/index' });
+            wx.switchTab({ url: "/pages/mine/index" });
           }
-        }
+        },
       });
       return false; // 拦截成功
     }
@@ -74,9 +75,9 @@ Page({
 
   fetchGardenData: function (callback) {
     wx.cloud.callFunction({
-      name: 'user_center',
-      data: { action: 'get_garden' },
-      success: res => {
+      name: "user_center",
+      data: { action: "get_garden" },
+      success: (res) => {
         if (res.result.status === 200) {
           const { garden, water, logs } = res.result;
           const g = garden.growth_value || 0;
@@ -84,9 +85,9 @@ Page({
           if (lv > 4) lv = 4;
           const currentG = g % 100;
           const harvests = garden.harvest_total || 0;
-          let finalProgress = (lv >= 4) ? 100 : (currentG / 100) * 100;
-          
-          const formattedLogs = (logs || []).map(item => {
+          let finalProgress = lv >= 4 ? 100 : (currentG / 100) * 100;
+
+          const formattedLogs = (logs || []).map((item) => {
             item.timeAgo = this.formatTimeAgo(item.date);
             return item;
           });
@@ -95,29 +96,29 @@ Page({
             waterCount: water,
             growth: currentG,
             level: lv,
-            progress: finalProgress + '%',
+            progress: finalProgress + "%",
             harvestCount: harvests,
-            logs: formattedLogs
+            logs: formattedLogs,
           });
         }
         if (callback) callback();
       },
-      fail: err => {
+      fail: (err) => {
         console.error(err);
         if (callback) callback();
-      }
+      },
     });
   },
 
-  formatTimeAgo: function(dateStr) {
-    if (!dateStr) return '';
+  formatTimeAgo: function (dateStr) {
+    if (!dateStr) return "";
     const date = new Date(dateStr);
     const now = new Date();
     const diff = (now - date) / 1000;
-    if (diff < 60) return '刚刚';
-    if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
-    if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
-    return Math.floor(diff / 86400) + '天前';
+    if (diff < 60) return "刚刚";
+    if (diff < 3600) return Math.floor(diff / 60) + "分钟前";
+    if (diff < 86400) return Math.floor(diff / 3600) + "小时前";
+    return Math.floor(diff / 86400) + "天前";
   },
 
   // 💧 浇水 (拦截)
@@ -125,31 +126,31 @@ Page({
     if (!this.checkPartner()) return; // 🔒 权限检查
 
     if (this.data.waterCount < 10) {
-      wx.showToast({ title: '爱意不足，去首页拍照打卡吧~', icon: 'none' });
+      wx.showToast({ title: "爱意不足，去首页拍照打卡吧~", icon: "none" });
       return;
     }
     this.setData({ loading: true });
     wx.cloud.callFunction({
-      name: 'user_center',
-      data: { action: 'water_flower' },
-      success: res => {
+      name: "user_center",
+      data: { action: "water_flower" },
+      success: (res) => {
         this.setData({ loading: false });
         if (res.result.status === 200) {
-          wx.showToast({ title: '注入成功 +10', icon: 'success' });
+          wx.showToast({ title: "注入成功 +10", icon: "success" });
           this.fetchGardenData();
         } else {
-          wx.showToast({ title: res.result.msg, icon: 'none' });
+          wx.showToast({ title: res.result.msg, icon: "none" });
         }
       },
       fail: () => {
         this.setData({ loading: false });
-        wx.showToast({ title: '网络开小差了', icon: 'none' });
-      }
+        wx.showToast({ title: "网络开小差了", icon: "none" });
+      },
     });
   },
 
   // 📝 查看日志 (拦截)
-  toggleLogModal: function() {
+  toggleLogModal: function () {
     if (!this.checkPartner()) return; // 🔒 权限检查
     this.setData({ showLogModal: !this.data.showLogModal });
   },
@@ -159,53 +160,59 @@ Page({
     if (!this.checkPartner()) return; // 🔒 权限检查
 
     wx.showModal({
-      title: '收获玫瑰',
-      content: '恭喜你们培育出了真爱玫瑰！确认收获并开启下一轮种植吗？',
-      confirmText: '收获',
-      confirmColor: '#ff6b81',
-      success: (res) => { if (res.confirm) this.doHarvest(); }
+      title: "收获玫瑰",
+      content: "恭喜你们培育出了真爱玫瑰！确认收获并开启下一轮种植吗？",
+      confirmText: "收获",
+      confirmColor: "#ff6b81",
+      success: (res) => {
+        if (res.confirm) this.doHarvest();
+      },
     });
   },
 
-  doHarvest: function() {
+  doHarvest: function () {
     this.setData({ loading: true });
-    wx.showLoading({ title: '收获中...' });
+    wx.showLoading({ title: "收获中..." });
     wx.cloud.callFunction({
-      name: 'user_center',
-      data: { action: 'harvest_garden' },
-      success: res => {
+      name: "user_center",
+      data: { action: "harvest_garden" },
+      success: (res) => {
         wx.hideLoading();
         this.setData({ loading: false });
         if (res.result.status === 200) {
-          wx.showToast({ title: '收获成功 🌹', icon: 'success', duration: 2000 });
+          wx.showToast({
+            title: "收获成功 🌹",
+            icon: "success",
+            duration: 2000,
+          });
           this.fetchGardenData();
         } else {
-          wx.showToast({ title: res.result.msg, icon: 'none' });
+          wx.showToast({ title: res.result.msg, icon: "none" });
         }
       },
       fail: () => {
         wx.hideLoading();
         this.setData({ loading: false });
-        wx.showToast({ title: '网络错误', icon: 'none' });
-      }
-    })
+        wx.showToast({ title: "网络错误", icon: "none" });
+      },
+    });
   },
 
   // 🎲 跳转决定转盘 (拦截)
-  navToDecision: function() { 
+  navToDecision: function () {
     if (!this.checkPartner()) return; // 🔒 权限检查
-    wx.navigateTo({ url: '/pages/decision/index' }); 
+    wx.navigateTo({ url: "/pages/decision/index" });
   },
 
   // 🎁 跳转心愿卡券 (拦截)
-  navToCoupons: function() { 
+  navToCoupons: function () {
     if (!this.checkPartner()) return; // 🔒 权限检查
-    wx.navigateTo({ url: '/pages/coupons/index' }); 
+    wx.navigateTo({ url: "/pages/coupons/index" });
   },
 
   // 🚧 待开发功能 (拦截)
-  onTodo: function () { 
+  onTodo: function () {
     if (!this.checkPartner()) return; // 🔒 权限检查
-    wx.showToast({ title: '功能开发中...', icon: 'none' }); 
-  }
+    wx.showToast({ title: "功能开发中...", icon: "none" });
+  },
 });

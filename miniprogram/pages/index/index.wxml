@@ -34,9 +34,8 @@
     </view>
 
     <view class="polaroid-frame {{loading ? 'developing-pulse' : 'floating-updown'}}" 
-          bindtap="{{loading ? '' : (!pendingSave ? 'onCapture' : 'previewImage')}}">
-      
-      <view class="photo-area">
+          bindtap="{{loading ? '' : (!pendingSave ? '' : 'previewImage')}}">
+          <view class="photo-area">
         <block wx:if="{{displayImage}}">
           <image src="{{displayImage}}" mode="aspectFill" class="the-photo"></image>
           <view class="score-stamp stamp-anim" wx:if="{{pendingSave && aiEvaluation}}">
@@ -48,9 +47,36 @@
         </block>
 
         <view class="empty-state-cover" wx:else>
-          <image src="{{randomSampleImg}}" mode="aspectFill" class="sample-img"></image> 
+          <swiper 
+            class="style-swiper" 
+            circular 
+            previous-margin="60rpx" 
+            next-margin="60rpx" 
+            bindchange="onStyleChange" 
+            current="{{currentStyleIndex}}"
+          >
+            <block wx:for="{{styleList}}" wx:key="id">
+              <swiper-item class="style-swiper-item">
+                <view class="swiper-card {{currentStyleIndex === index ? 'active' : ''}}">
+                  <image src="{{item.img}}" mode="aspectFill" class="sample-img"></image>
+                  
+                  <view class="inner-style-tag">
+                    <text>{{item.name}}</text>
+                    <text wx:if="{{item.isVip}}" class="vip-badge">VIP</text>
+                  </view>
+                  
+                  <view class="card-mask" wx:if="{{currentStyleIndex !== index}}"></view>
+                </view>
+              </swiper-item>
+            </block>
+          </swiper>
+
+          <view class="swipe-hint-text">
+            <text>← 左右滑动切换风格 →</text>
+          </view>
+
           <view class="empty-overlay">
-            <view class="camera-btn-circle">
+            <view class="camera-btn-circle" bindtap="onCapture">
               <view class="btn-ripple"></view>
               <image src="../../images/camera-icon.png" class="camera-icon-img"></image>
             </view>
@@ -61,7 +87,7 @@
 
         <view class="loading-mask" wx:if="{{loading}}">
           <view class="loading-spinner"></view>
-          <text class="loading-text">甜蜜生成中❤...</text>
+          <text class="loading-text">{{loadingText}}</text>
         </view>
       </view>
       
@@ -69,7 +95,7 @@
         <block wx:if="{{loading}}">正在施展魔法...</block>
         <block wx:elif="{{pendingSave && aiEvaluation}}">“ {{aiEvaluation.comment}} ”</block>
         <block wx:elif="{{pendingSave}}">✨ Our Magic Moment ✨</block>
-        <block wx:else>Our Story Starts Here...</block>
+        <block wx:else>滑动切换更多有趣的风格 ➡️</block>
       </view>
     </view>
 
