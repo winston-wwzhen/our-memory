@@ -1,0 +1,201 @@
+/* miniprogram/pages/playground/index.wxss */
+page {
+  background: #fdfbf7;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  padding-bottom: 40rpx;
+}
+
+.playground-container {
+  padding: 40rpx;
+}
+
+/* 复用纸质纹理 */
+.paper-texture {
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(149, 157, 165, 0.08);
+  position: relative;
+}
+
+/* === 花园卡片 === */
+.garden-card {
+  padding: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40rpx;
+  border: 2rpx dashed #aed9e9;
+  background: linear-gradient(180deg, #f0f8ff 0%, #fff 100%);
+  position: relative; /* 确保气泡可以绝对定位 */
+}
+
+.card-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.card-title { font-size: 30rpx; font-weight: 800; color: #5d4037; }
+
+/* 徽章 */
+.water-badge {
+  background: #e1f5fe; color: #0288d1;
+  font-size: 22rpx; padding: 6rpx 16rpx;
+  border-radius: 20rpx; font-weight: bold;
+  flex-shrink: 0;
+}
+.harvest-badge {
+  background: #fff8e1; color: #ff8f00;
+  font-size: 22rpx; padding: 6rpx 16rpx;
+  border-radius: 20rpx; font-weight: bold;
+  border: 1rpx solid #ffe082;
+  flex-shrink: 0;
+}
+.water-info-sub {
+  width: 100%; text-align: right;
+  font-size: 20rpx; color: #0288d1;
+  margin-top: -10rpx; margin-bottom: 20rpx;
+}
+
+/* 🆕 记录气泡 */
+.log-bubble {
+  position: absolute;
+  top: 120rpx; 
+  left: 40rpx; 
+  right: auto;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8rpx 16rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+  display: flex; align-items: center;
+  border: 2rpx solid #fff;
+  z-index: 10;
+  animation: floatBubble 3s infinite ease-in-out;
+}
+.bubble-icon { font-size: 24rpx; margin-right: 6rpx; }
+.bubble-txt { font-size: 20rpx; color: #8d6e63; font-weight: bold; }
+
+@keyframes floatBubble {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6rpx); }
+}
+
+.plant-stage {
+  height: 240rpx;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.flower-img { width: 220rpx; height: 220rpx; }
+
+/* 动画 */
+.bounce-anim { animation: bounce 3s infinite ease-in-out; }
+.glow-anim {
+  filter: drop-shadow(0 0 16rpx rgba(255, 105, 180, 0.6));
+  animation: float 3s infinite ease-in-out;
+}
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12rpx); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16rpx); } }
+
+/* 进度条 */
+.progress-box { width: 100%; margin-bottom: 40rpx; }
+.progress-bar {
+  height: 16rpx; background: #e0e0e0; border-radius: 10rpx; overflow: hidden;
+  margin-bottom: 10rpx;
+}
+.progress-inner {
+  height: 100%; background: #ff6b81; border-radius: 10rpx;
+  transition: width 0.5s ease;
+}
+.level-text { font-size: 22rpx; color: #8d6e63; display: block; text-align: center; font-weight: 500;}
+.max-level { color: #ff6f00; font-weight: bold; }
+
+/* 按钮样式 */
+.btn-water {
+  background: #ff6b81; color: #fff;
+  border-radius: 44rpx; font-size: 28rpx;
+  width: 60% !important; height: 88rpx; line-height: 88rpx;
+  padding: 0; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  white-space: nowrap;
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);
+}
+
+.btn-harvest {
+  background: linear-gradient(45deg, #ffca28, #ff6f00);
+  color: #fff;
+  border-radius: 44rpx; font-size: 30rpx;
+  width: 65% !important; height: 96rpx; line-height: 96rpx;
+  padding: 0; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  white-space: nowrap;
+  box-shadow: 0 8rpx 20rpx rgba(255, 111, 0, 0.3);
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+.tip-text { font-size: 20rpx; color: #b0bec5; margin-top: 24rpx; text-align: center; }
+
+/* === 宫格菜单 === */
+.grid-menu { display: flex; flex-wrap: wrap; justify-content: space-between; }
+.grid-item {
+  width: 48%; padding: 30rpx; box-sizing: border-box; margin-bottom: 24rpx;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.grid-icon { font-size: 50rpx; margin-bottom: 10rpx; }
+.grid-title { font-size: 26rpx; font-weight: bold; color: #5d4037; }
+.grid-desc { font-size: 20rpx; color: #a1887f; margin-top: 4rpx; opacity: 0.8; }
+
+/* === 🆕 弹窗样式 === */
+.log-modal-mask {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); z-index: 100;
+  display: flex; justify-content: center; align-items: center;
+  visibility: hidden; opacity: 0; transition: all 0.3s;
+}
+.log-modal-mask.show { visibility: visible; opacity: 1; }
+
+.log-modal-container {
+  width: 600rpx; background: #fff; border-radius: 24rpx;
+  padding: 30rpx; max-height: 70vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.2);
+}
+
+.log-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 20rpx; border-bottom: 2rpx dashed #eee;
+  font-size: 30rpx; font-weight: bold; color: #5d4037;
+}
+.close-icon { color: #ccc; font-size: 40rpx; line-height: 1; padding: 0 10rpx; }
+
+.log-scroll-view {
+  flex: 1; min-height: 300rpx; max-height: 600rpx;
+  padding-top: 20rpx;
+}
+
+/* 列表项样式 (从原来的迁移过来并微调) */
+.modal-log-item {
+  display: flex; align-items: flex-start; margin-bottom: 24rpx;
+}
+.modal-log-item:last-child { margin-bottom: 0; }
+
+.modal-log-avatar {
+  width: 70rpx; height: 70rpx; border-radius: 50%; margin-right: 20rpx;
+  border: 2rpx solid #f0f0f0; flex-shrink: 0;
+}
+.modal-log-content { flex: 1; }
+.modal-log-top { display: flex; justify-content: space-between; margin-bottom: 4rpx; }
+.modal-log-name { font-size: 24rpx; font-weight: bold; }
+.modal-log-name.mine { color: #ff6b81; }
+.modal-log-name.partner { color: #03a9f4; }
+.modal-log-time { font-size: 20rpx; color: #ccc; }
+.modal-log-desc { font-size: 24rpx; color: #666; line-height: 1.4; }
+
+.empty-log { text-align: center; color: #ccc; font-size: 24rpx; margin-top: 100rpx; }

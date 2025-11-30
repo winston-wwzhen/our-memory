@@ -1,5 +1,12 @@
 {
-  "pages": ["pages/index/index", "pages/history/index", "pages/mine/index"],
+  "pages": [
+    "pages/index/index",
+    "pages/playground/index", 
+    "pages/decision/index",
+    "pages/coupons/index",
+    "pages/history/index",
+    "pages/mine/index"
+  ],
   "window": {
     "backgroundColor": "#F6F6F6",
     "backgroundTextStyle": "light",
@@ -16,12 +23,18 @@
       {
         "pagePath": "pages/index/index",
         "text": "Today",
-        "iconPath": "images/home.png",
-        "selectedIconPath": "images/home-active.png"
+        "iconPath": "images/camera.png",
+        "selectedIconPath": "images/camera_active.png"
+      },
+      {
+        "pagePath": "pages/playground/index",
+        "text": "Fun",
+        "iconPath": "images/love.png", 
+        "selectedIconPath": "images/love_active.png"
       },
       {
         "pagePath": "pages/history/index",
-        "text": "Memories", 
+        "text": "Memories",
         "iconPath": "images/history.png",
         "selectedIconPath": "images/history-active.png"
       },

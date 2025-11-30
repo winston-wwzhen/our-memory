@@ -22,16 +22,21 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 🆕 2. 核心新增：查询总记录数 (打卡天数)
-    const countResult = await db.collection('logs')
-      .where({ _openid: _.in(targetIDs) })
-      .count();
+    // 🔴 核心修复：构造严格的查询条件
+    const query = {
+      _openid: _.in(targetIDs),
+      // 只查询类型为 'daily_check_in' 的记录，过滤掉 water/harvest 等
+      type: 'daily_check_in'
+    };
+
+    // 3. 查询符合条件的总记录数 (修正显示的“已珍藏天数”)
+    const countResult = await db.collection('logs').where(query).count();
     const totalDays = countResult.total;
 
-    // 3. 分页查询列表
+    // 4. 分页查询列表
     const result = await db.collection('logs')
-      .where({ _openid: _.in(targetIDs) })
-      .orderBy('createdAt', 'desc') 
+      .where(query)
+      .orderBy('createdAt', 'desc') // 按时间倒序
       .skip(page * pageSize) 
       .limit(pageSize)       
       .get();
@@ -46,7 +51,7 @@ exports.main = async (event, context) => {
     return {
       status: 200,
       data: processedData,
-      totalDays: totalDays, // 👈 返回总天数
+      totalDays: totalDays,
       hasMore: processedData.length === pageSize 
     };
 

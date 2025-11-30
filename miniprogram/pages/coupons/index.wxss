@@ -1,0 +1,208 @@
+/* miniprogram/pages/coupons/index.wxss */
+page {
+  background: #fdfbf7;
+  color: #5d4037;
+  font-family: -apple-system, sans-serif;
+  padding-bottom: 40rpx;
+}
+
+.header-balance {
+  padding: 30rpx 40rpx;
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; margin-bottom: 20rpx;
+}
+.balance-label { font-size: 28rpx; color: #a1887f; }
+.balance-val { font-size: 40rpx; font-weight: 900; color: #ff6b81; }
+
+.tab-header {
+  display: flex; justify-content: center; margin-bottom: 30rpx;
+}
+.tab-item {
+  padding: 16rpx 40rpx; font-size: 28rpx; color: #a1887f;
+  border-bottom: 4rpx solid transparent; transition: all 0.3s;
+}
+.tab-item.active {
+  color: #5d4037; font-weight: bold; border-bottom: 4rpx solid #ff6b81;
+}
+
+/* === 🛒 制作列表 === */
+.coupon-grid {
+  display: flex; flex-wrap: wrap; justify-content: space-between; padding: 0 30rpx;
+}
+.shop-item {
+  width: 48%; background: #fff; border-radius: 20rpx;
+  margin-bottom: 30rpx; overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+}
+.item-top {
+  padding: 24rpx; text-align: center;
+}
+.item-title { display: block; font-size: 30rpx; font-weight: bold; margin-bottom: 10rpx; }
+.item-cost { font-size: 24rpx; color: #ff6b81; font-weight: bold; }
+
+.item-body { padding: 20rpx; display: flex; flex-direction: column; justify-content: space-between; height: 160rpx; }
+.item-desc { font-size: 22rpx; color: #a1887f; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* 升级版按钮样式 */
+.btn-buy {
+  width: 100% !important; height: 64rpx; line-height: 64rpx;
+  font-size: 26rpx; font-weight: bold;
+  background: linear-gradient(135deg, #ff9a9e 0%, #ff6b81 100%);
+  color: #fff; border-radius: 32rpx; padding: 0; margin-top: 20rpx;
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);
+}
+.btn-buy::after { border: none; }
+.btn-buy:active { transform: scale(0.96); opacity: 0.9; }
+
+/* === 🎟️ 我的卡包 === */
+.wallet-view { padding: 0 30rpx; }
+.ticket-card {
+  display: flex; height: 180rpx; background: #fff;
+  margin-bottom: 24rpx; border-radius: 12rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.05);
+  position: relative; overflow: hidden;
+}
+.ticket-main {
+  flex: 1; padding: 24rpx; display: flex; flex-direction: column; justify-content: space-between;
+  background-image: radial-gradient(#f0f0f0 10%, transparent 10%);
+  background-size: 16rpx 16rpx;
+}
+.t-title { font-size: 32rpx; font-weight: bold; color: #5d4037; }
+.t-desc { font-size: 22rpx; color: #a1887f; }
+.t-time { font-size: 18rpx; color: #ccc; }
+
+.ticket-status { position: absolute; top: 20rpx; right: 140rpx; }
+.status-tag { font-size: 20rpx; padding: 4rpx 10rpx; border: 1rpx solid #ff6b81; color: #ff6b81; border-radius: 8rpx; }
+.status-tag.done { border-color: #ccc; color: #ccc; }
+
+.ticket-rip {
+  width: 6rpx; background-image: linear-gradient(to bottom, #fff 50%, #eee 50%);
+  background-size: 100% 20rpx; position: relative;
+}
+.ticket-rip::before, .ticket-rip::after {
+  content: ''; position: absolute; left: -10rpx; width: 24rpx; height: 24rpx;
+  border-radius: 50%; background: #fdfbf7; z-index: 10;
+}
+.ticket-rip::before { top: -12rpx; }
+.ticket-rip::after { bottom: -12rpx; }
+
+.ticket-stub {
+  width: 120rpx; background: #fffae0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24rpx; color: #5d4037; font-weight: bold; text-align: center;
+  border-left: 2rpx dashed #dcdcdc;
+}
+
+.ticket-card.used .ticket-main, .ticket-card.used .ticket-stub {
+  background: #f5f5f5; color: #999;
+}
+.ticket-card.used .t-title { color: #999; text-decoration: line-through; }
+
+.empty-state { text-align: center; color: #ccc; margin-top: 100rpx; font-size: 26rpx; }
+
+/* === 🆕 自定义弹窗样式 (精修版) === */
+.custom-modal-mask {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6); z-index: 999;
+  display: flex; justify-content: center; align-items: center;
+  visibility: hidden; opacity: 0; transition: all 0.3s;
+  backdrop-filter: blur(4px); /* 增加模糊背景，更高级 */
+}
+.custom-modal-mask.show { visibility: visible; opacity: 1; }
+
+.custom-modal-content {
+  width: 580rpx; background: #fff; border-radius: 36rpx;
+  overflow: hidden; animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.25);
+}
+
+/* 顶部标题栏 */
+.modal-header {
+  padding: 36rpx 0; 
+  text-align: center; 
+  font-size: 34rpx; 
+  font-weight: 900;
+  color: #fff; 
+  /* 渐变背景 */
+  background: linear-gradient(135deg, #ff9a9e 0%, #ff6b81 100%);
+  letter-spacing: 4rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+
+/* 内容区 */
+.modal-body { 
+  padding: 60rpx 50rpx; 
+  text-align: center; 
+  background: radial-gradient(circle at center, #fffbf0 0%, #fff 70%); /* 淡淡的中心光 */
+}
+
+/* 消耗提示 */
+.modal-line { 
+  font-size: 30rpx; color: #5d4037; 
+  margin-bottom: 24rpx; 
+  display: flex; align-items: center; justify-content: center;
+}
+.highlight-cost { 
+  color: #ff6b81; font-weight: 900; font-size: 44rpx; 
+  margin: 0 10rpx; font-family: 'Arial Rounded MT Bold', sans-serif;
+}
+
+.modal-line-sub { 
+  font-size: 24rpx; color: #a1887f; margin-bottom: 30rpx; opacity: 0.8;
+}
+
+/* 卡片名称展示框 */
+.modal-card-name {
+  font-size: 36rpx; font-weight: bold; color: #5d4037;
+  padding: 24rpx 40rpx; 
+  background: #fff; 
+  border-radius: 20rpx;
+  display: inline-block; 
+  /* 双重边框效果 */
+  border: 4rpx solid #ffe4e1;
+  box-shadow: 
+    0 10rpx 20rpx rgba(255, 182, 193, 0.15),
+    inset 0 0 20rpx rgba(255, 240, 245, 0.5);
+  min-width: 300rpx;
+}
+
+/* 底部按钮区 */
+.modal-footer {
+  display: flex; 
+  padding: 30rpx 40rpx 40rpx 40rpx; /* 增加底部留白 */
+  gap: 30rpx;
+  background: #fff;
+}
+.btn-modal-cancel, .btn-modal-confirm {
+  flex: 1; 
+  height: 80rpx !important; 
+  border-radius: 40rpx; 
+  font-size: 28rpx; 
+  font-weight: bold;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  
+  padding: 0 !important; /* 清除默认内边距 */
+  margin: 0 !important;
+}
+
+.btn-modal-cancel::after, .btn-modal-confirm::after {
+  border: none;
+}
+
+.btn-modal-cancel { 
+  background: #f5f5f5; color: #a1887f; 
+}
+.btn-modal-confirm { 
+  background: linear-gradient(90deg, #ff9a9e, #ff6b81); 
+  color: #fff; 
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.3);
+}
+.btn-modal-confirm:active { transform: scale(0.98); opacity: 0.9; }
+
+@keyframes bounceIn { 
+  0% { transform: scale(0.8); opacity: 0; } 
+  60% { transform: scale(1.05); opacity: 1; } 
+  100% { transform: scale(1); } 
+}
