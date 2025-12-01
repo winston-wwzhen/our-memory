@@ -403,3 +403,58 @@ page {
   animation: spin 1s linear infinite; margin-bottom: 20rpx; 
 }
 .loading-text { font-size: 24rpx; color: #ff6b81; font-weight: bold; letter-spacing: 2rpx; }
+
+/* [🆕 新增] 广告替代 Modal 样式 */
+.ad-modal-mask {
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9); /* 深邃的背景 */
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center;
+  z-index: 9999; /* 确保在最上层 */
+  animation: fadeIn 0.5s ease;
+  backdrop-filter: blur(10px); /* 增加模糊感 */
+}
+
+.ad-modal-content {
+  display: flex; 
+  flex-direction: column; 
+  align-items: center;
+}
+
+.ad-modal-emoji {
+  font-size: 80rpx;
+  margin-bottom: 60rpx;
+  animation: float-tilted 3s infinite ease-in-out;
+}
+
+.ad-modal-text {
+  color: #fff; 
+  font-size: 34rpx; 
+  font-weight: 300; /* 纤细字体更显高级 */
+  margin-bottom: 80rpx; 
+  letter-spacing: 4rpx;
+  text-align: center; 
+  opacity: 0.9;
+}
+
+.ad-countdown {
+  color: #ff6b81; 
+  font-size: 120rpx; 
+  font-weight: 100; /* 极细字体 */
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  animation: pulse-count 1s infinite;
+}
+
+@keyframes pulse-count {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

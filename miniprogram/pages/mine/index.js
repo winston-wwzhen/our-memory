@@ -1,6 +1,6 @@
 // miniprogram/pages/mine/index.js
 const app = getApp();
-const DEFAULT_AVATAR = ''; 
+const DEFAULT_AVATAR = "";
 
 Page({
   data: {
@@ -9,20 +9,20 @@ Page({
       nickName: "微信用户",
     },
     partnerData: null,
-    inputPartnerCode: "", 
-    needSave: false, 
+    inputPartnerCode: "",
+    needSave: false,
     partnerShortID: "",
     isShowingRequest: false,
     daysCount: 0,
-    anniversary: '',
+    anniversary: "",
   },
 
-  onLoad: function(options) {
+  onLoad: function (options) {
     if (options && options.inviteCode) {
       this.setData({
-        inputPartnerCode: options.inviteCode
+        inputPartnerCode: options.inviteCode,
       });
-      wx.showToast({ title: '已自动填入密钥', icon: 'success' });
+      wx.showToast({ title: "已自动填入密钥", icon: "success" });
     }
   },
 
@@ -31,20 +31,20 @@ Page({
   },
 
   // 添加下拉刷新支持
-  onPullDownRefresh: function() {
+  onPullDownRefresh: function () {
     this.checkLogin(() => {
       wx.stopPullDownRefresh();
     });
   },
 
-  onShareAppMessage: function() {
+  onShareAppMessage: function () {
     const myKey = this.data.userData._openid;
     if (!myKey) return;
     return {
-      title: '邀请你共同开启我们的纪念册',
-      path: '/pages/mine/index?inviteCode=' + myKey,
-      imageUrl: '/images/share-cover.png' 
-    }
+      title: "邀请你共同开启我们的纪念册",
+      path: "/pages/mine/index?inviteCode=" + myKey,
+      imageUrl: "/images/share-cover.png",
+    };
   },
 
   // 🔴 核心修改：增加图片链接转换逻辑
@@ -58,19 +58,27 @@ Page({
 
           // 处理登录奖励提示
           if (loginBonus && loginBonus > 0) {
-            wx.showToast({ title: `每日登录 +${loginBonus}g 爱意`, icon: 'none', duration: 3000 });
+            wx.showToast({
+              title: `每日登录 +${loginBonus}g 爱意`,
+              icon: "none",
+              duration: 3000,
+            });
           }
 
           app.globalData.userInfo = user;
 
           // === ⚡ 修复头像加载失败的核心逻辑 START ===
           const fileList = [];
-          
+
           // 收集需要转换的 cloud:// 链接
-          if (user.avatarUrl && user.avatarUrl.startsWith('cloud://')) {
+          if (user.avatarUrl && user.avatarUrl.startsWith("cloud://")) {
             fileList.push(user.avatarUrl);
           }
-          if (partner && partner.avatarUrl && partner.avatarUrl.startsWith('cloud://')) {
+          if (
+            partner &&
+            partner.avatarUrl &&
+            partner.avatarUrl.startsWith("cloud://")
+          ) {
             fileList.push(partner.avatarUrl);
           }
 
@@ -78,22 +86,24 @@ Page({
             // 批量换取临时 HTTP 链接
             wx.cloud.getTempFileURL({
               fileList: fileList,
-              success: tempRes => {
+              success: (tempRes) => {
                 // 将换取到的 https 链接回填给 user 和 partner 对象
-                tempRes.fileList.forEach(item => {
-                  if (item.code === 'SUCCESS') {
-                    if (user.avatarUrl === item.fileID) user.avatarUrl = item.tempFileURL;
-                    if (partner && partner.avatarUrl === item.fileID) partner.avatarUrl = item.tempFileURL;
+                tempRes.fileList.forEach((item) => {
+                  if (item.code === "SUCCESS") {
+                    if (user.avatarUrl === item.fileID)
+                      user.avatarUrl = item.tempFileURL;
+                    if (partner && partner.avatarUrl === item.fileID)
+                      partner.avatarUrl = item.tempFileURL;
                   }
                 });
                 // 更新页面数据
                 this.updatePageData(user, partner);
               },
-              fail: err => {
+              fail: (err) => {
                 console.error("头像链接转换失败", err);
                 // 如果失败，还是尝试用原链接显示
                 this.updatePageData(user, partner);
-              }
+              },
             });
           } else {
             // 没有需要转换的链接，直接更新
@@ -107,90 +117,101 @@ Page({
         }
         if (callback) callback();
       },
-      fail: (err) => { 
-        console.error(err); 
+      fail: (err) => {
+        console.error(err);
         if (callback) callback();
-      }
+      },
     });
   },
 
   // 辅助函数：统一设置页面数据
-  updatePageData: function(user, partner) {
+  updatePageData: function (user, partner) {
     this.setData({
       userData: user,
       partnerData: partner,
-      anniversary: user.anniversaryDate || '',
+      anniversary: user.anniversaryDate || "",
       daysCount: this.calculateDays(user.anniversaryDate),
       partnerShortID: user.partner_id ? "..." + user.partner_id.slice(-6) : "",
     });
   },
 
-  calculateDays: function(dateStr) {
+  calculateDays: function (dateStr) {
     if (!dateStr) return 0;
     const start = new Date(dateStr).getTime();
     const now = new Date().getTime();
     const diff = now - start;
-    if (diff < 0) return 0; 
-    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1; 
+    if (diff < 0) return 0;
+    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
   },
 
-  onDateChange: function(e) {
+  onDateChange: function (e) {
     const date = e.detail.value;
-    this.setData({ 
+    this.setData({
       anniversary: date,
-      daysCount: this.calculateDays(date)
+      daysCount: this.calculateDays(date),
     });
-    
+
     wx.cloud.callFunction({
-      name: 'user_center',
-      data: { action: 'update_anniversary', date: date },
-      success: res => {
-        wx.showToast({ title: '纪念日已保存', icon: 'none' });
+      name: "user_center",
+      data: { action: "update_anniversary", date: date },
+      success: (res) => {
+        wx.showToast({ title: "纪念日已保存", icon: "none" });
         // 刷新一下以获取更新人和时间
-        this.checkLogin(); 
-      }
+        this.checkLogin();
+      },
     });
   },
 
-  handleIncomingRequest: function(requesterID) {
+  handleIncomingRequest: function (requesterID) {
     if (this.data.isShowingRequest) return;
     this.setData({ isShowingRequest: true });
     const shortID = "..." + requesterID.slice(-6);
 
     wx.showModal({
-      title: '收到关联请求',
+      title: "收到关联请求",
       content: `用户 [${shortID}] 请求与你建立纪念册关联，是否同意？`,
-      confirmText: '同意', confirmColor: '#ff6b81', cancelText: '拒绝',
+      confirmText: "同意",
+      confirmColor: "#ff6b81",
+      cancelText: "拒绝",
       success: (res) => {
         this.setData({ isShowingRequest: false });
         if (res.confirm) {
-          this.respondToRequest('accept', requesterID);
+          this.respondToRequest("accept", requesterID);
         } else {
-          this.respondToRequest('reject', requesterID);
+          this.respondToRequest("reject", requesterID);
         }
-      }
+      },
     });
   },
 
-  respondToRequest: function(decision, requesterID) {
-    wx.showLoading({ title: decision === 'accept' ? '绑定中...' : '处理中...' });
-    
+  respondToRequest: function (decision, requesterID) {
+    wx.showLoading({
+      title: decision === "accept" ? "绑定中..." : "处理中...",
+    });
+
     wx.cloud.callFunction({
-      name: 'user_center',
-      data: { action: 'respond_bind', decision: decision, partnerCode: requesterID },
-      success: res => {
+      name: "user_center",
+      data: {
+        action: "respond_bind",
+        decision: decision,
+        partnerCode: requesterID,
+      },
+      success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          wx.showToast({ title: decision === 'accept' ? '连接成功！' : '已拒绝', icon: 'none' });
-          this.checkLogin(); 
+          wx.showToast({
+            title: decision === "accept" ? "连接成功！" : "已拒绝",
+            icon: "none",
+          });
+          this.checkLogin();
         } else {
-          wx.showToast({ title: '操作失败', icon: 'none' });
+          wx.showToast({ title: "操作失败", icon: "none" });
         }
       },
-      fail: err => {
+      fail: (err) => {
         wx.hideLoading();
         console.error(err);
-      }
+      },
     });
   },
 
@@ -198,9 +219,14 @@ Page({
     wx.showModal({
       title: "解除关联",
       content: "确定要解除与 TA 的关联吗？\n解除后将无法再共同记录回忆。",
-      confirmText: "解除", confirmColor: "#ccc", cancelText: "再想想", cancelColor: "#5d4037",
+      confirmText: "解除",
+      confirmColor: "#ccc",
+      cancelText: "再想想",
+      cancelColor: "#5d4037",
       success: (res) => {
-        if (res.confirm) { this.executeUnbind(); }
+        if (res.confirm) {
+          this.executeUnbind();
+        }
       },
     });
   },
@@ -214,10 +240,14 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: "已解除关联", icon: "success" });
-          this.setData({ partnerShortID: "", partnerData: null }); 
-          this.checkLogin(); 
+          this.setData({ partnerShortID: "", partnerData: null });
+          this.checkLogin();
         } else if (res.result.status === 403) {
-          wx.showModal({ title: "提示", content: res.result.msg, showCancel: false });
+          wx.showModal({
+            title: "提示",
+            content: res.result.msg,
+            showCancel: false,
+          });
         } else {
           wx.showToast({ title: "操作失败", icon: "none" });
         }
@@ -253,9 +283,13 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: "请求已发送", icon: "success" });
-          this.setData({ inputPartnerCode: '' });
+          this.setData({ inputPartnerCode: "" });
         } else {
-          wx.showModal({ title: "发送失败", content: res.result.msg, showCancel: false });
+          wx.showModal({
+            title: "发送失败",
+            content: res.result.msg,
+            showCancel: false,
+          });
         }
       },
       fail: (err) => {
@@ -288,11 +322,15 @@ Page({
           cloudPath: `avatars/${this.data.userData._openid}_${Date.now()}.jpg`,
           filePath: avatarUrl,
         });
-        finalAvatarUrl = uploadRes.fileID; 
+        finalAvatarUrl = uploadRes.fileID;
       }
       const res = await wx.cloud.callFunction({
         name: "user_center",
-        data: { action: "update_profile", avatarUrl: finalAvatarUrl, nickName: nickName },
+        data: {
+          action: "update_profile",
+          avatarUrl: finalAvatarUrl,
+          nickName: nickName,
+        },
       });
 
       if (res.result.status === 200) {
@@ -300,7 +338,7 @@ Page({
         wx.showToast({ title: "保存成功", icon: "success" });
         this.setData({ needSave: false });
         // 保存成功后刷新一下，确保拿到的是最新数据（虽然这里优化一下可以直接set，但刷新最稳）
-        this.checkLogin(); 
+        this.checkLogin();
       }
     } catch (err) {
       wx.hideLoading();

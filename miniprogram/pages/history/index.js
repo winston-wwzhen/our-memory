@@ -5,28 +5,28 @@ Page({
     page: 0,
     isLoading: false,
     isEnd: false,
-    totalDays: 0 // 🆕 新增：打卡天数
+    totalDays: 0, // 🆕 新增：打卡天数
   },
 
-// 1. 添加下拉刷新
-onPullDownRefresh: function () {
-  // 重置状态
-  this.setData({
-    page: 0,
-    isEnd: false,
-    memories: [] 
-  });
-  // 重新加载
-  this.fetchMemories(() => {
-    wx.stopPullDownRefresh();
-  });
-},
-  
+  // 1. 添加下拉刷新
+  onPullDownRefresh: function () {
+    // 重置状态
+    this.setData({
+      page: 0,
+      isEnd: false,
+      memories: [],
+    });
+    // 重新加载
+    this.fetchMemories(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
   onShow: function () {
     this.setData({
       page: 0,
       isEnd: false,
-      memories: [] 
+      memories: [],
     });
     this.fetchMemories();
   },
@@ -42,14 +42,14 @@ onPullDownRefresh: function () {
 
     this.setData({ isLoading: true });
     if (this.data.page === 0) {
-        wx.showLoading({ title: "Loading..." });
+      wx.showLoading({ title: "Loading..." });
     }
 
     wx.cloud.callFunction({
       name: "get_memory_lane",
       data: {
         page: this.data.page,
-        pageSize: 20
+        pageSize: 20,
       },
       success: (res) => {
         wx.hideLoading();
@@ -58,11 +58,14 @@ onPullDownRefresh: function () {
           const hasMore = res.result.hasMore;
 
           this.setData({
-            memories: this.data.page === 0 ? newMemories : this.data.memories.concat(newMemories),
+            memories:
+              this.data.page === 0
+                ? newMemories
+                : this.data.memories.concat(newMemories),
             totalDays: res.result.totalDays || 0, // 👈 接收后端传来的天数
             page: this.data.page + 1,
-            isEnd: !hasMore, 
-            isLoading: false
+            isEnd: !hasMore,
+            isLoading: false,
           });
         }
         if (callback) callback();

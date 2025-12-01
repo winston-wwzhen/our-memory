@@ -129,4 +129,12 @@
     <view class="placeholder-box" wx:if="{{!pendingSave}}"></view>
 
   </view>
+
+  <view class="ad-modal-mask" wx:if="{{showAdModal}}" catchtouchmove="true">
+    <view class="ad-modal-content">
+      <text class="ad-modal-emoji">✨</text>
+      <text class="ad-modal-text">闭上眼，在心里默念 TA 的名字...</text>
+      <text class="ad-countdown">{{adCountdown}}</text>
+    </view>
+  </view>
 </view>
