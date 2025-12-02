@@ -210,9 +210,32 @@ Page({
     wx.navigateTo({ url: "/pages/coupons/index" });
   },
 
-  // 🚧 待开发功能 (拦截)
+  navToBoard: function () {
+    if (!this.checkPartner()) return;
+    wx.navigateTo({ url: "/pages/message_board/index" });
+  },
+
+  // 📝 默契问答
+  navToQuiz: function () {
+    if (!this.checkPartner()) return;
+    wx.showToast({ title: "题库准备中...", icon: "none" });
+  },
+
+  // 💊 时光胶囊
+  navToCapsule: function () {
+    if (!this.checkPartner()) return;
+    wx.showToast({ title: "胶囊制作中...", icon: "none" });
+  },
+
+  // 📖 恋爱宝典
+  navToGuide: function () {
+    if (!this.checkPartner()) return;
+    wx.showToast({ title: "秘籍编写中...", icon: "none" });
+  },
+
+  // 🚧 通用待开发 (保留作为备用)
   onTodo: function () {
-    if (!this.checkPartner()) return; // 🔒 权限检查
+    if (!this.checkPartner()) return;
     wx.showToast({ title: "功能开发中...", icon: "none" });
   },
 });

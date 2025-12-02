@@ -3,20 +3,19 @@ const cloud = require("wx-server-sdk");
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
-// 50条任务数据
+// === 1. 每日任务数据 (Task Pool) ===
 const TASKS = [
   {
     title: "摸头杀",
-    description:
-      "伸出手宠溺地摸摸 TA 的头。💡异地：视频通话时，伸手“摸”屏幕里的 TA。",
+    description: "伸出手宠溺地摸摸 TA 的头。💡异地：视频通话时，伸手“摸”屏幕里的 TA。",
     icon: "💆‍♂️",
     difficulty: 1,
   },
   {
     title: "眼神挑战",
-    description:
-      "凑近一点，深情对视 10 秒钟，谁先笑场谁就输啦！(记得拍下憋笑的样子)",
+    description: "凑近一点，深情对视 10 秒钟，谁先笑场谁就输啦！(记得拍下憋笑的样子)",
     icon: "👀",
     difficulty: 2,
   },
@@ -64,8 +63,7 @@ const TASKS = [
   },
   {
     title: "发型互换",
-    description:
-      "搞怪时刻！试着把你的头发/假发片放到 TA 头上，或者用手给 TA 抓个鸡窝头。",
+    description: "搞怪时刻！试着把你的头发/假发片放到 TA 头上，或者用手给 TA 抓个鸡窝头。",
     icon: "💇",
     difficulty: 3,
   },
@@ -155,8 +153,7 @@ const TASKS = [
   },
   {
     title: "这是几？",
-    description:
-      "对着镜头比出手势数字，另一个人猜猜代表什么意思（比如纪念日）。",
+    description: "对着镜头比出手势数字，另一个人猜猜代表什么意思（比如纪念日）。",
     icon: "✌️",
     difficulty: 1,
   },
@@ -252,8 +249,7 @@ const TASKS = [
   },
   {
     title: "躲猫猫",
-    description:
-      "只露出身体的一部分（比如一只手、一只眼睛），让 AI 猜猜你是谁。",
+    description: "只露出身体的一部分（比如一只手、一只眼睛），让 AI 猜猜你是谁。",
     icon: "👻",
     difficulty: 2,
   },
@@ -313,27 +309,327 @@ const TASKS = [
   },
 ];
 
+// === 2. 彩蛋配置数据 (Egg Configs) ===
+const EGG_CONFIGS = [
+  // 🟢 基础成就类 (Collection)
+  {
+    _id: "first_blood",
+    title: "初露锋芒",
+    desc: "开启纪念册的第一天，故事开始啦！",
+    icon: "🌱",
+    type: "collection",
+    bonus: 50,
+    is_hidden: false,
+    repeatable: false
+  },
+  {
+    _id: "gardener",
+    title: "辛勤园丁",
+    desc: "成功培育并收获了第一朵玫瑰 🌹",
+    icon: "🌹",
+    type: "collection",
+    bonus: 150,
+    is_hidden: false,
+    repeatable: false
+  },
+  {
+    _id: "talkative",
+    title: "话痨",
+    desc: "在留言板累计发布 10 条留言",
+    icon: "💬",
+    type: "interaction",
+    bonus: 100,
+    is_hidden: false,
+    repeatable: false
+  },
+  {
+    _id: "decision_king",
+    title: "命运主宰",
+    desc: "累计使用决定转盘 20 次",
+    icon: "🎲",
+    type: "interaction",
+    bonus: 88,
+    is_hidden: false,
+    repeatable: false
+  },
+  {
+    _id: "long_love",
+    title: "长长久久",
+    desc: "与 TA 关联天数达到 99 天",
+    icon: "♾️",
+    type: "collection",
+    bonus: 520,
+    is_hidden: false,
+    repeatable: false
+  },
+
+  // 🔵 隐藏惊喜类 (Hidden)
+  {
+    _id: "night_owl",
+    title: "夜猫子",
+    desc: "深夜 0-4 点还没睡，是在想 TA 吗？",
+    icon: "🦉",
+    type: "interaction",
+    bonus: 66,
+    is_hidden: true,
+    repeatable: false
+  },
+  {
+    _id: "early_bird",
+    title: "早安吻",
+    desc: "在清晨 5:00 - 8:00 完成打卡",
+    icon: "☀️",
+    type: "interaction",
+    bonus: 50,
+    is_hidden: true,
+    repeatable: false
+  },
+  {
+    _id: "lucky_star",
+    title: "天选之子",
+    desc: "获得了一张评分 99+ 的完美 AI 照片",
+    icon: "✨",
+    type: "collection",
+    bonus: 200,
+    is_hidden: true,
+    repeatable: false
+  },
+  {
+    _id: "blue_melancholy",
+    title: "蓝色忧郁",
+    desc: "在留言板贴了一张蓝色的便签",
+    icon: "💙",
+    type: "interaction",
+    bonus: 20,
+    is_hidden: true,
+    repeatable: false
+  },
+  {
+    _id: "rich_spender",
+    title: "挥金如土",
+    desc: "兑换了一张价值超过 100 玫瑰的特权券",
+    icon: "💰",
+    type: "collection",
+    bonus: 188,
+    is_hidden: true,
+    repeatable: false
+  },
+  {
+    _id: "peace_dove",
+    title: "和平鸽",
+    desc: "使用了“和好卡”或“原谅卡”",
+    icon: "🕊️",
+    type: "collection",
+    bonus: 500, 
+    is_hidden: true,
+    repeatable: false
+  },
+
+  // 🔴 可重复触发类 (Repeatable - Lucky Event)
+  {
+    _id: "lucky_goddess",
+    title: "幸运女神",
+    desc: "偶遇了幸运女神，获得额外奖励！",
+    icon: "🧚‍♀️",
+    type: "interaction",
+    bonus: 20,
+    is_hidden: true,
+    repeatable: true,  // 🌟 可重复触发
+  },
+
+  const EGG_CONFIGS = [
+    // 🟢 基础成就类
+    {
+      _id: "first_blood",
+      title: "初露锋芒",
+      desc: "开启纪念册的第一天，故事开始啦！",
+      icon: "🌱",
+      type: "collection",
+      bonus: 50,
+      is_hidden: false,
+      repeatable: false
+    },
+    {
+      _id: "gardener",
+      title: "辛勤园丁",
+      desc: "成功培育并收获了第一朵玫瑰 🌹",
+      icon: "🌹",
+      type: "collection",
+      bonus: 150,
+      is_hidden: false,
+      repeatable: false
+    },
+    {
+      _id: "talkative",
+      title: "话痨",
+      desc: "在留言板累计发布 10 条留言",
+      icon: "💬",
+      type: "interaction",
+      bonus: 100,
+      is_hidden: false,
+      repeatable: false
+    },
+    {
+      _id: "decision_king",
+      title: "命运主宰",
+      desc: "累计使用决定转盘 20 次",
+      icon: "🎲",
+      type: "interaction",
+      bonus: 88,
+      is_hidden: false,
+      repeatable: false
+    },
+    {
+      _id: "long_love",
+      title: "长长久久",
+      desc: "与 TA 关联天数达到 99 天",
+      icon: "♾️",
+      type: "collection",
+      bonus: 520,
+      is_hidden: false,
+      repeatable: false
+    },
+  
+    // 🔵 隐藏惊喜类
+    {
+      _id: "night_owl",
+      title: "夜猫子",
+      desc: "深夜 0-4 点还没睡，是在想 TA 吗？",
+      icon: "🦉",
+      type: "interaction",
+      bonus: 66,
+      is_hidden: true,
+      repeatable: false
+    },
+    {
+      _id: "early_bird",
+      title: "早安吻",
+      desc: "在清晨 5:00 - 8:00 完成打卡",
+      icon: "☀️",
+      type: "interaction",
+      bonus: 50,
+      is_hidden: true,
+      repeatable: false
+    },
+    {
+      _id: "lucky_star",
+      title: "天选之子",
+      desc: "获得了一张评分 99+ 的完美 AI 照片",
+      icon: "✨",
+      type: "collection",
+      bonus: 200,
+      is_hidden: true,
+      repeatable: false
+    },
+    {
+      _id: "blue_melancholy",
+      title: "蓝色忧郁",
+      desc: "在留言板贴了一张蓝色的便签",
+      icon: "💙",
+      type: "interaction",
+      bonus: 20,
+      is_hidden: true,
+      repeatable: false
+    },
+    {
+      _id: "rich_spender",
+      title: "挥金如土",
+      desc: "兑换了一张价值超过 100 玫瑰的特权券",
+      icon: "💰",
+      type: "collection",
+      bonus: 188,
+      is_hidden: true,
+      repeatable: false
+    },
+    {
+      _id: "peace_dove",
+      title: "和平鸽",
+      desc: "使用了“和好卡”或“原谅卡”",
+      icon: "🕊️",
+      type: "collection",
+      bonus: 500, 
+      is_hidden: true,
+      repeatable: false
+    },
+  
+    // 🔴 可重复触发类
+    {
+      _id: "lucky_goddess",
+      title: "幸运女神",
+      desc: "偶遇了幸运女神，获得额外奖励！",
+      icon: "🧚‍♀️",
+      type: "interaction",
+      bonus: 20,
+      is_hidden: true,
+      repeatable: true 
+    },
+  
+    // 🟣 时光胶囊专属彩蛋 (🆕 新增)
+    {
+      _id: "time_traveler",
+      title: "时间领主",
+      desc: "埋下了一个封印期超过 1 年的时光胶囊",
+      icon: "🕰️",
+      type: "collection",
+      bonus: 365, // 奖励与天数呼应
+      is_hidden: true,
+      repeatable: false
+    },
+    {
+      _id: "moonlight_box",
+      title: "月光宝盒",
+      desc: "在深夜埋藏了时光胶囊，那是心底的秘密",
+      icon: "🌙",
+      type: "interaction",
+      bonus: 66,
+      is_hidden: true,
+      repeatable: false
+    },
+    {
+      _id: "worth_the_wait",
+      title: "守得云开",
+      desc: "成功开启了第一个时光胶囊，等待是值得的",
+      icon: "🗝️",
+      type: "collection",
+      bonus: 100,
+      is_hidden: false, // 不隐藏，鼓励大家去开
+      repeatable: false
+    }
+];
+
 exports.main = async (event, context) => {
   try {
-    // 1. 先清空旧数据 (可选，防止重复)
-    // 想要清空就解开下面这行注释，不想清空就留着
-    // await db.collection('task_pool').where({_id: _.exists(true)}).remove();
+    const initTasks = async () => {
+        const count = await db.collection("task_pool").count();
+        if (count.total === 0) {
+            const res = await db.collection("task_pool").add({ data: TASKS });
+            return `Task: 插入 ${res.inserted} 条`;
+        }
+        return `Task: 已存在 ${count.total} 条，跳过插入`;
+    };
 
-    // 2. 批量插入数据
-    // 云数据库 add 支持直接插入数组
-    const res = await db.collection("task_pool").add({
-      data: TASKS,
-    });
+    const initEggs = async () => {
+        let count = 0;
+        for (const egg of EGG_CONFIGS) {
+            // 使用 set 确保配置更新（例如新增 repeatable 字段）
+            await db.collection("egg_configs").doc(egg._id).set({
+                data: egg
+            });
+            count++;
+        }
+        return `Egg: 更新/插入 ${count} 个彩蛋配置`;
+    };
+
+    const [taskMsg, eggMsg] = await Promise.all([initTasks(), initEggs()]);
 
     return {
       success: true,
-      msg: `成功导入 ${res.inserted} 条任务`,
-      ids: res._ids,
+      msg: `${taskMsg} | ${eggMsg}`,
     };
   } catch (err) {
     return {
       success: false,
-      msg: "导入失败",
+      msg: "初始化失败",
       error: err,
     };
   }

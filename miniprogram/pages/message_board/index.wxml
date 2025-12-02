@@ -1,0 +1,155 @@
+<view class="board-container">
+  
+  <view class="date-header">
+    <picker mode="date" value="{{currentDate}}" end="{{today}}" bindchange="onDateChange">
+      <view class="date-trigger">
+        <text class="date-text">{{currentDate}}</text>
+        <text class="date-icon">📅</text>
+        <text class="date-hint" wx:if="{{isToday}}">(今天)</text>
+        <text class="date-hint" wx:else>(历史记录)</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="status-bar-wrapper">
+    <view class="rope"></view>
+    <view class="status-board">
+      <view class="status-card mine" bindtap="toggleStatusPanel">
+        <view class="status-icon">{{myStatus.icon}}</view>
+        <view class="status-text">{{myStatus.text}}</view>
+        <view class="edit-hint">点击切换</view>
+      </view>
+      <view class="vs-line">❤️</view>
+      <view class="status-card partner">
+        <block wx:if="{{partnerStatus}}">
+          <view class="status-icon">{{partnerStatus.icon}}</view>
+          <view class="status-text">{{partnerStatus.text}}</view>
+        </block>
+        <block wx:else>
+          <view class="status-icon">❓</view>
+          <view class="status-text">TA未设置</view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="cork-board">
+    <view class="notes-grid">
+      <view class="empty-tip" wx:if="{{messages.length === 0}}">
+        <text wx:if="{{isToday}}">墙上空空的，写下第一张便签吧~ 📝</text>
+        <text wx:else>这一天没有留言哦~ 🍃</text>
+      </view>
+
+      <block wx:for="{{messages}}" wx:key="_id">
+        <view 
+          class="note-item {{item.color}}" 
+          style="{{item.style}}"
+          bindtap="onToggleLike"
+          bindlongpress="onDeleteMessage" 
+          data-id="{{item._id}}"
+          data-index="{{index}}"
+        >
+          <view class="pin"></view>
+          <text class="note-content">{{item.content}}</text>
+          
+          <view class="note-footer">
+            <text class="note-author">-- {{item.nickName}}</text>
+            <text class="note-time">{{item.timeStr}}</text>
+          </view>
+
+          <view class="stamp-mark {{item.isLiked ? 'show' : ''}}">
+            <text>❤️ 已阅</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view style="height: 150rpx;"></view>
+  </scroll-view>
+
+  <view class="fab-btn" bindtap="openInput">
+    <text>+</text>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showStatusPanel}}" bindtap="toggleStatusPanel">
+    <view class="status-picker" catchtap="true">
+      <view class="picker-title">我现在...</view>
+      <view class="status-grid">
+        <view class="s-item" wx:for="{{statusOptions}}" wx:key="text" bindtap="selectStatus" data-item="{{item}}">
+          <text class="s-icon">{{item.icon}}</text>
+          <text class="s-text">{{item.text}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showInput}}" bindtap="closeInput">
+    <view class="input-card" catchtap="true">
+      <view class="input-header">
+        写个便签
+        <text class="limit-hint">今日剩余: {{remainingMsgCount}}</text>
+      </view>
+      <textarea 
+        class="note-textarea" 
+        placeholder="写下你的心情(限20字)..." 
+        bindinput="onInputChange"
+        value="{{inputContent}}"
+        maxlength="20"
+        cursor-spacing="100"
+        show-confirm-bar="{{false}}"
+      ></textarea>
+      
+      <view class="color-selector">
+        <view class="c-dot yellow {{selectedColor==='yellow'?'active':''}}" bindtap="selectNoteColor" data-color="yellow"></view>
+        <view class="c-dot pink {{selectedColor==='pink'?'active':''}}" bindtap="selectNoteColor" data-color="pink"></view>
+        <view class="c-dot blue {{selectedColor==='blue'?'active':''}}" bindtap="selectNoteColor" data-color="blue"></view>
+      </view>
+
+      <button class="btn-post" bindtap="postMessage">贴上墙</button>
+    </view>
+  </view>
+
+  <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
+    <view class="god-rays"></view>
+    <view class="confetti-container">
+      <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+      <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+      <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+      <view class="confetti c10"></view>
+    </view>
+
+    <view class="egg-card bounce-in">
+      <view class="card-ribbon">LUCKY TIME</view>
+      
+      <view class="icon-stage">
+        <view class="halo-ring"></view>
+        <text class="egg-icon">{{eggData.icon}}</text>
+        <view class="shine-star s-left">✨</view>
+        <view class="shine-star s-right">✨</view>
+      </view>
+
+      <view class="egg-title">{{eggData.title}}</view>
+      <view class="egg-desc">{{eggData.desc}}</view>
+      
+      <view class="egg-reward-box">
+        <text class="reward-label">获得奖励</text>
+        <view class="reward-val-row">
+          <text class="val-num">+{{eggData.bonus}}</text>
+          <text class="val-unit">g 爱意 💧</text>
+        </view>
+      </view>
+
+      <view class="egg-actions">
+        <button class="btn-share-egg" open-type="share">
+          <text>转发好运 🍀</text>
+        </button>
+        <button class="btn-get-egg" bindtap="closeEggModal">
+          <text>开心收下 ❤️</text>
+        </button>
+      </view>
+      
+      <view class="screenshot-tips">✨ 截屏分享朋友圈，留住这份好运 ✨</view>
+
+    </view>
+  </view>
+
+</view>

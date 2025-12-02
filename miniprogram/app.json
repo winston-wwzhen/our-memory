@@ -1,9 +1,12 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/playground/index", 
+    "pages/playground/index",
     "pages/decision/index",
     "pages/coupons/index",
+    "pages/message_board/index",
+    "pages/capsule/index",
+    "pages/capsule_create/index",
     "pages/history/index",
     "pages/mine/index"
   ],
@@ -29,7 +32,7 @@
       {
         "pagePath": "pages/playground/index",
         "text": "Fun",
-        "iconPath": "images/gardan.png", 
+        "iconPath": "images/gardan.png",
         "selectedIconPath": "images/gardan_active.png"
       },
       {

@@ -53,16 +53,28 @@
       <text class="grid-desc">治愈选择困难</text>
     </view>
     
-    <view class="grid-item paper-texture" bindtap="onTodo">
+    <view class="grid-item paper-texture" bindtap="navToBoard">
+      <view class="grid-icon">📌</view>
+      <text class="grid-title">爱的留言板</text>
+      <text class="grid-desc">日常碎碎念</text>
+    </view>
+
+    <view class="grid-item paper-texture" bindtap="navToQuiz">
+      <view class="grid-icon">📝</view>
+      <text class="grid-title">默契问答</text>
+      <text class="grid-desc">每日一测</text>
+    </view>
+
+    <view class="grid-item paper-texture" bindtap="navToCapsule">
       <view class="grid-icon">💊</view>
       <text class="grid-title">时光胶囊</text>
       <text class="grid-desc">寄给未来</text>
     </view>
 
-    <view class="grid-item paper-texture" bindtap="onTodo">
-      <view class="grid-icon">📝</view>
-      <text class="grid-title">默契问答</text>
-      <text class="grid-desc">每日一测</text>
+    <view class="grid-item paper-texture" bindtap="navToGuide">
+      <view class="grid-icon">📖</view>
+      <text class="grid-title">恋爱宝典</text>
+      <text class="grid-desc">生存与惊喜</text>
     </view>
 
     <view class="grid-item paper-texture" bindtap="navToCoupons">

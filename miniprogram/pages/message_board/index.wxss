@@ -1,0 +1,758 @@
+/* miniprogram/pages/message_board/index.wxss */
+page {
+  background-color: #fcf8e3;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.board-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === 1. 顶部状态挂牌 === */
+.status-bar-wrapper {
+  padding-top: 20rpx;
+  background: #fdfbf7;
+  z-index: 10;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.rope {
+  width: 200rpx;
+  height: 40rpx;
+  border-left: 2rpx solid #d7ccc8;
+  border-right: 2rpx solid #d7ccc8;
+  margin: 0 auto;
+}
+
+.status-board {
+  background: #fff;
+  margin: -10rpx 40rpx 20rpx 40rpx;
+  border-radius: 20rpx;
+  border: 4rpx solid #d7ccc8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  box-shadow: 0 6rpx 0 #bcaaa4;
+}
+
+.status-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 140rpx;
+}
+
+.status-icon {
+  font-size: 50rpx;
+  margin-bottom: 6rpx;
+}
+
+.status-text {
+  font-size: 24rpx;
+  color: #5d4037;
+  font-weight: bold;
+}
+
+.edit-hint {
+  font-size: 18rpx;
+  color: #ccc;
+  margin-top: 4rpx;
+  background: #f5f5f5;
+  padding: 2rpx 8rpx;
+  border-radius: 10rpx;
+}
+
+.vs-line {
+  font-size: 30rpx;
+  opacity: 0.5;
+}
+
+/* === 2. 中部软木板区域 === */
+.cork-board {
+  flex: 1;
+  background-image: radial-gradient(#d7ccc8 2px, transparent 2px);
+  background-size: 20px 20px;
+  background-color: #fcf8e3;
+  padding: 30rpx;
+  box-sizing: border-box;
+}
+
+.notes-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.empty-tip {
+  width: 100%;
+  text-align: center;
+  color: #bcaaa4;
+  margin-top: 100rpx;
+  font-size: 26rpx;
+}
+
+/* 便签样式 */
+.note-item {
+  width: 46%;
+  height: 260rpx;
+  background: #fff9c4;
+  /* 默认黄 */
+  margin-bottom: 40rpx;
+  padding: 30rpx 20rpx;
+  box-sizing: border-box;
+  box-shadow: 4rpx 4rpx 10rpx rgba(0, 0, 0, 0.15);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 图钉 */
+.pin {
+  position: absolute;
+  top: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rpx;
+  height: 20rpx;
+  background: #ff5252;
+  border-radius: 50%;
+  box-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.note-content {
+  font-size: 28rpx;
+  color: #3e2723;
+  line-height: 1.5;
+  /* 允许长文本换行，超出省略 */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 底部信息栏 */
+.note-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  /* 靠右对齐 */
+}
+
+.note-author {
+  font-size: 22rpx;
+  color: #5d4037;
+  font-weight: bold;
+  margin-bottom: 4rpx;
+  font-family: 'Courier New', monospace;
+}
+
+.note-time {
+  font-size: 18rpx;
+  color: rgba(93, 64, 55, 0.5);
+}
+
+.note-item.yellow {
+  background: #fff9c4;
+}
+
+.note-item.pink {
+  background: #ffcdd2;
+}
+
+.note-item.blue {
+  background: #b3e5fc;
+}
+
+/* 印章样式 */
+.stamp-mark {
+  position: absolute;
+  bottom: 10rpx;
+  left: 20rpx;
+  border: 4rpx solid #ff5252;
+  color: #ff5252;
+  font-size: 20rpx;
+  font-weight: 900;
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+  transform: rotate(-15deg) scale(2);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
+
+.stamp-mark.show {
+  opacity: 0.8;
+  transform: rotate(-15deg) scale(1);
+}
+
+/* === 3. 底部悬浮按钮 === */
+.fab-btn {
+  position: fixed;
+  bottom: 60rpx;
+  right: 40rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: #5d4037;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(93, 64, 55, 0.4);
+  z-index: 100;
+}
+
+.fab-btn text {
+  color: #fff;
+  font-size: 60rpx;
+  font-weight: 300;
+  margin-top: -8rpx;
+}
+
+/* === 4. 通用弹窗与输入框 === */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 状态选择器 */
+.status-picker {
+  width: 600rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 30rpx;
+}
+
+.picker-title {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+  color: #5d4037;
+}
+
+.status-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.s-item {
+  width: 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.s-icon {
+  font-size: 50rpx;
+  margin-bottom: 10rpx;
+}
+
+.s-text {
+  font-size: 22rpx;
+  color: #8d6e63;
+}
+
+/* 输入卡片 */
+.input-card {
+  width: 560rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+}
+
+.input-header {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+  color: #5d4037;
+  position: relative;
+}
+
+/* 剩余次数提示 */
+.limit-hint {
+  position: absolute;
+  right: 0;
+  bottom: 4rpx;
+  font-size: 20rpx;
+  color: #ff6b81;
+  font-weight: normal;
+}
+
+.note-textarea {
+  width: 100%;
+  height: 200rpx;
+  background: #f9f9f9;
+  padding: 20rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  margin-bottom: 30rpx;
+  border-radius: 12rpx;
+}
+
+.color-selector {
+  display: flex;
+  justify-content: center;
+  gap: 30rpx;
+  margin-bottom: 40rpx;
+}
+
+.c-dot {
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: 50%;
+  border: 4rpx solid transparent;
+}
+
+.c-dot.active {
+  transform: scale(1.2);
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.2);
+  border-color: #aaa;
+}
+
+.c-dot.yellow {
+  background: #fff9c4;
+}
+
+.c-dot.pink {
+  background: #ffcdd2;
+}
+
+.c-dot.blue {
+  background: #b3e5fc;
+}
+
+.btn-post {
+  background: #5d4037;
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+
+/* === 5. 🥚 SSR级彩蛋弹窗特效 === */
+
+/* 遮罩层：更深邃的背景，禁止点击穿透 */
+.egg-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  perspective: 1000px;
+}
+
+/* 1. 旋转神光 (God Rays) */
+.god-rays {
+  position: absolute;
+  width: 1200rpx;
+  height: 1200rpx;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 215, 0, 0.1) 0deg 20deg,
+    transparent 20deg 40deg
+  );
+  animation: spinRays 20s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes spinRays {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 2. 主卡片：玻璃质感 + 浮动 */
+.egg-card {
+  width: 580rpx;
+  background: linear-gradient(165deg, #ffffff 0%, #fff9e6 100%);
+  border-radius: 48rpx;
+  padding: 80rpx 50rpx 60rpx 50rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  box-shadow:
+    0 20rpx 60rpx rgba(255, 165, 0, 0.3),
+    0 0 0 12rpx rgba(255, 255, 255, 0.4);
+  animation: cardEnter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardEnter {
+  0% {
+    transform: scale(0.5) translateY(100rpx);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 顶部丝带 */
+.card-ribbon {
+  position: absolute;
+  top: -24rpx;
+  background: linear-gradient(90deg, #ff9a9e, #ff6b81);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 900;
+  letter-spacing: 4rpx;
+  padding: 10rpx 40rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.4);
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 图标舞台 */
+.icon-stage {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+}
+
+/* 巨大的 Emoji */
+.egg-icon {
+  font-size: 140rpx;
+  z-index: 2;
+  animation: floatIcon 3s ease-in-out infinite;
+  filter: drop-shadow(0 10rpx 20rpx rgba(0, 0, 0, 0.15));
+}
+
+@keyframes floatIcon {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-16rpx) scale(1.1);
+  }
+}
+
+/* 背后光环 */
+.halo-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 223, 0, 0.4) 0%, transparent 70%);
+  animation: pulseHalo 2s infinite;
+}
+
+/* 闪烁星星 */
+.shine-star {
+  position: absolute;
+  font-size: 40rpx;
+  animation: twinkle 1.5s infinite;
+}
+
+.s-left {
+  left: -20rpx;
+  top: 0;
+  animation-delay: 0s;
+}
+
+.s-right {
+  right: -20rpx;
+  bottom: 20rpx;
+  animation-delay: 0.8s;
+  font-size: 50rpx;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* 文本信息 */
+.egg-title {
+  font-size: 44rpx;
+  font-weight: 900;
+  color: #ff6f00;
+  margin-bottom: 16rpx;
+  letter-spacing: 2rpx;
+  background: linear-gradient(45deg, #ff6f00, #ffca28);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.egg-desc {
+  font-size: 28rpx;
+  color: #8d6e63;
+  text-align: center;
+  margin-bottom: 50rpx;
+  opacity: 0.8;
+}
+
+/* 奖励框 */
+.egg-reward-box {
+  background: #fff8e1;
+  border: 4rpx dashed #ffe082;
+  border-radius: 24rpx;
+  padding: 24rpx 60rpx;
+  margin-bottom: 60rpx;
+  text-align: center;
+  width: 80%;
+  box-sizing: border-box;
+}
+
+.reward-label {
+  font-size: 22rpx;
+  color: #bcaaa4;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.val-num {
+  font-size: 56rpx;
+  font-weight: 900;
+  color: #ff8f00;
+  margin-right: 10rpx;
+  font-family: 'Courier New', monospace;
+}
+
+.val-unit {
+  font-size: 24rpx;
+  color: #ff8f00;
+  font-weight: bold;
+}
+
+/* 🟢 按钮组容器 */
+.egg-actions {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 24rpx;
+  gap: 20rpx;
+}
+
+/* 🟢 转发按钮 (次级按钮) */
+.btn-share-egg {
+  flex: 1;
+  height: 90rpx !important;
+  line-height: 90rpx !important;
+  background: #fff !important;
+  color: #ffb7b2 !important;
+  font-size: 28rpx;
+  font-weight: bold;
+  border-radius: 45rpx;
+  padding: 0 !important;
+  border: 4rpx solid #ffb7b2 !important;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🟢 收下按钮 (主按钮) */
+.btn-get-egg {
+  flex: 1.2;
+  /* 稍微宽一点 */
+  width: auto !important;
+  height: 90rpx !important;
+  line-height: 90rpx !important;
+  background: linear-gradient(90deg, #ff9a9e, #ff6b81);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 900;
+  border-radius: 45rpx;
+  padding: 0 !important;
+  box-shadow: 0 10rpx 30rpx rgba(255, 107, 129, 0.4);
+  animation: heartBeatBtn 2s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes heartBeatBtn {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 16rpx 40rpx rgba(255, 107, 129, 0.6);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 🟢 截屏提示 */
+.screenshot-tips {
+  font-size: 22rpx;
+  color: #bcaaa4;
+  opacity: 0.8;
+  letter-spacing: 2rpx;
+  animation: pulseText 3s infinite;
+}
+
+@keyframes pulseText {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 3. 彩带雨 (Confetti) */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.confetti {
+  position: absolute;
+  top: -20rpx;
+  width: 16rpx;
+  height: 30rpx;
+  background: #ffd700;
+  animation: confettiFall 4s linear infinite;
+}
+
+/* 随机生成彩带的位置、颜色和延迟 */
+.c1 {
+  left: 10%;
+  background: #ff6b81;
+  animation-duration: 3s;
+  animation-delay: 0s;
+}
+
+.c2 {
+  left: 25%;
+  background: #4fc3f7;
+  animation-duration: 4s;
+  animation-delay: 1s;
+}
+
+.c3 {
+  left: 40%;
+  background: #ffd700;
+  animation-duration: 2.5s;
+  animation-delay: 0.5s;
+}
+
+.c4 {
+  left: 55%;
+  background: #81c784;
+  animation-duration: 3.5s;
+  animation-delay: 1.5s;
+}
+
+.c5 {
+  left: 70%;
+  background: #ba68c8;
+  animation-duration: 3s;
+  animation-delay: 0.2s;
+}
+
+.c6 {
+  left: 85%;
+  background: #ff8a65;
+  animation-duration: 4.2s;
+  animation-delay: 0.8s;
+}
+
+.c7 {
+  left: 15%;
+  background: #ffd54f;
+  animation-duration: 3.2s;
+  animation-delay: 2s;
+}
+
+.c8 {
+  left: 60%;
+  background: #4db6ac;
+  animation-duration: 2.8s;
+  animation-delay: 1.2s;
+}
+
+.c9 {
+  left: 90%;
+  background: #f06292;
+  animation-duration: 3.8s;
+  animation-delay: 0.4s;
+}
+
+.c10 {
+  left: 30%;
+  background: #7986cb;
+  animation-duration: 3.4s;
+  animation-delay: 1.8s;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.date-header {
+  padding: 10rpx 0;
+  background: #fdfbf7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.date-trigger {
+  background: #fff;
+  border: 2rpx solid #e0d6c6;
+  padding: 8rpx 24rpx;
+  border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #5d4037;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.05);
+}
+
+.date-text { font-weight: bold; margin-right: 8rpx; font-family: 'Courier New', monospace; }
+.date-icon { font-size: 24rpx; margin-right: 8rpx; }
+.date-hint { font-size: 20rpx; color: #a1887f; }
