@@ -67,6 +67,18 @@
         />
         <text class="edit-icon">✎</text>
       </view>
+      <view class="vip-tag {{vipStatus.isVip ? '' : 'gray'}}" bindtap="showVipInfo">
+        <text>👑 VIP</text>
+      </view>
+    </view>
+    
+    <view class="vip-info-area" wx:if="{{vipStatus.isVip}}">
+      <view class="vip-privilege-box">
+        <text>{{vipStatus.privilegeTip}}</text>
+      </view>
+      <view class="vip-expire-date" wx:if="{{vipStatus.expireDateStr}}">
+        <text>有效期至 {{vipStatus.expireDateStr}}</text>
+      </view>
     </view>
     
     <view class="status-tag {{userData.partner_id ? 'connected' : 'waiting'}}">

@@ -68,9 +68,12 @@ exports.main = async (event, context) => {
 
   const SUDO_USERS = await getSudoUsers();
 
-  // 🟢 配置中心
-  const DAILY_FREE_LIMIT = 1; // 每日免费基础次数
-  const DAILY_AD_LIMIT = 1; // 每日看广告奖励上限次数
+  // 🟢 配置中心 (修复版)
+  const NORMAL_FREE_LIMIT = 1;  // 普通用户每日额度
+  const VIP_DAILY_LIMIT = 3;    // VIP用户每日额度
+  const REG_DAY_LIMIT = 10;     // 注册首日特权 (需结合VIP身份)
+  const VIP_TRIAL_DAYS = 3;     // 新用户赠送VIP天数
+  const DAILY_AD_LIMIT = 1;     // 每日看广告奖励上限次数
   const DAILY_LOGIN_BONUS = 50;
 
   // === 1. 登录与注册 ===
@@ -110,9 +113,13 @@ exports.main = async (event, context) => {
         const now = new Date();
         const diffTime = Math.abs(now - created);
         registerDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (registerDays < 1) registerDays = 1;
       }
     } else {
       // 新用户注册
+      const vipExpire = new Date();
+      vipExpire.setDate(vipExpire.getDate() + VIP_TRIAL_DAYS);
+
       const newUser = {
         _openid: myOpenID,
         nickName:
@@ -126,6 +133,7 @@ exports.main = async (event, context) => {
         rose_balance: 0,
         last_login_date: todayStr,
         createdAt: db.serverDate(),
+        vip_expire_date: vipExpire, // 🎁 赠送体验VIP
         daily_usage: { date: todayStr, count: 0, ad_count: 0 },
       };
       const addRes = await db.collection("users").add({ data: newUser });
@@ -135,10 +143,31 @@ exports.main = async (event, context) => {
       await addLog(myOpenID, "register", "开启了我们的纪念册");
     }
 
-    // 计算剩余次数：基础(1) + 广告奖励 - 已用
+    // --- 身份与额度计算 (修复逻辑) ---
+    
+    // 1. 判断 VIP 身份
+    const isPermanentVip = SUDO_USERS.includes(myOpenID);
+    const isTrialVip = currentUser.vip_expire_date && new Date(currentUser.vip_expire_date) > new Date();
+    const isVip = isPermanentVip || isTrialVip;
+
+    // 2. 计算今日基础额度
+    let currentLimit = NORMAL_FREE_LIMIT; // 默认为普通用户 1 次
+
+    if (isPermanentVip) {
+        currentLimit = 9999;
+    } else if (isVip) {
+        // VIP 用户：首日 10 次，平日 3 次
+        if (registerDays <= 1) {
+            currentLimit = REG_DAY_LIMIT;
+        } else {
+            currentLimit = VIP_DAILY_LIMIT;
+        }
+    }
+
     const stats = currentUser.daily_usage || { count: 0, ad_count: 0 };
     const adRewards = stats.ad_count || 0;
-    const maxLimit = DAILY_FREE_LIMIT + adRewards;
+    
+    let maxLimit = currentLimit + adRewards;
     const remaining = Math.max(0, maxLimit - (stats.count || 0));
 
     let partnerInfo = null;
@@ -156,15 +185,18 @@ exports.main = async (event, context) => {
       user: currentUser,
       partner: partnerInfo,
       loginBonus: loginBonus,
-      isVip: SUDO_USERS.includes(myOpenID),
+      isVip: isVip,
+      vipExpireDate: isTrialVip ? currentUser.vip_expire_date : null,
       registerDays: registerDays,
-      remaining: remaining,
-      dailyFreeLimit: DAILY_FREE_LIMIT,
-      adCount: adRewards, // 🟢 返回今日已看广告次数
-      dailyAdLimit: DAILY_AD_LIMIT, // 🟢 返回广告上限
+      remaining: remaining, 
+      dailyFreeLimit: currentLimit, // 告诉前端今日的基础额度
+      adCount: adRewards,
+      dailyAdLimit: DAILY_AD_LIMIT,
     };
   }
 
+  // ... (其余代码保持不变: watch_ad_reward, get_garden, water_flower 等)
+  
   // === 🆕 新增：看广告获得奖励 ===
   if (action === "watch_ad_reward") {
     const userRes = await db
@@ -176,11 +208,9 @@ exports.main = async (event, context) => {
     const user = userRes.data[0];
     const stats = user.daily_usage || { date: todayStr, count: 0, ad_count: 0 };
 
-    // 如果日期不对（跨天未登录），先重置
     const isToday = stats.date === todayStr;
     const currentAdCount = isToday ? stats.ad_count || 0 : 0;
 
-    // 🟢 校验广告上限
     if (currentAdCount >= DAILY_AD_LIMIT) {
       return { status: 403, msg: "今日广告奖励次数已达上限" };
     }

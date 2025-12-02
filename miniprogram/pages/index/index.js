@@ -3,7 +3,7 @@ const app = getApp();
 
 Page({
   data: {
-    displayImage: "", // 控制显示：有值显示预览/结果，无值显示 Swiper
+    displayImage: "", 
     loading: false,
     loadingText: "甜蜜生成中❤...",
     todayDateStr: "",
@@ -11,11 +11,11 @@ Page({
 
     pendingSave: false,
     tempFileID: "",
-    remainingCount: 1,
+    remainingCount: 0, 
 
     hasCheckedInToday: false,
 
-    // 🎨 风格配置 (建议配置多一点，体现丰富度)
+    // 🎨 风格配置
     styleList: [
       {
         id: "201",
@@ -33,7 +33,7 @@ Page({
         id: "210",
         name: "2.5D动画",
         img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/2.5D动画.png",
-        isVip: false,
+        isVip: false, 
       },
       {
         id: "121",
@@ -45,7 +45,7 @@ Page({
         id: "125",
         name: "国风工笔",
         img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/国风工笔.png",
-        isVip: false,
+        isVip: true, 
       },
       {
         id: "127",
@@ -57,7 +57,7 @@ Page({
         id: "129",
         name: "美式复古",
         img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/美式复古.png",
-        isVip: false,
+        isVip: true, 
       },
       {
         id: "130",
@@ -75,7 +75,7 @@ Page({
         id: "133",
         name: "莫奈花园",
         img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/莫奈花园.png",
-        isVip: false,
+        isVip: true, 
       },
       {
         id: "134",
@@ -87,7 +87,7 @@ Page({
         id: "126",
         name: "玉石",
         img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/碧绿风.png",
-        isVip: false,
+        isVip: true, 
       },
     ],
     currentStyleIndex: 0,
@@ -109,8 +109,7 @@ Page({
       { text: "这世界很烦，但你要很可爱。", author: "佚名" },
     ],
 
-    registerDays: 1,
-    isNewUser: true,
+    // 🟢 移除 registerDays 和 isNewUser
     isVip: false,
     adCount: 0,
     dailyAdLimit: 1,
@@ -156,7 +155,6 @@ Page({
             user,
             isVip,
             loginBonus,
-            registerDays,
             remaining,
             adCount,
             dailyAdLimit,
@@ -169,12 +167,9 @@ Page({
             });
           }
 
-          const isNew = registerDays <= 7;
-
           this.setData({
-            remainingCount: isVip ? 999 : remaining,
-            registerDays: registerDays,
-            isNewUser: isNew,
+            remainingCount: remaining, 
+            // 🟢 移除 registerDays 和 isNewUser 的计算
             isVip: isVip,
             adCount: adCount || 0,
             dailyAdLimit: dailyAdLimit || 1,
@@ -201,11 +196,10 @@ Page({
           const d = String(now.getDate()).padStart(2, "0");
           const todayStandard = `${y}-${m}-${d}`;
 
-          // 🟢 核心修改点：即使今天已打卡，也不要显示图片，强制保持 displayImage 为空
           if (latestLog.originalDate === todayStandard) {
             this.setData({
               hasCheckedInToday: true,
-              displayImage: "", // 关键：不显示结果图，只记状态
+              displayImage: "",
               pendingSave: false,
             });
           } else {
@@ -249,19 +243,29 @@ Page({
     });
   },
 
+  // 显示 VIP 权益
+  showVipInfo: function () {
+    wx.showModal({
+      title: '💎 内测 VIP 权益',
+      content: '感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会\n\n快去体验不同风格吧！',
+      showCancel: false,
+      confirmText: '太棒了',
+      confirmColor: '#ff6b81'
+    });
+  },
+
   onCapture: function () {
     const currentStyle = this.data.styleList[this.data.currentStyleIndex];
     if (currentStyle.isVip && !this.data.isVip) {
       wx.showModal({
         title: "VIP 专属风格",
-        content: `【${currentStyle.name}】需要 VIP 身份才能解锁哦，请切换其他免费风格或升级 VIP。`,
+        content: `【${currentStyle.name}】需要 VIP 身份才能解锁哦，内测新用户可免费体验3天！`,
         showCancel: false,
         confirmText: "知道了",
       });
       return;
     }
 
-    // 提示用户覆盖风险 (如果今天已打卡)
     if (this.data.hasCheckedInToday && this.data.remainingCount > 0) {
       wx.showModal({
         title: "今日已打卡",
@@ -297,8 +301,8 @@ Page({
     }
 
     wx.showModal({
-      title: "今日免费次数已用完",
-      content: "完成一个浪漫小挑战，立即解锁 1 次 AI 绘图机会？", // 广告接入修改为：观看一段视频，立即解锁 1 次 AI 绘图机会？
+      title: "今日次数已用完",
+      content: "完成一个浪漫小挑战，立即解锁 1 次 AI 绘图机会？",
       confirmText: "解锁",
       confirmColor: "#ff6b81",
       cancelText: "不需要",
@@ -311,18 +315,15 @@ Page({
   },
 
   mockWatchAd: function () {
-    // 重置倒计时状态
     this.setData({
       showAdModal: true,
       adCountdown: 3,
     });
 
-    // 启动定时器
     const timer = setInterval(() => {
       let next = this.data.adCountdown - 1;
       if (next <= 0) {
         clearInterval(timer);
-        // 倒计时结束，关闭弹窗并领取奖励
         this.setData({ showAdModal: false });
         this.grantReward();
       } else {
@@ -341,7 +342,7 @@ Page({
         if (res.result.status === 200) {
           wx.showToast({ title: "已解锁 +1", icon: "success" });
           this.checkUserStatus(() => {
-            this.startCameraFlow(); // 自动开始拍照流程
+            this.startCameraFlow();
           });
         } else {
           wx.showToast({ title: res.result.msg || "获取失败", icon: "none" });
@@ -399,7 +400,8 @@ Page({
     const currentStyle = this.data.styleList[this.data.currentStyleIndex];
     const styleId = currentStyle.id;
 
-    if (!this.data.isNewUser && !this.data.isVip) {
+    // 🟢 核心修改：仅判断 VIP。VIP（含试用）则极速，非VIP则排队。
+    if (!this.data.isVip) {
       this.setData({ loadingText: "排队生成中(预计10s)..." });
       setTimeout(() => {
         that.doCloudCall(fileID, taskTitle, styleId);
@@ -475,7 +477,6 @@ Page({
 
   onConfirmSave: function () {
     if (!this.data.tempFileID) return;
-    // 打卡确认
     this.doSave();
   },
 
@@ -498,7 +499,7 @@ Page({
           this.setData({
             pendingSave: false,
             hasCheckedInToday: true,
-            displayImage: "", // 🟢 关键修改：保存成功后清空图片，强制回到 Swiper 选择页
+            displayImage: "",
           });
           this.pickDailyQuote();
           this.checkUserStatus();
@@ -514,7 +515,6 @@ Page({
   },
 
   onRetry: function () {
-    // 点击再来一张：清空图片，回到 Swiper 选择页
     this.setData({
       displayImage: "",
       pendingSave: false,

@@ -15,6 +15,13 @@ Page({
     isShowingRequest: false,
     daysCount: 0,
     anniversary: "",
+    
+    // VIP 状态数据
+    vipStatus: {
+      isVip: false,
+      expireDateStr: "",
+      privilegeTip: "" 
+    },
   },
 
   onLoad: function (options) {
@@ -30,7 +37,6 @@ Page({
     this.checkLogin();
   },
 
-  // 添加下拉刷新支持
   onPullDownRefresh: function () {
     this.checkLogin(() => {
       wx.stopPullDownRefresh();
@@ -47,16 +53,37 @@ Page({
     };
   },
 
-  // 🔴 核心修改：增加图片链接转换逻辑
+  // 🆕 修改：点击 VIP 标签显示权益弹窗 (区分 VIP 和 非VIP)
+  showVipInfo: function () {
+    if (this.data.vipStatus.isVip) {
+      // 尊贵的 VIP 用户
+      wx.showModal({
+        title: '💎 内测 VIP 尊享权益',
+        content: '感谢成为首批内测体验官！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会\n\n(额度每日凌晨刷新，快去体验不同风格吧！)',
+        showCancel: false,
+        confirmText: '太棒了',
+        confirmColor: '#ff6b81'
+      });
+    } else {
+      // 潜在的 VIP 用户
+      wx.showModal({
+        title: '🚀 VIP 筹备中',
+        content: '为了带给你们更好的体验，VIP 会员计划正在紧锣密鼓地筹备中！\n\n后续将解锁更多专属风格、无限畅玩特权，敬请期待~',
+        showCancel: false,
+        confirmText: '期待',
+        confirmColor: '#9e9e9e' // 使用灰色或中性色按钮
+      });
+    }
+  },
+
   checkLogin: function (callback) {
     wx.cloud.callFunction({
       name: "user_center",
       data: { action: "login" },
       success: (res) => {
         if (res.result.status === 200 || res.result.status === 201) {
-          let { user, partner, isVip, loginBonus } = res.result;
+          let { user, partner, isVip, loginBonus, vipExpireDate, registerDays } = res.result;
 
-          // 处理登录奖励提示
           if (loginBonus && loginBonus > 0) {
             wx.showToast({
               title: `每日登录 +${loginBonus}g 爱意`,
@@ -67,49 +94,56 @@ Page({
 
           app.globalData.userInfo = user;
 
-          // === ⚡ 修复头像加载失败的核心逻辑 START ===
-          const fileList = [];
+          // 1. 处理 VIP 过期时间
+          let vipDateStr = "";
+          if (vipExpireDate) {
+            const date = new Date(vipExpireDate);
+            vipDateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+          }
 
-          // 收集需要转换的 cloud:// 链接
+          // 2. 根据注册天数生成特权提示文案（用于页面底部小字提示）
+          let tipText = "💎 VIP特权：每日享有 3 次拍照机会"; 
+          if (registerDays <= 1) {
+            tipText = "✨ 首日特权：今日获赠 10 次拍照机会";
+          }
+
+          this.setData({
+            vipStatus: {
+              isVip: isVip,
+              expireDateStr: vipDateStr,
+              privilegeTip: tipText
+            }
+          });
+
+          // === 头像链接转换 ===
+          const fileList = [];
           if (user.avatarUrl && user.avatarUrl.startsWith("cloud://")) {
             fileList.push(user.avatarUrl);
           }
-          if (
-            partner &&
-            partner.avatarUrl &&
-            partner.avatarUrl.startsWith("cloud://")
-          ) {
+          if (partner && partner.avatarUrl && partner.avatarUrl.startsWith("cloud://")) {
             fileList.push(partner.avatarUrl);
           }
 
           if (fileList.length > 0) {
-            // 批量换取临时 HTTP 链接
             wx.cloud.getTempFileURL({
               fileList: fileList,
               success: (tempRes) => {
-                // 将换取到的 https 链接回填给 user 和 partner 对象
                 tempRes.fileList.forEach((item) => {
                   if (item.code === "SUCCESS") {
-                    if (user.avatarUrl === item.fileID)
-                      user.avatarUrl = item.tempFileURL;
-                    if (partner && partner.avatarUrl === item.fileID)
-                      partner.avatarUrl = item.tempFileURL;
+                    if (user.avatarUrl === item.fileID) user.avatarUrl = item.tempFileURL;
+                    if (partner && partner.avatarUrl === item.fileID) partner.avatarUrl = item.tempFileURL;
                   }
                 });
-                // 更新页面数据
                 this.updatePageData(user, partner);
               },
               fail: (err) => {
-                console.error("头像链接转换失败", err);
-                // 如果失败，还是尝试用原链接显示
+                console.error("头像转换失败", err);
                 this.updatePageData(user, partner);
               },
             });
           } else {
-            // 没有需要转换的链接，直接更新
             this.updatePageData(user, partner);
           }
-          // === ⚡ 修复逻辑 END ===
 
           if (user.bind_request_from && !user.partner_id) {
             this.handleIncomingRequest(user.bind_request_from);
@@ -124,7 +158,6 @@ Page({
     });
   },
 
-  // 辅助函数：统一设置页面数据
   updatePageData: function (user, partner) {
     this.setData({
       userData: user,
@@ -156,7 +189,6 @@ Page({
       data: { action: "update_anniversary", date: date },
       success: (res) => {
         wx.showToast({ title: "纪念日已保存", icon: "none" });
-        // 刷新一下以获取更新人和时间
         this.checkLogin();
       },
     });
@@ -185,10 +217,7 @@ Page({
   },
 
   respondToRequest: function (decision, requesterID) {
-    wx.showLoading({
-      title: decision === "accept" ? "绑定中..." : "处理中...",
-    });
-
+    wx.showLoading({ title: decision === "accept" ? "绑定中..." : "处理中..." });
     wx.cloud.callFunction({
       name: "user_center",
       data: {
@@ -199,10 +228,7 @@ Page({
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          wx.showToast({
-            title: decision === "accept" ? "连接成功！" : "已拒绝",
-            icon: "none",
-          });
+          wx.showToast({ title: decision === "accept" ? "连接成功！" : "已拒绝", icon: "none" });
           this.checkLogin();
         } else {
           wx.showToast({ title: "操作失败", icon: "none" });
@@ -243,11 +269,7 @@ Page({
           this.setData({ partnerShortID: "", partnerData: null });
           this.checkLogin();
         } else if (res.result.status === 403) {
-          wx.showModal({
-            title: "提示",
-            content: res.result.msg,
-            showCancel: false,
-          });
+          wx.showModal({ title: "提示", content: res.result.msg, showCancel: false });
         } else {
           wx.showToast({ title: "操作失败", icon: "none" });
         }
@@ -285,11 +307,7 @@ Page({
           wx.showToast({ title: "请求已发送", icon: "success" });
           this.setData({ inputPartnerCode: "" });
         } else {
-          wx.showModal({
-            title: "发送失败",
-            content: res.result.msg,
-            showCancel: false,
-          });
+          wx.showModal({ title: "发送失败", content: res.result.msg, showCancel: false });
         }
       },
       fail: (err) => {
@@ -316,7 +334,6 @@ Page({
     wx.showLoading({ title: "同步云端..." });
     try {
       let finalAvatarUrl = avatarUrl;
-      // 如果是本地临时文件，先上传
       if (avatarUrl.includes("tmp") || avatarUrl.includes("wxfile")) {
         const uploadRes = await wx.cloud.uploadFile({
           cloudPath: `avatars/${this.data.userData._openid}_${Date.now()}.jpg`,
@@ -337,7 +354,6 @@ Page({
         wx.hideLoading();
         wx.showToast({ title: "保存成功", icon: "success" });
         this.setData({ needSave: false });
-        // 保存成功后刷新一下，确保拿到的是最新数据（虽然这里优化一下可以直接set，但刷新最稳）
         this.checkLogin();
       }
     } catch (err) {

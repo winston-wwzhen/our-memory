@@ -14,32 +14,38 @@ page {
 }
 
 .bg-decoration {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none;
   z-index: 0; overflow: hidden;
 }
 .floating-heart {
-  position: absolute; bottom: -50rpx;
+  position: absolute;
+  bottom: -50rpx;
   font-size: 30rpx; color: #ffdee9; opacity: 0.6;
   animation: floatUp linear infinite;
   text-shadow: 0 0 10rpx rgba(255, 182, 193, 0.5);
 }
 .h1 { left: 10%; animation-duration: 8s; font-size: 24rpx; }
-.h2 { left: 30%; animation-duration: 12s; animation-delay: 2s; font-size: 36rpx; color: #ffb7b2; }
+.h2 { left: 30%; animation-duration: 12s; animation-delay: 2s; font-size: 36rpx; color: #ffb7b2;
+}
 .h3 { left: 60%; animation-duration: 10s; animation-delay: 4s; }
-.h4 { left: 80%; animation-duration: 15s; animation-delay: 1s; font-size: 20rpx; }
+.h4 { left: 80%; animation-duration: 15s; animation-delay: 1s; font-size: 20rpx;
+}
 .h5 { left: 90%; animation-duration: 9s; animation-delay: 6s; font-size: 28rpx; }
 @keyframes floatUp {
-  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  0% { transform: translateY(0) rotate(0deg);
+  opacity: 0; }
   20% { opacity: 0.8; }
-  100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+  100% { transform: translateY(-120vh) rotate(360deg); opacity: 0;
+}
 }
 
 .content-wrapper {
   position: relative; z-index: 10;
   display: flex; flex-direction: column; 
   height: 100%;
-  padding: 20rpx 40rpx 60rpx 40rpx; 
+  padding: 20rpx 40rpx 20rpx 40rpx; 
   box-sizing: border-box;
   justify-content: space-between; 
 }
@@ -54,7 +60,7 @@ page {
   background: rgba(255, 255, 255, 0.95);
   padding: 30rpx;
   border-radius: 24rpx;
-  box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.15); 
+  box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.15);
   border: 2rpx solid #fff;
   position: relative;
 }
@@ -62,18 +68,22 @@ page {
 .pin-icon {
   position: absolute;
   top: -16rpx; left: 50%; transform: translateX(-50%);
-  font-size: 32rpx; text-shadow: 0 4rpx 4rpx rgba(0,0,0,0.1);
+  font-size: 32rpx;
+  text-shadow: 0 4rpx 4rpx rgba(0,0,0,0.1);
   filter: hue-rotate(-20deg);
 }
 
-.note-header { display: flex; align-items: center; margin-bottom: 16rpx; }
+.note-header { display: flex; align-items: center; margin-bottom: 16rpx;
+}
 .note-icon { 
   font-size: 44rpx; margin-right: 20rpx; 
   background: #fff0f5; padding: 10rpx; border-radius: 50%;
 }
-.header-text { display: flex; flex-direction: column; }
+.header-text { display: flex; flex-direction: column;
+}
 .note-label { font-size: 20rpx; color: #ff8fa3; font-weight: bold; letter-spacing: 2rpx; }
-.note-title { font-size: 30rpx; font-weight: 800; color: #5d4037; margin-top: 4rpx; }
+.note-title { font-size: 30rpx; font-weight: 800; color: #5d4037; margin-top: 4rpx;
+}
 .note-desc { font-size: 26rpx; color: #8d6e63; line-height: 1.5; margin-bottom: 16rpx; }
 
 .remote-tip-box {
@@ -82,19 +92,22 @@ page {
   border: 1rpx dashed #dbe9fe;
 }
 
-.note-footer { display: flex; justify-content: space-between; font-size: 22rpx; color: #d7ccc8; }
-.difficulty-tag { background: #ffe4e8; color: #ff6b81; padding: 4rpx 16rpx; border-radius: 20rpx; font-weight: bold;}
+.note-footer { display: flex; justify-content: space-between; font-size: 22rpx; color: #d7ccc8;
+}
+.difficulty-tag { background: #ffe4e8; color: #ff6b81; padding: 4rpx 16rpx; border-radius: 20rpx;
+  font-weight: bold;}
 
 /* === 中部：拍立得 === */
 .polaroid-frame {
   background: #fff;
-  padding: 24rpx 24rpx 80rpx 24rpx;
+  /* 🟢 修改：底部 padding 从 80rpx 减少到 50rpx */
+  padding: 24rpx 24rpx 50rpx 24rpx;
   box-shadow: 0 20rpx 50rpx rgba(139, 69, 19, 0.08); 
   border-radius: 6rpx;
   position: relative;
   flex: 1; 
-  max-height: 750rpx; 
-  margin: 20rpx 0;
+  max-height: 880rpx; 
+  margin: 10rpx 0;
   display: flex; flex-direction: column;
   transform: rotate(2deg);
   z-index: 5;
@@ -102,14 +115,16 @@ page {
 
 .polaroid-frame::after {
   content: "";
-  position: absolute; top: -10rpx; left: 50%; transform: translateX(-50%);
+  position: absolute; top: -10rpx; left: 50%;
+  transform: translateX(-50%);
   width: 100rpx; height: 28rpx; background: rgba(255, 228, 225, 0.8);
   box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.05); border-radius: 2rpx;
 }
 
 .floating-updown { animation: float-tilted 5s ease-in-out infinite; }
 @keyframes float-tilted {
-  0%, 100% { transform: rotate(2deg) translateY(0); }
+  0%, 100% { transform: rotate(2deg) translateY(0);
+}
   50% { transform: rotate(2deg) translateY(-8rpx); }
 }
 
@@ -118,41 +133,48 @@ page {
   width: 100%; 
   flex: 1;
   background: #fffaf0;
-  overflow: hidden; position: relative;
+  overflow: hidden;
+  position: relative;
   border-radius: 2rpx;
 }
 
-.the-photo { width: 100%; height: 100%; object-fit: cover; }
+.the-photo { width: 100%; height: 100%; object-fit: cover;
+}
 
-/* 🟢 修改：空状态容器 */
+/* 空状态容器 */
 .empty-state-cover { 
   width: 100%; height: 100%;
   position: relative; background-color: #f0f0f0; 
-  overflow: hidden; /* 防止 swiper 溢出圆角 */
+  overflow: hidden;
+  /* 防止 swiper 溢出圆角 */
 }
 
-/* 🟢 新增：Swiper 样式 */
+/* Swiper 样式 */
 .style-swiper {
   width: 100%; 
   height: 100%;
-  padding-top: 20rpx; /* 给顶部留点呼吸感 */
+  padding-top: 20rpx;
+  /* 给顶部留点呼吸感 */
   box-sizing: border-box;
 }
 .style-swiper-item {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* 顶部对齐，或者 center */
+  align-items: flex-start;
+  /* 顶部对齐，或者 center */
   height: 100%;
   overflow: visible; /* 允许阴影溢出 */
 }
 
 .swiper-card {
-  width: 92%; /* 卡片宽度，留出缝隙 */
+  width: 92%;
+  /* 卡片宽度，留出缝隙 */
   height: 85%; /* 卡片高度 */
   position: relative;
   border-radius: 16rpx;
   overflow: hidden;
-  transform: scale(0.9); /* 默认缩小 */
+  transform: scale(0.9);
+  /* 默认缩小 */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 平滑过渡 */
   box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
   background: #fff;
@@ -177,11 +199,12 @@ page {
 /* 非选中态的遮罩层 */
 .card-mask {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(255,255,255,0.4); /* 盖一层白雾 */
+  background: rgba(255,255,255,0.4);
+  /* 盖一层白雾 */
   pointer-events: none;
 }
 
-/* 🟢 新增：内置风格标签 */
+/* 内置风格标签 */
 .inner-style-tag {
   position: absolute;
   top: 20rpx; left: 20rpx;
@@ -219,37 +242,15 @@ page {
   letter-spacing: 2rpx;
 }
 
-/* 🟢 新增：风格标签 */
-.style-tag {
-  position: absolute;
-  top: 20rpx; left: 20rpx;
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  font-size: 20rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 30rpx;
-  z-index: 10;
-  backdrop-filter: blur(4px);
-  display: flex; align-items: center;
-}
-.vip-badge {
-  background: #ffd700;
-  color: #5d4037;
-  font-size: 16rpx;
-  padding: 2rpx 8rpx;
-  border-radius: 10rpx;
-  margin-left: 8rpx;
-  font-weight: bold;
-}
-
-/* 🟢 修改：遮罩层点击穿透 */
+/* 遮罩层点击穿透 */
 .empty-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: transparent;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
   z-index: 5;
   /* 关键：允许点击穿透，以便 Swiper 可以滑动 */
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 /* 按钮 */
@@ -265,14 +266,51 @@ page {
   /* 关键：按钮本身恢复点击 */
   pointer-events: auto; 
 }
+
+/* VIP 按钮专属样式 */
+.camera-btn-circle.vip-btn {
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  box-shadow: 0 8rpx 30rpx rgba(253, 160, 133, 0.6);
+}
+
 .btn-ripple {
-  position: absolute; top: -10rpx; left: -10rpx; right: -10rpx; bottom: -10rpx;
+  position: absolute; top: -10rpx; left: -10rpx; right: -10rpx;
+  bottom: -10rpx;
   border: 4rpx solid #ffb6c1;
   border-radius: 50%;
   opacity: 0; animation: ripple 2s infinite; z-index: 1;
 }
-.camera-icon-img { width: 60rpx; height: 60rpx; z-index: 10; }
-.empty-hint { color: #fff; font-size: 26rpx; letter-spacing: 4rpx; font-weight: bold; text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.5); }
+
+/* VIP 波纹 */
+.vip-ripple {
+  position: absolute; top: -10rpx; left: -10rpx; right: -10rpx; bottom: -10rpx;
+  border: 4rpx solid #ffd700;
+  border-radius: 50%;
+  opacity: 0; animation: ripple 2s infinite; z-index: 1;
+}
+
+.camera-icon-img { width: 60rpx;
+  height: 60rpx; z-index: 10; }
+
+/* VIP 皇冠动效 */
+.vip-crown {
+  position: absolute;
+  top: -20rpx;
+  right: -10rpx;
+  font-size: 32rpx;
+  transform: rotate(15deg);
+  z-index: 20;
+  text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.2);
+  animation: float-crown 2s infinite ease-in-out;
+}
+
+@keyframes float-crown {
+  0%, 100% { transform: rotate(15deg) translateY(0); }
+  50% { transform: rotate(15deg) translateY(-6rpx); }
+}
+
+.empty-hint { color: #fff; font-size: 26rpx; letter-spacing: 4rpx; font-weight: bold; text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.5);
+}
 
 .quota-hint {
   color: #fff;
@@ -282,6 +320,15 @@ page {
   padding: 4rpx 12rpx;
   border-radius: 20rpx;
   text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.2);
+}
+
+/* VIP 额度样式 */
+.quota-hint.vip-quota {
+  background: rgba(255, 215, 0, 0.4);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 1rpx 4rpx rgba(0,0,0,0.3);
 }
 
 /* 印章 */
@@ -301,21 +348,28 @@ page {
   display: flex;
   flex-direction: column; align-items: center; justify-content: center;
 }
-.stamp-label { font-size: 16rpx; color: #ff6b81; font-weight: bold; }
+.stamp-label { font-size: 16rpx; color: #ff6b81;
+  font-weight: bold; }
 .stamp-score { font-size: 36rpx; color: #ff4757;
-  font-weight: 900; font-family: 'Courier New', monospace; line-height: 1; }
+  font-weight: 900; font-family: 'Courier New', monospace; line-height: 1;
+}
 .stamp-anim { animation: stamp-in 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards 0.5s; }
 @keyframes stamp-in {
-  0% { transform: rotate(-15deg) scale(2); opacity: 0; }
+  0% { transform: rotate(-15deg) scale(2);
+  opacity: 0; }
   100% { transform: rotate(-15deg) scale(1); opacity: 0.9; }
 }
 
 /* 底部手写字 */
 .handwriting-caption {
-  position: absolute; bottom: 20rpx; left: 0; width: 100%;
+  position: absolute; 
+  /* 🟢 修改：配合 padding 减小，这里位置微调，使其居中于底栏 */
+  bottom: 12rpx; 
+  left: 0; width: 100%;
   text-align: center; font-family: 'Courier New', serif;
   color: #a1887f; font-size: 24rpx; padding: 0 30rpx;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
 }
 
 /* === 底部：每日一句 === */
@@ -327,9 +381,11 @@ page {
 .quote-text {
   font-family: "PingFang SC", serif; font-size: 24rpx;
   color: #5d4037;
-  letter-spacing: 2rpx; font-style: italic; display: block; margin-bottom: 6rpx;
+  letter-spacing: 2rpx;
+  font-style: italic; display: block; margin-bottom: 6rpx;
 }
-.quote-author { font-size: 18rpx; color: #bcaaa4; text-transform: uppercase; letter-spacing: 4rpx; }
+.quote-author { font-size: 18rpx; color: #bcaaa4; text-transform: uppercase; letter-spacing: 4rpx;
+}
 
 /* === 底部：按钮区 === */
 .action-bar {
@@ -350,10 +406,12 @@ page {
   box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
 }
 
-.confirm-actions { display: flex; width: 100%; justify-content: center; align-items: center; gap: 40rpx; }
+.confirm-actions { display: flex; width: 100%; justify-content: center; align-items: center;
+  gap: 40rpx; }
 .action-btn-wrapper { display: flex; flex-direction: column; align-items: center; }
 .btn-circle {
-  width: 80rpx; height: 80rpx; border-radius: 50%; background: #fff;
+  width: 80rpx; height: 80rpx; border-radius: 50%;
+  background: #fff;
   box-shadow: 0 6rpx 20rpx rgba(139, 69, 19, 0.1);
   display: flex; align-items: center; justify-content: center; margin-bottom: 10rpx;
   color: #8d6e63;
@@ -366,31 +424,44 @@ page {
   box-shadow: 0 10rpx 20rpx rgba(93, 64, 55, 0.25);
 }
 
-.placeholder-box { height: 80rpx; width: 100%; flex-shrink: 0; }
+.placeholder-box { 
+  /* 🟢 修改：从 80rpx 减小到 20rpx */
+  height: 20rpx; 
+  width: 100%; 
+  flex-shrink: 0;
+}
 
 /* 动画与 Loading */
 @keyframes pulse-strong { 
-  0% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); } 
-  50% { transform: scale(1.05); box-shadow: 0 12rpx 40rpx rgba(255, 105, 180, 0.6); } 
-  100% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4); } 
+  0% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4);
+} 
+  50% { transform: scale(1.05); box-shadow: 0 12rpx 40rpx rgba(255, 105, 180, 0.6);
+} 
+  100% { transform: scale(1); box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4);
+} 
 }
 @keyframes ripple { 
   0% { transform: scale(1); opacity: 0.8; } 
-  100% { transform: scale(1.5); opacity: 0; } 
+  100% { transform: scale(1.5);
+  opacity: 0; } 
 }
 @keyframes spin { 
   0% { transform: rotate(0deg); } 
-  100% { transform: rotate(360deg); } 
+  100% { transform: rotate(360deg);
+} 
 }
 .slide-in-down { animation: slideInDown 0.8s ease-out; }
-.slide-in-up { animation: slideInUp 0.5s ease-out; }
+.slide-in-up { animation: slideInUp 0.5s ease-out;
+}
 @keyframes slideInDown { 
   from { transform: translateY(-30rpx); opacity: 0; } 
-  to { transform: translateY(0); opacity: 1; } 
+  to { transform: translateY(0); opacity: 1;
+} 
 }
 @keyframes slideInUp { 
   from { transform: translateY(30rpx); opacity: 0; } 
-  to { transform: translateY(0); opacity: 1; } 
+  to { transform: translateY(0);
+  opacity: 1; } 
 }
 
 .loading-mask { 
@@ -402,9 +473,10 @@ page {
   width: 50rpx; height: 50rpx; border: 6rpx solid #ffd1dc; border-top: 6rpx solid #ff6b81; border-radius: 50%;
   animation: spin 1s linear infinite; margin-bottom: 20rpx; 
 }
-.loading-text { font-size: 24rpx; color: #ff6b81; font-weight: bold; letter-spacing: 2rpx; }
+.loading-text { font-size: 24rpx; color: #ff6b81; font-weight: bold; letter-spacing: 2rpx;
+}
 
-/* [🆕 新增] 广告替代 Modal 样式 */
+/* 广告替代 Modal 样式 */
 .ad-modal-mask {
   position: fixed; 
   top: 0; 
@@ -416,14 +488,15 @@ page {
   flex-direction: column; 
   align-items: center; 
   justify-content: center;
-  z-index: 9999; /* 确保在最上层 */
+  z-index: 9999;
+  /* 确保在最上层 */
   animation: fadeIn 0.5s ease;
   backdrop-filter: blur(10px); /* 增加模糊感 */
 }
 
 .ad-modal-content {
   display: flex; 
-  flex-direction: column; 
+  flex-direction: column;
   align-items: center;
 }
 
@@ -434,7 +507,7 @@ page {
 }
 
 .ad-modal-text {
-  color: #fff; 
+  color: #fff;
   font-size: 34rpx; 
   font-weight: 300; /* 纤细字体更显高级 */
   margin-bottom: 80rpx; 
@@ -453,8 +526,10 @@ page {
 
 @keyframes pulse-count {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.7; }
+  50% { transform: scale(1.1);
+  opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0;
+} to { opacity: 1; } }

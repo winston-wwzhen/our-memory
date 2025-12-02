@@ -76,12 +76,21 @@
           </view>
 
           <view class="empty-overlay">
-            <view class="camera-btn-circle" bindtap="onCapture">
-              <view class="btn-ripple"></view>
+            <view class="camera-btn-circle {{isVip ? 'vip-btn' : ''}}" bindtap="onCapture">
+              
+              <view class="btn-ripple" wx:if="{{!isVip}}"></view>
+              
+              <view class="vip-ripple" wx:if="{{isVip}}"></view>
+              
               <image src="../../images/camera-icon.png" class="camera-icon-img"></image>
+              
+              <view class="vip-crown" wx:if="{{isVip}}">👑</view>
             </view>
-            <text class="empty-hint">点这里，定格此刻 ✨</text>
-            <text class="quota-hint">今日剩余额度：{{remainingCount}}</text>
+
+            <text class="empty-hint" wx:if="{{isVip}}">VIP 尊享极速生成 ✨</text>
+            <text class="empty-hint" wx:else>点这里，定格此刻 ✨</text>
+            
+            <text class="quota-hint {{isVip ? 'vip-quota' : ''}}">今日剩余额度：{{remainingCount}}</text>
           </view>
         </view>
 

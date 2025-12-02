@@ -14,24 +14,25 @@ const TEST_CONFIG = {
   ENABLE: true,
 };
 
-// 基础免费额度为 1 每日广告奖励上限为 1
-const BASE_FREE_LIMIT = 1;
+// 🟢 配置中心 (修复版)
+const NORMAL_FREE_LIMIT = 1;  // 普通用户
+const VIP_DAILY_LIMIT = 3;    // VIP用户
+const REG_DAY_LIMIT = 10;     // 首日特权
 const DAILY_AD_LIMIT = 1;
 
 // 🎨 风格配置表 (后端做最终校验)
-// 腾讯云风格ID参考：201(日漫), 101(水彩), 401(3D), 等等
 const STYLE_CONFIG = {
   201: { isVip: false, name: "日漫风" },
   210: { isVip: false, name: "2.5D动画" },
   121: { isVip: false, name: "黏土" },
-  125: { isVip: false, name: "国风工笔" },
+  125: { isVip: true, name: "国风工笔" },
   127: { isVip: false, name: "瓷器" },
-  129: { isVip: false, name: "美式复古" },
+  129: { isVip: true, name: "美式复古" },
   130: { isVip: false, name: "蒸汽朋克" },
   132: { isVip: false, name: "素描" },
-  133: { isVip: false, name: "莫奈花园" },
+  133: { isVip: true, name: "莫奈花园" },
   134: { isVip: false, name: "厚涂手绘" },
-  126: { isVip: false, name: "玉石" },
+  126: { isVip: true, name: "玉石" },
 };
 
 // ============================================================
@@ -139,14 +140,25 @@ exports.main = async (event, context) => {
 
   let remainingAttempts = 0;
   const SUDO_USERS = await getSudoUsers();
-  const isVip = SUDO_USERS.includes(openid);
+  
+  // 获取用户信息判断额度和身份
+  const userRes = await db.collection("users").where({ _openid: openid }).get();
+  
+  if (userRes.data.length === 0) {
+      return { status: 404, msg: "用户未注册" };
+  }
+  
+  const user = userRes.data[0];
+  const isPermanentVip = SUDO_USERS.includes(openid);
+  const isTrialVip = user.vip_expire_date && new Date(user.vip_expire_date) > new Date();
+  const isVip = isPermanentVip || isTrialVip;
 
   // 判断是否为测试账号
   const isTestUser =
     TEST_CONFIG.ENABLE && TEST_CONFIG.WHITELIST.includes(openid);
 
-  // 🛡️ 风格鉴权
-  const targetStyle = STYLE_CONFIG[styleId] ? styleId : "201"; // 非法ID回退到默认
+  // 🛡️ 风格鉴权 (体验VIP也可解锁)
+  const targetStyle = STYLE_CONFIG[styleId] ? styleId : "201"; 
   if (STYLE_CONFIG[targetStyle].isVip && !isVip) {
     return {
       status: 403,
@@ -154,38 +166,46 @@ exports.main = async (event, context) => {
     };
   }
 
-  // 🆕 1. 频次检查 (升级版逻辑)
-  if (!isVip) {
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: openid })
-      .get();
-    if (userRes.data.length > 0) {
-      const user = userRes.data[0];
+  // 🆕 1. 频次检查 (修复版逻辑)
+  if (!isPermanentVip) {
+      // 计算注册天数判断是否首日
+      let registerDays = 1;
+      if (user.createdAt) {
+        const created = new Date(user.createdAt);
+        const now = new Date();
+        const diffTime = Math.abs(now - created);
+        registerDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
+      
+      // 确定今日基础限额 (逻辑修复)
+      let baseLimit = NORMAL_FREE_LIMIT; // 默认为 1
+      if (isVip) {
+          // 只有 VIP 身份才能享受 10 或 3
+          baseLimit = registerDays <= 1 ? REG_DAY_LIMIT : VIP_DAILY_LIMIT;
+      }
+
       const stats = user.daily_usage || { date: "", count: 0, ad_count: 0 };
       const isToday = stats.date === todayStr;
 
       const currentUsed = isToday ? stats.count || 0 : 0;
       const adRewards = isToday ? stats.ad_count || 0 : 0;
 
-      // 🟢 核心公式：总额度 = 基础免费(1) + 广告奖励
-      const totalLimit = BASE_FREE_LIMIT + adRewards;
+      // 总额度 = 基础限额 + 广告奖励
+      const totalLimit = baseLimit + adRewards;
 
       if (currentUsed >= totalLimit) {
-        // 判断是否还能看广告
         const canWatchAd = adRewards < DAILY_AD_LIMIT;
 
         return {
           status: 403,
           msg: canWatchAd
             ? `次数用尽！看个广告复活吧~`
-            : `今日次数已耗尽，去Fun乐园玩耍吧~`,
-          requireAd: canWatchAd, // 🟢 只有没达到广告上限才允许看广告
-          redirectFun: !canWatchAd, // 🟢 告诉前端跳转
+            : `今日次数已耗尽 (${totalLimit}/${totalLimit})，去Fun乐园玩耍吧~`,
+          requireAd: canWatchAd, 
+          redirectFun: !canWatchAd, 
         };
       }
 
-      // 扣除次数 (更新数据库)
       const updateData = isToday
         ? { "daily_usage.count": _.inc(1) }
         : { daily_usage: { date: todayStr, count: 1, ad_count: 0 } };
@@ -196,7 +216,6 @@ exports.main = async (event, context) => {
         .update({ data: updateData });
 
       remainingAttempts = Math.max(0, totalLimit - (currentUsed + 1));
-    }
   } else {
     remainingAttempts = 999;
   }
@@ -223,7 +242,6 @@ exports.main = async (event, context) => {
       };
       const client = new AiartClient(clientConfig);
 
-      // 使用动态风格 ID
       const params = {
         InputImage: base64Img,
         Styles: [targetStyle],
@@ -236,8 +254,7 @@ exports.main = async (event, context) => {
     }
   } catch (aiError) {
     console.error("⚠️ AI Failed:", aiError);
-    // 🆕 失败次数回滚
-    if (!isVip) {
+    if (!isPermanentVip) {
       await db
         .collection("users")
         .where({ _openid: openid })
