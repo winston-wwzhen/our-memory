@@ -7,6 +7,7 @@
     "pages/message_board/index",
     "pages/capsule/index",
     "pages/capsule_create/index",
+    "pages/quiz/index",
     "pages/history/index",
     "pages/mine/index"
   ],

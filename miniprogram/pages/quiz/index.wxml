@@ -1,0 +1,141 @@
+<view class="quiz-container">
+
+<block wx:if="{{mode === 'home'}}">
+  <view class="header-banner">
+    <view class="banner-title">默契大闯关</view>
+    <view class="banner-sub">Test Your Love</view>
+  </view>
+
+  <view class="current-card paper-texture">
+    <block wx:if="{{currentRoundInfo}}">
+      <view class="round-badge-row">
+        <text class="round-badge-icon">🔥</text>
+        <text class="round-badge-txt">第 {{currentRoundInfo.round_seq}} 轮正在进行</text>
+      </view>
+      <view class="progress-bar-box">
+        <view class="p-label">答题进度</view>
+        <view class="p-avatars">
+           <view class="p-user mine">我 {{currentRoundInfo.my_progress}}/10</view>
+           <view class="p-vs">VS</view>
+           <view class="p-user partner">TA {{currentRoundInfo.partner_progress}}/10</view>
+        </view>
+      </view>
+      <button class="btn-start" bindtap="onStart">
+        {{currentRoundInfo.status === 'waiting_partner' ? '查看状态' : '继续答题'}}
+      </button>
+    </block>
+    <block wx:else>
+      <view class="empty-round-box">
+         <text class="empty-emoji">🚀</text>
+         <text class="empty-title">准备好开始新一轮挑战了吗？</text>
+         <button class="btn-start" bindtap="onStart">开启新一轮</button>
+      </view>
+    </block>
+  </view>
+
+  <view class="history-section">
+      <view class="section-header">
+          <text class="sec-title">📜 通关记录</text>
+      </view>
+      
+      <view class="history-list">
+          <view class="history-item" wx:for="{{history}}" wx:key="_id" bindtap="onHistoryTap" data-id="{{item._id}}">
+              <view class="h-left">
+                  <view class="h-round">第 <text class="h-num">{{item.round_seq}}</text> 轮</view>
+                  <view class="h-time">{{item.dateStr}}</view>
+              </view>
+              
+              <view class="h-right">
+                  <view class="h-score-box {{item.score >= 80 ? 'high' : ''}}">
+                      <text class="val">{{item.score}}</text>
+                      <text class="unit">分</text>
+                  </view>
+                  <view class="arrow">></view>
+              </view>
+          </view>
+          
+          <view class="no-history" wx:if="{{history.length===0}}">
+              <text>暂无历史记录，快去闯关吧！</text>
+          </view>
+      </view>
+  </view>
+</block>
+
+<block wx:if="{{mode === 'answering'}}">
+  <view class="question-card">
+    <view class="q-step">Question {{qIndex}} / {{total}}</view>
+    <view class="q-title">{{currentQuestion.title}}</view>
+  </view>
+
+  <view class="options-list">
+    <view 
+      class="option-btn" 
+      wx:for="{{displayOptions}}" 
+      wx:key="index"
+      bindtap="onOptionClick"
+      data-index="{{index}}"
+    >
+      <text class="opt-text">{{item}}</text>
+    </view>
+  </view>
+</block>
+
+<block wx:if="{{mode === 'waiting'}}">
+  <view class="waiting-box">
+    <view class="wait-icon">⏳</view>
+    <view class="wait-text">本轮作答完成</view>
+    <view class="wait-sub">等待 TA 完成后自动揭晓分数...</view>
+    <button class="btn-refresh" bindtap="onManualRefresh">↻ 刷新状态</button>
+    <button class="btn-back" bindtap="loadHome">返回列表</button>
+  </view>
+</block>
+
+<block wx:if="{{mode === 'result'}}">
+  <view class="result-header">
+    <view class="score-circle">
+      <text class="score-val">{{roundResult.score}}</text>
+      <text class="score-label">默契分</text>
+    </view>
+    <view class="result-comment" wx:if="{{roundResult.score === 100}}">💯 灵魂伴侣！</view>
+    <view class="result-comment" wx:elif="{{roundResult.score >= 60}}">🎉 继续加油！</view>
+    <view class="result-comment" wx:else>💔 需要沟通哦~</view>
+  </view>
+
+  <view class="review-list">
+    <block wx:for="{{roundResult.questions}}" wx:key="title">
+      <view class="review-item">
+        <view class="r-q">{{index+1}}. {{item.title}}</view>
+        <view class="r-ans-row">
+          <view class="r-col">
+            <text class="label">我选</text>
+            <text class="r-val {{roundResult.answers_a[index] == roundResult.answers_b[index] ? 'match' : ''}}">
+              {{item.options[isUserA ? roundResult.answers_a[index] : roundResult.answers_b[index]]}}
+            </text>
+          </view>
+          <view class="vs-icon {{roundResult.answers_a[index] == roundResult.answers_b[index] ? 'match' : ''}}">
+               {{roundResult.answers_a[index] == roundResult.answers_b[index] ? '♥' : '×'}}
+          </view>
+          <view class="r-col right">
+            <text class="label">TA选</text>
+            <text class="r-val {{roundResult.answers_a[index] == roundResult.answers_b[index] ? 'match' : ''}}">
+              {{item.options[isUserA ? roundResult.answers_b[index] : roundResult.answers_a[index]]}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <button class="btn-next-round" bindtap="loadHome">返回列表</button>
+</block>
+
+<view class="egg-modal-mask" wx:if="{{showEggModal}}">
+  <view class="egg-card bounce-in">
+    <text class="egg-icon">{{eggData.icon}}</text>
+    <view class="egg-title">{{eggData.title}}</view>
+    <view class="egg-desc">{{eggData.desc}}</view>
+    <button class="btn-get-egg" bindtap="closeEggModal">太棒了</button>
+  </view>
+</view>
+
+</view>

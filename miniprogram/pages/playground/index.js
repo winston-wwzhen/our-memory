@@ -12,10 +12,12 @@ Page({
     harvestCount: 0,
     logs: [],
     showLogModal: false,
-
-    // 导航栏高度配置
     navHeight: app.globalData.navBarHeight,
     statusBarHeight: app.globalData.statusBarHeight,
+
+    // 提示状态
+    capsuleRedDot: false,
+    messageHint: false,
   },
 
   onShow: function () {
@@ -25,18 +27,81 @@ Page({
         statusBarHeight: app.globalData.statusBarHeight,
       });
     }
-    // 每次显示都刷新用户状态(检查是否已绑定)和花园数据
     this.updateUserStatus();
     this.fetchGardenData();
+
+    // 检查红点状态
+    if (app.globalData.userInfo && app.globalData.userInfo.partner_id) {
+      this.checkCapsuleRedDot();
+      this.checkMessageHint();
+    }
   },
 
-  onPullDownRefresh: function () {
-    // 下拉刷新时同步刷新用户状态
-    this.updateUserStatus();
-    this.fetchGardenData(() => wx.stopPullDownRefresh());
+  // 🟢 核心修改：基于“盖章状态”判断提示
+  checkMessageHint: function () {
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: { action: "get_messages" },
+      success: (res) => {
+        if (res.result.status === 200) {
+          const msgs = res.result.data || [];
+
+          // 1. 筛选出“对方”发的留言 (过滤掉我自己的)
+          const partnerMsgs = msgs.filter((m) => !m.isMine);
+
+          // 2. 找到最新一条
+          if (partnerMsgs.length > 0) {
+            const latest = partnerMsgs[0];
+
+            // 3. 只有当“未盖章(isLiked false)”时，才显示提示
+            // 这样如果用户看了但没点赞，提示会一直存在，直到点赞为止
+            if (!latest.isLiked) {
+              this.setData({ messageHint: true });
+            } else {
+              this.setData({ messageHint: false });
+            }
+          } else {
+            this.setData({ messageHint: false });
+          }
+        }
+      },
+    });
   },
 
-  // 🆕 获取最新用户状态 (存入 globalData)
+  // 📌 爱的留言板 (移除旧的时间缓存逻辑)
+  navToBoard: function () {
+    if (!this.checkPartner()) return;
+
+    // 注意：这里不手动消除 messageHint 了
+    // 因为如果用户进去没盖章就退出来，我们希望提示还在
+    // 提示状态完全交给 onShow 里的 checkMessageHint 根据数据真实状态来决定
+
+    wx.navigateTo({ url: "/pages/message_board/index" });
+  },
+
+  // 💊 时光胶囊
+  checkCapsuleRedDot: function () {
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: { action: "get_capsules" },
+      success: (res) => {
+        if (res.result.status === 200) {
+          const inbox = res.result.inbox || [];
+          const hasNewSurprise = inbox.some((item) => item.canOpen);
+          this.setData({ capsuleRedDot: hasNewSurprise });
+        }
+      },
+    });
+  },
+
+  navToCapsule: function () {
+    if (!this.checkPartner()) return;
+    // 胶囊的红点点击即消，因为进去就能开启
+    this.setData({ capsuleRedDot: false });
+    wx.navigateTo({ url: "/pages/capsule/index" });
+  },
+
+  // === 以下保持原有逻辑不变 ===
   updateUserStatus: function () {
     wx.cloud.callFunction({
       name: "user_center",
@@ -48,11 +113,8 @@ Page({
       },
     });
   },
-
-  // 🆕 核心拦截器：检查是否有伴侣
   checkPartner: function () {
     const user = app.globalData.userInfo;
-    // 如果没有用户信息或没有 partner_id，视为单身
     if (!user || !user.partner_id) {
       wx.showModal({
         title: "情侣专属功能",
@@ -63,16 +125,14 @@ Page({
         cancelText: "再逛逛",
         success: (res) => {
           if (res.confirm) {
-            // 跳转到 Mine 页面
             wx.switchTab({ url: "/pages/mine/index" });
           }
         },
       });
-      return false; // 拦截成功
+      return false;
     }
-    return true; // 放行
+    return true;
   },
-
   fetchGardenData: function (callback) {
     wx.cloud.callFunction({
       name: "user_center",
@@ -86,12 +146,10 @@ Page({
           const currentG = g % 100;
           const harvests = garden.harvest_total || 0;
           let finalProgress = lv >= 4 ? 100 : (currentG / 100) * 100;
-
           const formattedLogs = (logs || []).map((item) => {
             item.timeAgo = this.formatTimeAgo(item.date);
             return item;
           });
-
           this.setData({
             waterCount: water,
             growth: currentG,
@@ -109,7 +167,6 @@ Page({
       },
     });
   },
-
   formatTimeAgo: function (dateStr) {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -120,11 +177,8 @@ Page({
     if (diff < 86400) return Math.floor(diff / 3600) + "小时前";
     return Math.floor(diff / 86400) + "天前";
   },
-
-  // 💧 浇水 (拦截)
   onWater: function () {
-    if (!this.checkPartner()) return; // 🔒 权限检查
-
+    if (!this.checkPartner()) return;
     if (this.data.waterCount < 10) {
       wx.showToast({ title: "爱意不足，去首页拍照打卡吧~", icon: "none" });
       return;
@@ -148,17 +202,12 @@ Page({
       },
     });
   },
-
-  // 📝 查看日志 (拦截)
   toggleLogModal: function () {
-    if (!this.checkPartner()) return; // 🔒 权限检查
+    if (!this.checkPartner()) return;
     this.setData({ showLogModal: !this.data.showLogModal });
   },
-
-  // 🏆 收获 (拦截)
   onHarvest: function () {
-    if (!this.checkPartner()) return; // 🔒 权限检查
-
+    if (!this.checkPartner()) return;
     wx.showModal({
       title: "收获玫瑰",
       content: "恭喜你们培育出了真爱玫瑰！确认收获并开启下一轮种植吗？",
@@ -169,7 +218,6 @@ Page({
       },
     });
   },
-
   doHarvest: function () {
     this.setData({ loading: true });
     wx.showLoading({ title: "收获中..." });
@@ -197,43 +245,22 @@ Page({
       },
     });
   },
-
-  // 🎲 跳转决定转盘 (拦截)
   navToDecision: function () {
-    if (!this.checkPartner()) return; // 🔒 权限检查
+    if (!this.checkPartner()) return;
     wx.navigateTo({ url: "/pages/decision/index" });
   },
-
-  // 🎁 跳转心愿卡券 (拦截)
   navToCoupons: function () {
-    if (!this.checkPartner()) return; // 🔒 权限检查
+    if (!this.checkPartner()) return;
     wx.navigateTo({ url: "/pages/coupons/index" });
   },
-
-  navToBoard: function () {
-    if (!this.checkPartner()) return;
-    wx.navigateTo({ url: "/pages/message_board/index" });
-  },
-
-  // 📝 默契问答
   navToQuiz: function () {
     if (!this.checkPartner()) return;
-    wx.showToast({ title: "题库准备中...", icon: "none" });
+    wx.navigateTo({ url: "/pages/quiz/index" });
   },
-
-  // 💊 时光胶囊
-  navToCapsule: function () {
-    if (!this.checkPartner()) return;
-    wx.showToast({ title: "胶囊制作中...", icon: "none" });
-  },
-
-  // 📖 恋爱宝典
   navToGuide: function () {
     if (!this.checkPartner()) return;
     wx.showToast({ title: "秘籍编写中...", icon: "none" });
   },
-
-  // 🚧 通用待开发 (保留作为备用)
   onTodo: function () {
     if (!this.checkPartner()) return;
     wx.showToast({ title: "功能开发中...", icon: "none" });

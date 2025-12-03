@@ -59,7 +59,7 @@ page {
   margin-top: -10rpx; margin-bottom: 20rpx;
 }
 
-/* 🆕 记录气泡 */
+/* 记录气泡 */
 .log-bubble {
   position: absolute;
   top: 120rpx; 
@@ -146,13 +146,33 @@ page {
 .grid-menu { display: flex; flex-wrap: wrap; justify-content: space-between; }
 .grid-item {
   width: 48%; padding: 30rpx; box-sizing: border-box; margin-bottom: 24rpx;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; /* 为小红心定位 */
 }
 .grid-icon { font-size: 50rpx; margin-bottom: 10rpx; }
 .grid-title { font-size: 26rpx; font-weight: bold; color: #5d4037; }
 .grid-desc { font-size: 20rpx; color: #a1887f; margin-top: 4rpx; opacity: 0.8; }
 
-/* === 🆕 弹窗样式 === */
+/* 🟢 替换红点为小红心 */
+.notification-heart {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  font-size: 24rpx;
+  color: #ff5252;
+  line-height: 1;
+  animation: pulseHeart 1.2s infinite ease-in-out;
+  text-shadow: 0 2rpx 5rpx rgba(255, 82, 82, 0.4); /* 增加一点发光感 */
+}
+
+@keyframes pulseHeart {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* === 弹窗样式 === */
 .log-modal-mask {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.5); z-index: 100;
@@ -180,10 +200,7 @@ page {
   padding-top: 20rpx;
 }
 
-/* 列表项样式 (从原来的迁移过来并微调) */
-.modal-log-item {
-  display: flex; align-items: flex-start; margin-bottom: 24rpx;
-}
+.modal-log-item { display: flex; align-items: flex-start; margin-bottom: 24rpx; }
 .modal-log-item:last-child { margin-bottom: 0; }
 
 .modal-log-avatar {
@@ -199,3 +216,24 @@ page {
 .modal-log-desc { font-size: 24rpx; color: #666; line-height: 1.4; }
 
 .empty-log { text-align: center; color: #ccc; font-size: 24rpx; margin-top: 100rpx; }
+
+/* 🟢 新增：图钉提示样式 */
+.notification-pin {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  font-size: 28rpx;
+  line-height: 1;
+  /* 摇摆动画 */
+  animation: swingPin 2s infinite ease-in-out;
+  transform-origin: bottom center; /* 以针尖为轴摇摆 */
+  filter: drop-shadow(2rpx 4rpx 4rpx rgba(0,0,0,0.2));
+}
+
+@keyframes swingPin {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-15deg); }
+  100% { transform: rotate(0deg); }
+}

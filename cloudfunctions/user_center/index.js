@@ -5,7 +5,6 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 随机昵称库
 const RANDOM_NAMES = [
   "予你星河",
   "满眼星辰",
@@ -20,12 +19,9 @@ const RANDOM_NAMES = [
   "星河滚烫",
   "人间理想",
 ];
-
 function getRandomName() {
-  const idx = Math.floor(Math.random() * RANDOM_NAMES.length);
-  return RANDOM_NAMES[idx];
+  return RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)];
 }
-
 async function getSudoUsers() {
   try {
     const res = await db.collection("app_config").doc("global_settings").get();
@@ -34,23 +30,19 @@ async function getSudoUsers() {
     return [];
   }
 }
-
 function getTodayStr() {
   const now = new Date();
   const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
   return beijingTime.toISOString().split("T")[0];
 }
-
-// 通用日志记录
 async function addLog(openid, type, content, extra = {}) {
   try {
-    const todayStr = getTodayStr();
     await db.collection("logs").add({
       data: {
         _openid: openid,
-        type: type,
-        content: content,
-        originalDate: todayStr,
+        type,
+        content,
+        originalDate: getTodayStr(),
         createdAt: db.serverDate(),
         ...extra,
       },
@@ -64,7 +56,6 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const myOpenID = wxContext.OPENID;
 
-  // 解构所有可能用到的参数
   const {
     action,
     partnerCode,
@@ -72,25 +63,25 @@ exports.main = async (event, context) => {
     userInfo,
     imageFileID,
     style,
-    // 留言板参数
     content,
     color,
     type,
     statusIcon,
     statusText,
     id,
-    // 兑换券参数
     templateId,
     title,
     desc,
     cost,
-    // 决定参数
     category,
     result,
-    // 时光胶囊参数
     openDate,
-    imagePath,
-    // 其他参数
+    capsuleId,
+    answer,
+    quizId, // 问答相关
+    // 🟢 轮次问答参数
+    roundId,
+    questionIdx,
     date,
     avatarUrl,
     nickName,
@@ -100,7 +91,6 @@ exports.main = async (event, context) => {
   const todayStr = getTodayStr();
   const SUDO_USERS = await getSudoUsers();
 
-  // 🟢 配置中心
   const NORMAL_FREE_LIMIT = 1;
   const VIP_DAILY_LIMIT = 3;
   const REG_DAY_LIMIT = 10;
@@ -108,9 +98,9 @@ exports.main = async (event, context) => {
   const DAILY_AD_LIMIT = 1;
   const DAILY_LOGIN_BONUS = 50;
   const DAILY_MSG_LIMIT = 20;
+  const DEFAULT_CAPSULE_LIMIT = 10;
+  const QUESTIONS_PER_ROUND = 10;
 
-  // 🛠️ 内部工具：尝试触发彩蛋
-  // 返回 triggerEgg 对象或 null
   const tryTriggerEgg = async (
     eggId,
     bonus,
@@ -119,17 +109,13 @@ exports.main = async (event, context) => {
     isRepeatable = false,
     probability = 1.0
   ) => {
-    // 概率检查
     if (probability < 1.0 && Math.random() > probability) return null;
-
-    let shouldTrigger = false;
-    let userEggId = null;
-
+    let shouldTrigger = false,
+      userEggId = null;
     const eggRes = await db
       .collection("user_eggs")
       .where({ _openid: myOpenID, egg_id: eggId })
       .get();
-
     if (eggRes.data.length > 0) {
       if (isRepeatable) {
         shouldTrigger = true;
@@ -138,18 +124,13 @@ exports.main = async (event, context) => {
     } else {
       shouldTrigger = true;
     }
-
     if (shouldTrigger) {
       if (userEggId) {
-        // 重复触发：更新计数
         await db
           .collection("user_eggs")
           .doc(userEggId)
-          .update({
-            data: { count: _.inc(1), unlocked_at: db.serverDate() },
-          });
+          .update({ data: { count: _.inc(1), unlocked_at: db.serverDate() } });
       } else {
-        // 首次触发：写入记录
         await db.collection("user_eggs").add({
           data: {
             _openid: myOpenID,
@@ -160,27 +141,18 @@ exports.main = async (event, context) => {
           },
         });
       }
-      // 记录日志
       await addLog(myOpenID, "egg", `触发彩蛋：${title}`);
-
-      return {
-        title: title,
-        icon: "🎁", // 默认图标，前端可覆盖
-        desc: desc,
-        bonus: bonus,
-      };
+      return { title, icon: "🎁", desc, bonus };
     }
     return null;
   };
 
-  // === 1. 登录与注册 ===
+  // === 1. 登录 (保持不变) ===
   if (action === "login") {
-    let currentUser = null;
-    let loginBonus = 0;
-    let registerDays = 1;
-
+    let currentUser = null,
+      loginBonus = 0,
+      registerDays = 1;
     const res = await db.collection("users").where({ _openid: myOpenID }).get();
-
     if (res.data.length > 0) {
       currentUser = res.data[0];
       if (currentUser.last_login_date !== todayStr) {
@@ -202,15 +174,14 @@ exports.main = async (event, context) => {
             },
           });
         currentUser.water_count = (currentUser.water_count || 0) + loginBonus;
-        currentUser.last_login_date = todayStr;
         currentUser.daily_usage = resetUsage;
       }
-      if (currentUser.createdAt) {
-        const created = new Date(currentUser.createdAt);
-        const now = new Date();
+      if (currentUser.createdAt)
         registerDays =
-          Math.ceil(Math.abs(now - created) / (1000 * 60 * 60 * 24)) || 1;
-      }
+          Math.ceil(
+            Math.abs(new Date() - new Date(currentUser.createdAt)) /
+              (1000 * 60 * 60 * 24)
+          ) || 1;
     } else {
       const vipExpire = new Date();
       vipExpire.setDate(vipExpire.getDate() + VIP_TRIAL_DAYS);
@@ -226,6 +197,7 @@ exports.main = async (event, context) => {
         createdAt: db.serverDate(),
         vip_expire_date: vipExpire,
         daily_usage: { date: todayStr, count: 0, ad_count: 0, msg_count: 0 },
+        capsule_limit: DEFAULT_CAPSULE_LIMIT,
       };
       const addRes = await db.collection("users").add({ data: newUser });
       currentUser = { ...newUser, _id: addRes._id };
@@ -233,7 +205,6 @@ exports.main = async (event, context) => {
       registerDays = 1;
       await addLog(myOpenID, "register", "开启了我们的纪念册");
     }
-
     const isPermanentVip = SUDO_USERS.includes(myOpenID);
     const isTrialVip =
       currentUser.vip_expire_date &&
@@ -251,7 +222,6 @@ exports.main = async (event, context) => {
       0,
       currentLimit + (stats.ad_count || 0) - (stats.count || 0)
     );
-
     let partnerInfo = null;
     if (currentUser.partner_id) {
       const partnerRes = await db
@@ -261,7 +231,6 @@ exports.main = async (event, context) => {
         .get();
       if (partnerRes.data.length > 0) partnerInfo = partnerRes.data[0];
     }
-
     return {
       status: 200,
       user: currentUser,
@@ -277,19 +246,17 @@ exports.main = async (event, context) => {
     };
   }
 
-  // ... (省略 watch_ad_reward, get_garden, water_flower, harvest_garden, check_in, redeem_coupon, get_my_coupons, make_decision, get_partner_decision, 绑定相关, update_profile, update_anniversary, unbind)
-  // 请保留原有的 Action 代码
-  // 为确保完整性，这里我只列出变动部分，实际使用请务必保留上方原有的业务逻辑！
-  // ...
+  // ... (保留原有 Action 2-9) ...
+  // watch_ad_reward, get_garden, water_flower, harvest_garden, check_in, redeem_coupon, get_my_coupons, make_decision, get_partner_decision, request_bind, respond_bind, update_profile, update_anniversary, unbind, post_message, delete_message, like_message, get_messages, update_status, bury_capsule, get_capsules, open_capsule
   if (action === "watch_ad_reward") {
-    /*...*/ const userRes = await db
+    const userRes = await db
       .collection("users")
       .where({ _openid: myOpenID })
       .get();
     const user = userRes.data[0];
     const stats = user.daily_usage || { date: todayStr };
     if ((stats.date === todayStr ? stats.ad_count || 0 : 0) >= DAILY_AD_LIMIT)
-      return { status: 403, msg: "今日次数上限" };
+      return { status: 403, msg: "上限" };
     const updateData =
       stats.date === todayStr
         ? { "daily_usage.ad_count": _.inc(1) }
@@ -305,7 +272,7 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "奖励到账" };
   }
   if (action === "get_garden") {
-    /*...*/ const userRes = await db
+    const userRes = await db
       .collection("users")
       .where({ _openid: myOpenID })
       .get();
@@ -402,7 +369,7 @@ exports.main = async (event, context) => {
         .update({
           data: { growth_value: _.inc(GROWTH), updatedAt: db.serverDate() },
         });
-      await addLog(myOpenID, "water", `给玫瑰注入了 ${COST}g 爱意`);
+      await addLog(myOpenID, "water", `注入${COST}g爱意`);
       return { status: 200, msg: "注入成功" };
     }
     return { status: 404 };
@@ -414,7 +381,7 @@ exports.main = async (event, context) => {
       .get();
     if (gardenRes.data.length > 0) {
       const garden = gardenRes.data[0];
-      if (garden.growth_value < 300) return { status: 400, msg: "还没盛开" };
+      if (garden.growth_value < 300) return { status: 400, msg: "未盛开" };
       await db
         .collection("gardens")
         .doc(garden._id)
@@ -434,7 +401,7 @@ exports.main = async (event, context) => {
       await addLog(
         myOpenID,
         "harvest",
-        `收获了第 ${garden.harvest_total + 1} 朵玫瑰`
+        `收获第${garden.harvest_total + 1}朵玫瑰`
       );
       return { status: 200, msg: "收获成功" };
     }
@@ -443,7 +410,7 @@ exports.main = async (event, context) => {
   if (action === "check_in") {
     if (!imageFileID) return { status: 400 };
     const CHECKIN_REWARD = 50;
-    const oldLogRes = await db
+    const oldLog = await db
       .collection("logs")
       .where({
         _openid: myOpenID,
@@ -451,10 +418,10 @@ exports.main = async (event, context) => {
         type: "daily_check_in",
       })
       .get();
-    if (oldLogRes.data.length > 0) {
+    if (oldLog.data.length > 0) {
       await db
         .collection("logs")
-        .doc(oldLogRes.data[0]._id)
+        .doc(oldLog.data[0]._id)
         .update({
           data: {
             imageFileID,
@@ -464,19 +431,17 @@ exports.main = async (event, context) => {
         });
       return { status: 200, msg: "更新成功" };
     } else {
-      await db
-        .collection("logs")
-        .add({
-          data: {
-            _openid: myOpenID,
-            type: "daily_check_in",
-            content: "打卡",
-            imageFileID,
-            originalDate: todayStr,
-            createdAt: db.serverDate(),
-            style,
-          },
-        });
+      await db.collection("logs").add({
+        data: {
+          _openid: myOpenID,
+          type: "daily_check_in",
+          content: "打卡",
+          imageFileID,
+          originalDate: todayStr,
+          createdAt: db.serverDate(),
+          style,
+        },
+      });
       await db
         .collection("users")
         .where({ _openid: myOpenID })
@@ -485,31 +450,26 @@ exports.main = async (event, context) => {
     }
   }
   if (action === "redeem_coupon") {
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .get();
-    const me = userRes.data[0];
+    const me = (await db.collection("users").where({ _openid: myOpenID }).get())
+      .data[0];
     if ((me.rose_balance || 0) < cost) return { status: 400, msg: "玫瑰不足" };
     await db
       .collection("users")
       .doc(me._id)
       .update({ data: { rose_balance: _.inc(-cost) } });
-    await db
-      .collection("coupons")
-      .add({
-        data: {
-          _openid: myOpenID,
-          templateId,
-          title,
-          desc,
-          type,
-          cost,
-          status: 0,
-          createdAt: db.serverDate(),
-        },
-      });
-    await addLog(myOpenID, "redeem", `兑换了${title}`);
+    await db.collection("coupons").add({
+      data: {
+        _openid: myOpenID,
+        templateId,
+        title,
+        desc,
+        type,
+        cost,
+        status: 0,
+        createdAt: db.serverDate(),
+      },
+    });
+    await addLog(myOpenID, "redeem", `兑换${title}`);
     return { status: 200, msg: "兑换成功" };
   }
   if (action === "get_my_coupons") {
@@ -531,36 +491,31 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "已生效" };
   }
   if (action === "get_partner_decision") {
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .get();
-    const me = userRes.data[0];
-    let partnerDecision = null;
+    const me = (await db.collection("users").where({ _openid: myOpenID }).get())
+      .data[0];
+    let pd = null;
     if (me.partner_id) {
-      const partnerRes = await db
+      const pr = await db
         .collection("users")
         .where({ _openid: me.partner_id })
         .field({ last_decision: true, nickName: true })
         .get();
-      if (partnerRes.data.length > 0) {
-        partnerDecision = partnerRes.data[0].last_decision;
-        if (partnerDecision)
-          partnerDecision.nickName = partnerRes.data[0].nickName;
+      if (pr.data.length > 0) {
+        pd = pr.data[0].last_decision;
+        if (pd) pd.nickName = pr.data[0].nickName;
       }
     }
-    return { status: 200, data: partnerDecision };
+    return { status: 200, data: pd };
   }
   if (action === "request_bind") {
-    if (!partnerCode) return { status: 400, msg: "请输入对方编号" };
-    if (partnerCode === myOpenID) return { status: 400, msg: "不能关联自己" };
-    const partnerRes = await db
+    if (!partnerCode || partnerCode === myOpenID)
+      return { status: 400, msg: "编号无效" };
+    const pr = await db
       .collection("users")
       .where({ _openid: partnerCode })
       .get();
-    if (partnerRes.data.length === 0) return { status: 404, msg: "编号不存在" };
-    if (partnerRes.data[0].partner_id)
-      return { status: 403, msg: "对方已有伴侣" };
+    if (pr.data.length === 0) return { status: 404 };
+    if (pr.data[0].partner_id) return { status: 403 };
     await db
       .collection("users")
       .where({ _openid: partnerCode })
@@ -568,7 +523,7 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "请求已发送" };
   }
   if (action === "respond_bind") {
-    if (!partnerCode) return { status: 400, msg: "参数缺失" };
+    if (!partnerCode) return { status: 400 };
     if (decision === "reject") {
       await db
         .collection("users")
@@ -598,23 +553,20 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "OK" };
   }
   if (action === "update_anniversary") {
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .get();
-    const me = userRes.data[0];
-    const updateData = {
+    const me = (await db.collection("users").where({ _openid: myOpenID }).get())
+      .data[0];
+    const data = {
       anniversaryDate: date,
       anniversaryModifier: me.nickName,
       anniversaryUpdatedAt: db.serverDate(),
     };
-    await db.collection("users").doc(me._id).update({ data: updateData });
+    await db.collection("users").doc(me._id).update({ data });
     if (me.partner_id)
       await db
         .collection("users")
         .where({ _openid: me.partner_id })
-        .update({ data: updateData });
-    await addLog(myOpenID, "update_anniversary", `修改纪念日为 ${date}`);
+        .update({ data });
+    await addLog(myOpenID, "update_anniversary", `修改纪念日${date}`);
     return { status: 200, msg: "已更新" };
   }
   if (action === "unbind") {
@@ -625,190 +577,141 @@ exports.main = async (event, context) => {
       .get();
     if (myRes.data.length === 0) return { status: 404 };
     const me = myRes.data[0];
-    const partnerID = me.partner_id;
+    const pid = me.partner_id;
     await db
       .collection("users")
       .where({ _openid: myOpenID })
       .update({ data: { partner_id: null } });
-    if (partnerID)
+    if (pid)
       await db
         .collection("users")
-        .where({ _openid: partnerID })
+        .where({ _openid: pid })
         .update({ data: { partner_id: null } });
     await addLog(myOpenID, "unbind", "解除关联");
     return { status: 200, msg: "已解除" };
   }
 
-  // === 8. 爱的留言板 (保持 20字限制 & 彩蛋) ===
   if (action === "post_message") {
-    if (!content) return { status: 400, msg: "内容不能为空" };
-    if (content.length > 20) return { status: 400, msg: "内容太长啦(限20字)" };
-
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .get();
-    if (userRes.data.length === 0) return { status: 404, msg: "用户未找到" };
-    const currentUser = userRes.data[0];
-
-    // 检查每日限制
-    let currentUsage = currentUser.daily_usage || {
-      date: todayStr,
-      msg_count: 0,
-    };
-    if (currentUsage.date !== todayStr)
-      currentUsage = { date: todayStr, msg_count: 0 };
-    if ((currentUsage.msg_count || 0) >= DAILY_MSG_LIMIT)
-      return { status: 403, msg: "今日次数已用完" };
-
-    const randomRotate = Math.floor(Math.random() * 10) - 5;
+    if (!content) return { status: 400 };
+    if (content.length > 20) return { status: 400, msg: "限20字" };
+    const me = (await db.collection("users").where({ _openid: myOpenID }).get())
+      .data[0];
+    let usage = me.daily_usage || { date: todayStr, msg_count: 0 };
+    if (usage.date !== todayStr) usage = { date: todayStr, msg_count: 0 };
+    if ((usage.msg_count || 0) >= DAILY_MSG_LIMIT)
+      return { status: 403, msg: "次数用尽" };
+    const rot = Math.floor(Math.random() * 10) - 5;
     await db.collection("messages").add({
       data: {
         _openid: myOpenID,
         content,
         color: color || "yellow",
         type: type || "text",
-        rotate: randomRotate,
+        rotate: rot,
         createdAt: db.serverDate(),
         dateStr: todayStr,
         isLiked: false,
       },
     });
-
-    let logContent =
-      content.length > 10 ? content.substring(0, 10) + "..." : content;
-    await addLog(myOpenID, "post_message", `贴了便签: ${logContent}`, {
-      color,
-    });
-
-    // 触发彩蛋
-    let rewardWater = 5;
-    let tipMsg = "留言已贴上墙 📌";
-
-    // 使用 tryTriggerEgg 工具
-    const luckyEgg = await tryTriggerEgg(
+    await addLog(myOpenID, "post_message", `便签:${content}`, { color });
+    let rw = 5,
+      msg = "已贴上墙",
+      egg = null;
+    const lucky = await tryTriggerEgg(
       "lucky_goddess",
       20,
       "幸运女神",
-      "偶遇了幸运女神，获得额外奖励！",
+      "偶遇幸运女神",
       true,
       0.1
     );
-
-    if (luckyEgg) {
-      rewardWater += luckyEgg.bonus;
-      tipMsg = "✨ 幸运女神降临！";
+    if (lucky) {
+      rw += lucky.bonus;
+      msg = "✨ 幸运女神降临！";
+      egg = lucky;
     }
-
-    // 结算
-    const updateData = {
-      water_count: _.inc(rewardWater),
-      daily_usage: {
-        date: todayStr,
-        count: currentUsage.count || 0,
-        ad_count: currentUsage.ad_count || 0,
-        msg_count: (currentUsage.msg_count || 0) + 1,
-      },
-    };
     await db
       .collection("users")
-      .doc(currentUser._id)
-      .update({ data: updateData });
-
-    return { status: 200, msg: tipMsg, triggerEgg: luckyEgg };
+      .doc(me._id)
+      .update({
+        data: {
+          water_count: _.inc(rw),
+          daily_usage: {
+            date: todayStr,
+            count: usage.count || 0,
+            ad_count: usage.ad_count || 0,
+            msg_count: (usage.msg_count || 0) + 1,
+          },
+        },
+      });
+    return { status: 200, msg, triggerEgg: egg };
   }
-
-  // 🗑️ 撕掉留言 (保持不变)
   if (action === "delete_message") {
-    if (!id) return { status: 400 };
     try {
-      const msgRes = await db.collection("messages").doc(id).get();
-      let contentSnippet = msgRes.data ? msgRes.data.content || "" : "便签";
+      const m = await db.collection("messages").doc(id).get();
+      let c = m.data ? m.data.content || "" : "";
       await db.collection("messages").doc(id).remove();
-      await addLog(myOpenID, "delete_message", `撕掉了便签: ${contentSnippet}`);
+      await addLog(myOpenID, "delete_message", `撕掉:${c}`);
       return { status: 200, msg: "已撕掉" };
-    } catch (err) {
+    } catch (e) {
       return { status: 500 };
     }
   }
-
-  // ❤️ 盖章 (保持不变)
   if (action === "like_message") {
-    const { id } = event;
-    if (!id) return { status: 400 };
     try {
-      const msgRes = await db.collection("messages").doc(id).get();
-      if (msgRes.data._openid === myOpenID)
-        return { status: 403, msg: "不能给自己盖章" };
-      const isLiked = msgRes.data.isLiked || false;
+      const m = await db.collection("messages").doc(id).get();
+      if (m.data._openid === myOpenID) return { status: 403 };
+      const s = !m.data.isLiked;
       await db
         .collection("messages")
         .doc(id)
-        .update({ data: { isLiked: !isLiked } });
-      return { status: 200, msg: !isLiked ? "已盖章" : "取消" };
-    } catch (err) {
+        .update({ data: { isLiked: s } });
+      return { status: 200, msg: s ? "已盖章" : "取消" };
+    } catch (e) {
       return { status: 500 };
     }
   }
-
-  // 📖 获取留言墙 (保持不变)
   if (action === "get_messages") {
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .get();
-    const me = userRes.data[0];
-    const partnerId = me.partner_id;
-
-    let currentUsage = me.daily_usage || { date: todayStr, msg_count: 0 };
-    if (currentUsage.date !== todayStr)
-      currentUsage = { date: todayStr, msg_count: 0 };
-    const remainingMsgCount = Math.max(
-      0,
-      DAILY_MSG_LIMIT - (currentUsage.msg_count || 0)
-    );
-
-    const queryList = [myOpenID];
-    if (partnerId) queryList.push(partnerId);
-
+    const me = (await db.collection("users").where({ _openid: myOpenID }).get())
+      .data[0];
+    const pid = me.partner_id;
+    let usage = me.daily_usage || { date: todayStr };
+    if (usage.date !== todayStr) usage = { date: todayStr };
+    const remain = Math.max(0, DAILY_MSG_LIMIT - (usage.msg_count || 0));
+    const q = [myOpenID];
+    if (pid) q.push(pid);
     const targetDate = queryDate || todayStr;
     const msgs = await db
       .collection("messages")
-      .where({ _openid: _.in(queryList), dateStr: targetDate })
+      .where({ _openid: _.in(q), dateStr: targetDate })
       .orderBy("createdAt", "asc")
       .get();
-
     const nameMap = { [myOpenID]: me.nickName || "我" };
-    let partnerStatus = null;
-    if (partnerId) {
-      const partnerRes = await db
+    let pStatus = null;
+    if (pid) {
+      const pr = await db
         .collection("users")
-        .where({ _openid: partnerId })
+        .where({ _openid: pid })
         .field({ status: true, nickName: true })
         .get();
-      if (partnerRes.data.length > 0) {
-        const p = partnerRes.data[0];
-        partnerStatus = p.status || { text: "发呆中...", icon: "😶" };
-        nameMap[partnerId] = p.nickName || "TA";
+      if (pr.data.length > 0) {
+        pStatus = pr.data[0].status || { text: "发呆", icon: "😶" };
+        nameMap[pid] = pr.data[0].nickName || "TA";
       }
     }
-
-    const enrichedMsgs = msgs.data.map((msg) => ({
-      ...msg,
-      nickName: nameMap[msg._openid] || "神秘人",
-      isMine: msg._openid === myOpenID,
+    const enriched = msgs.data.map((m) => ({
+      ...m,
+      nickName: nameMap[m._openid] || "神秘人",
+      isMine: m._openid === myOpenID,
     }));
-
     return {
       status: 200,
-      data: enrichedMsgs,
-      myStatus: me.status || { text: "摸鱼中...", icon: "🐟" },
-      partnerStatus: partnerStatus,
-      remainingMsgCount: remainingMsgCount,
+      data: enriched,
+      myStatus: me.status || { text: "摸鱼", icon: "🐟" },
+      partnerStatus: pStatus,
+      remainingMsgCount: remain,
     };
   }
-
-  // 🚦 更新状态 (保持不变)
   if (action === "update_status") {
     await db
       .collection("users")
@@ -822,214 +725,377 @@ exports.main = async (event, context) => {
           },
         },
       });
-    await addLog(
-      myOpenID,
-      "update_status",
-      `状态: ${statusIcon} ${statusText}`
-    );
-    return { status: 200, msg: "状态已同步" };
+    await addLog(myOpenID, "update_status", `状态:${statusIcon}`);
+    return { status: 200, msg: "已同步" };
   }
-
-  // === 9. 时光胶囊 (Time Capsule) - 🆕 新增模块 ===
-
-  // 💊 埋下胶囊
   if (action === "bury_capsule") {
-    if (!content && !imageFileID) return { status: 400, msg: "写点什么吧" };
-    if (!openDate) return { status: 400, msg: "请选择开启日期" };
-
-    // 1. 校验日期
-    const today = new Date(todayStr);
-    const targetDate = new Date(openDate);
-    if (targetDate <= today) {
-      return { status: 400, msg: "开启日期必须是未来哦" };
-    }
-
-    const userRes = await db
-      .collection("users")
-      .where({ _openid: myOpenID })
-      .get();
-    const me = userRes.data[0];
-    const partnerId = me.partner_id;
-
-    if (!partnerId) return { status: 403, msg: "请先绑定伴侣再使用胶囊" };
-
-    // 2. 写入数据库
+    if (!content && !imageFileID) return { status: 400 };
+    if (!openDate) return { status: 400 };
+    if (new Date(openDate) <= new Date(todayStr)) return { status: 400 };
+    const me = (await db.collection("users").where({ _openid: myOpenID }).get())
+      .data[0];
+    if (!me.partner_id) return { status: 403 };
+    const limit = me.capsule_limit || DEFAULT_CAPSULE_LIMIT;
+    const cnt = (
+      await db.collection("capsules").where({ _openid: myOpenID }).count()
+    ).total;
+    if (cnt >= limit) return { status: 403, code: "LIMIT_EXCEEDED" };
     await db.collection("capsules").add({
       data: {
         _openid: myOpenID,
-        to_openid: partnerId,
+        to_openid: me.partner_id,
         content: content || "",
         imageFileID: imageFileID || "",
-        openDate: openDate,
+        openDate,
         createDate: todayStr,
         createdAt: db.serverDate(),
-        status: 0, // 0: Locked, 1: Opened
+        status: 0,
       },
     });
-
-    // 3. 记录日志 & 奖励
-    let logTxt = content
-      ? `埋下文字胶囊: ${content.substring(0, 5)}...`
-      : "埋下图片胶囊";
-    await addLog(myOpenID, "bury_capsule", logTxt, { openDate });
-
-    // 埋胶囊奖励 10g
-    let rewardWater = 10;
+    await addLog(myOpenID, "bury_capsule", content ? "埋下文字" : "埋下图片", {
+      openDate,
+    });
     await db
       .collection("users")
       .doc(me._id)
-      .update({ data: { water_count: _.inc(rewardWater) } });
-
-    // 4. 触发彩蛋检测
-    let triggerEgg = null;
-
-    // 彩蛋A: 月光宝盒 (深夜 0-4点)
-    const currentHour = new Date().getHours() + 8; // 简单修正时区 (UTC+8)
-    const localHour = currentHour >= 24 ? currentHour - 24 : currentHour;
-    if (localHour >= 0 && localHour < 4) {
-      const moonEgg = await tryTriggerEgg(
+      .update({ data: { water_count: _.inc(10) } });
+    let egg = null;
+    const h = (new Date().getHours() + 8) % 24;
+    if (h >= 0 && h < 4) {
+      const e = await tryTriggerEgg(
         "moonlight_box",
         66,
         "月光宝盒",
-        "深夜埋藏了时光胶囊，那是心底的秘密"
+        "深夜埋藏秘密"
       );
-      if (moonEgg) {
-        triggerEgg = moonEgg;
+      if (e) {
+        egg = e;
         await db
           .collection("users")
           .doc(me._id)
-          .update({ data: { water_count: _.inc(moonEgg.bonus) } });
+          .update({ data: { water_count: _.inc(e.bonus) } });
       }
     }
-
-    // 彩蛋B: 时间领主 (跨度超过365天)
-    const diffTime = Math.abs(targetDate - today);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays >= 365) {
-      // 优先显示时间领主 (如果同时触发，覆盖月光宝盒)
-      const timeEgg = await tryTriggerEgg(
+    const days = Math.ceil(
+      Math.abs(new Date(openDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24)
+    );
+    if (days >= 365) {
+      const e = await tryTriggerEgg(
         "time_traveler",
         365,
         "时间领主",
-        "埋下了一个封印期超过1年的时光胶囊"
+        "埋下1年契约"
       );
-      if (timeEgg) {
-        triggerEgg = timeEgg;
+      if (e) {
+        egg = e;
         await db
           .collection("users")
           .doc(me._id)
-          .update({ data: { water_count: _.inc(timeEgg.bonus) } });
+          .update({ data: { water_count: _.inc(e.bonus) } });
       }
     }
-
-    return { status: 200, msg: "胶囊已埋下，静待花开 🌱", triggerEgg };
+    return { status: 200, msg: "已埋下", triggerEgg: egg };
+  }
+  if (action === "get_capsules") {
+    const me = (await db.collection("users").where({ _openid: myOpenID }).get())
+      .data[0];
+    const inbox = (
+      await db
+        .collection("capsules")
+        .where({ to_openid: myOpenID })
+        .orderBy("openDate", "asc")
+        .get()
+    ).data;
+    const sent = (
+      await db
+        .collection("capsules")
+        .where({ _openid: myOpenID })
+        .orderBy("createDate", "desc")
+        .get()
+    ).data;
+    const proc = (i, isInbox) => {
+      const ok = i.openDate <= todayStr;
+      const sec = isInbox && i.status === 0;
+      return {
+        _id: i._id,
+        openDate: i.openDate,
+        createDate: i.createDate,
+        status: i.status,
+        content: sec ? "???" : i.content,
+        imageFileID: sec ? "" : i.imageFileID,
+        isLocked: !ok && i.status === 0,
+        canOpen: ok && i.status === 0,
+        isOpened: i.status === 1,
+      };
+    };
+    return {
+      status: 200,
+      inbox: inbox.map((i) => proc(i, true)),
+      sent: sent.map((i) => proc(i, false)),
+      limit: me.capsule_limit || DEFAULT_CAPSULE_LIMIT,
+      usage: sent.length,
+    };
+  }
+  if (action === "open_capsule") {
+    const cap = (await db.collection("capsules").doc(capsuleId).get()).data;
+    if (cap.to_openid !== myOpenID || cap.openDate > todayStr)
+      return { status: 403 };
+    if (cap.status === 1) return { status: 200, data: cap };
+    await db
+      .collection("capsules")
+      .doc(capsuleId)
+      .update({ data: { status: 1 } });
+    await addLog(myOpenID, "open_capsule", "开启胶囊");
+    let egg = null;
+    if (
+      (
+        await db
+          .collection("capsules")
+          .where({ to_openid: myOpenID, status: 1 })
+          .count()
+      ).total === 1
+    ) {
+      const e = await tryTriggerEgg(
+        "worth_the_wait",
+        100,
+        "守得云开",
+        "开启第一个胶囊"
+      );
+      if (e) {
+        egg = e;
+        await db
+          .collection("users")
+          .where({ _openid: myOpenID })
+          .update({ data: { water_count: _.inc(e.bonus) } });
+      }
+    }
+    return { status: 200, data: cap, msg: "开启成功", triggerEgg: egg };
   }
 
-  // 📂 获取胶囊列表
-  if (action === "get_capsules") {
+  // === 10. 默契问答 (Couple Quiz) - 🟢 核心更新 ===
+
+  // 获取问答首页
+  if (action === "get_quiz_home") {
     const userRes = await db
       .collection("users")
       .where({ _openid: myOpenID })
       .get();
-    if (userRes.data.length === 0) return { status: 404 };
     const me = userRes.data[0];
     const partnerId = me.partner_id;
 
-    // 查我收到的 (Inbox)
-    const inboxRes = await db
-      .collection("capsules")
-      .where({ to_openid: myOpenID })
-      .orderBy("openDate", "asc")
+    if (!partnerId) return { status: 403, msg: "请先绑定伴侣" };
+
+    // 1. 历史战绩
+    const historyRes = await db
+      .collection("quiz_rounds")
+      .where({ owners: _.all([myOpenID, partnerId]), is_finished: true })
+      .orderBy("round_seq", "desc")
       .get();
 
-    // 查我埋下的 (Sent)
-    const sentRes = await db
-      .collection("capsules")
-      .where({ _openid: myOpenID })
-      .orderBy("createDate", "desc")
+    // 2. 当前进行中的
+    const activeRes = await db
+      .collection("quiz_rounds")
+      .where({ owners: _.all([myOpenID, partnerId]), is_finished: false })
+      .limit(1)
       .get();
 
-    // 处理数据 (脱敏 & 状态计算)
-    const processCapsule = (item, isInbox) => {
-      const isOpenDay = item.openDate <= todayStr;
-      // 如果是收到的胶囊，且未开启，不返回内容，防止抓包偷看
-      const isSecret = isInbox && item.status === 0;
+    let currentRound = null;
+    if (activeRes.data.length > 0) {
+      const r = activeRes.data[0];
+      const isUserA = myOpenID < partnerId; // 判定角色
+      const myProgress = isUserA ? r.answers_a.length : r.answers_b.length;
+      const partnerProgress = isUserA ? r.answers_b.length : r.answers_a.length;
 
-      return {
-        _id: item._id,
-        openDate: item.openDate,
-        createDate: item.createDate,
-        status: item.status,
-        // 只有 我埋的 或者 已开启的 才能看内容
-        content: isSecret ? "???" : item.content,
-        imageFileID: isSecret ? "" : item.imageFileID,
-        isLocked: !isOpenDay && item.status === 0,
-        canOpen: isOpenDay && item.status === 0,
-        isOpened: item.status === 1,
+      currentRound = {
+        _id: r._id,
+        round_seq: r.round_seq,
+        my_progress: myProgress,
+        partner_progress: partnerProgress,
+        total: QUESTIONS_PER_ROUND,
+        status: "playing",
       };
-    };
 
-    const inbox = inboxRes.data.map((item) => processCapsule(item, true));
-    const sent = sentRes.data.map((item) => processCapsule(item, false));
-
-    return { status: 200, inbox, sent };
-  }
-
-  // 🔓 开启胶囊
-  if (action === "open_capsule") {
-    const { capsuleId } = event;
-    if (!capsuleId) return { status: 400 };
-
-    const capRes = await db.collection("capsules").doc(capsuleId).get();
-    const cap = capRes.data;
-
-    // 鉴权
-    if (cap.to_openid !== myOpenID)
-      return { status: 403, msg: "这不是给你的胶囊" };
-    if (cap.openDate > todayStr) return { status: 403, msg: "还没到时间哦" };
-    if (cap.status === 1)
-      return { status: 200, data: cap, msg: "已经开启过了" };
-
-    // 更新状态
-    await db
-      .collection("capsules")
-      .doc(capsuleId)
-      .update({
-        data: { status: 1 },
-      });
-
-    // 记录日志
-    await addLog(myOpenID, "open_capsule", "开启了一颗时光胶囊 ✨");
-
-    // 彩蛋触发：守得云开 (第一次开启)
-    let triggerEgg = null;
-    const countRes = await db
-      .collection("capsules")
-      .where({ to_openid: myOpenID, status: 1 })
-      .count();
-    // 刚刚更新了一个，所以如果总数为1，说明这是第一个
-    if (countRes.total === 1) {
-      const waitEgg = await tryTriggerEgg(
-        "worth_the_wait",
-        100,
-        "守得云开",
-        "成功开启了第一个时光胶囊",
-        false
-      );
-      if (waitEgg) {
-        triggerEgg = waitEgg;
-        const userRes = await db
-          .collection("users")
-          .where({ _openid: myOpenID })
-          .get();
-        await db
-          .collection("users")
-          .doc(userRes.data[0]._id)
-          .update({ data: { water_count: _.inc(waitEgg.bonus) } });
-      }
+      if (myProgress === QUESTIONS_PER_ROUND)
+        currentRound.status = "waiting_partner";
     }
 
-    // 返回完整内容
-    return { status: 200, data: cap, msg: "开启成功", triggerEgg };
+    return { status: 200, history: historyRes.data, currentRound };
+  }
+
+  // 开启新一轮
+  if (action === "start_new_round") {
+    const userRes = await db
+      .collection("users")
+      .where({ _openid: myOpenID })
+      .get();
+    const me = userRes.data[0];
+    const partnerId = me.partner_id;
+    if (!partnerId) return { status: 403 };
+
+    // 检查未完成
+    const activeCount = await db
+      .collection("quiz_rounds")
+      .where({ owners: _.all([myOpenID, partnerId]), is_finished: false })
+      .count();
+    if (activeCount.total > 0) return { status: 400, msg: "还有未完成的" };
+
+    // 获取下一轮序号
+    const maxRoundRes = await db
+      .collection("quiz_rounds")
+      .where({ owners: _.all([myOpenID, partnerId]) })
+      .orderBy("round_seq", "desc")
+      .limit(1)
+      .get();
+    const nextSeq =
+      (maxRoundRes.data.length > 0 ? maxRoundRes.data[0].round_seq : 0) + 1;
+
+    // 随机抽取题目 (仅选 choice 类型的)
+    const allQuizRes = await db
+      .collection("quiz_pool")
+      .where({ type: "choice" })
+      .limit(100)
+      .get();
+    const pool = allQuizRes.data;
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    // 🟢 关键修正：将 is_person 属性也带入题目数据中
+    const selectedQuestions = pool.slice(0, QUESTIONS_PER_ROUND).map((q) => ({
+      _id: q._id,
+      title: q.title,
+      options: q.options,
+      is_person: q.is_person || false,
+    }));
+
+    const isUserA = myOpenID < partnerId;
+    const owners = isUserA ? [myOpenID, partnerId] : [partnerId, myOpenID];
+
+    await db.collection("quiz_rounds").add({
+      data: {
+        owners,
+        round_seq: nextSeq,
+        questions: selectedQuestions,
+        answers_a: [],
+        answers_b: [],
+        is_finished: false,
+        score: 0,
+        createdAt: db.serverDate(),
+      },
+    });
+
+    return { status: 200, msg: "已开启" };
+  }
+
+  // 获取答题详情
+  if (action === "get_round_detail") {
+    const { roundId } = event;
+    const roundRes = await db.collection("quiz_rounds").doc(roundId).get();
+    const round = roundRes.data;
+
+    const isUserA = myOpenID < round.owners.find((id) => id !== myOpenID);
+    const myAnswers = isUserA ? round.answers_a : round.answers_b;
+
+    if (round.is_finished)
+      return { status: 200, mode: "result", round, isUserA };
+    if (myAnswers.length >= QUESTIONS_PER_ROUND)
+      return { status: 200, mode: "waiting", progress: myAnswers.length };
+
+    const question = round.questions[myAnswers.length];
+    return {
+      status: 200,
+      mode: "answering",
+      question,
+      index: myAnswers.length + 1,
+      total: QUESTIONS_PER_ROUND,
+    };
+  }
+
+  // 🟢 核心修改：提交答案 + 交叉判题
+  if (action === "submit_round_answer") {
+    const { roundId, questionIdx, answer } = event;
+    if (!roundId || answer === undefined) return { status: 400 };
+
+    const roundRes = await db.collection("quiz_rounds").doc(roundId).get();
+    const round = roundRes.data;
+
+    // 判定角色
+    const partnerId = round.owners.find((id) => id !== myOpenID);
+    const isUserA = myOpenID < partnerId;
+    const field = isUserA ? "answers_a" : "answers_b";
+
+    // 防超额提交
+    const currentAnswers = round[field] || [];
+    if (currentAnswers.length < QUESTIONS_PER_ROUND) {
+      await db
+        .collection("quiz_rounds")
+        .doc(roundId)
+        .update({
+          data: { [field]: _.push(answer) },
+        });
+    }
+
+    // 检查是否触发结算
+    const newRoundRes = await db.collection("quiz_rounds").doc(roundId).get();
+    const newRound = newRoundRes.data;
+
+    const lenA = newRound.answers_a.length;
+    const lenB = newRound.answers_b.length;
+
+    let isRoundFinished = false;
+    let triggerEgg = null;
+
+    if (lenA >= QUESTIONS_PER_ROUND && lenB >= QUESTIONS_PER_ROUND) {
+      // 防止重复结算
+      if (!newRound.is_finished) {
+        let score = 0;
+        for (let i = 0; i < QUESTIONS_PER_ROUND; i++) {
+          const valA = newRound.answers_a[i];
+          const valB = newRound.answers_b[i];
+          const q = newRound.questions[i];
+
+          if (q && q.is_person) {
+            if (
+              (valA === 0 && valB === 1) ||
+              (valA === 1 && valB === 0) ||
+              (valA > 1 && valA === valB)
+            ) {
+              score += 10;
+            }
+          } else {
+            if (valA === valB) score += 10;
+          }
+        }
+
+        // 🟢 修复点：增加了 data 包裹层
+        await db
+          .collection("quiz_rounds")
+          .doc(roundId)
+          .update({
+            data: {
+              is_finished: true,
+              score: score,
+              finishedAt: db.serverDate(),
+            },
+          });
+
+        await addLog(myOpenID, "quiz_round", `问答得分:${score}`);
+
+        if (score === 100) {
+          const mateEgg = await tryTriggerEgg(
+            "soul_mate",
+            100,
+            "灵魂伴侣",
+            "默契问答满分！",
+            true
+          );
+          if (mateEgg) triggerEgg = mateEgg;
+        }
+      }
+      isRoundFinished = true;
+    }
+
+    return { status: 200, msg: "ok", isRoundFinished, triggerEgg };
   }
 };

@@ -1,2 +1,121 @@
-<!--pages/capsule/index.wxml-->
-<text>pages/capsule/index.wxml</text>
+<view class="capsule-container">
+  
+  <view class="tab-header">
+    <view class="tab-item {{currentTab===0?'active':''}}" bindtap="switchTab" data-idx="0">我收到的</view>
+    <view class="tab-item {{currentTab===1?'active':''}}" bindtap="switchTab" data-idx="1">我埋下的</view>
+  </view>
+
+  <scroll-view scroll-y class="list-scroll">
+    <view class="list-content">
+      
+      <view class="empty-state" wx:if="{{currentTab === 0 ? inboxList.length === 0 : sentList.length === 0}}">
+        <text class="empty-icon">🍃</text>
+        <text wx:if="{{currentTab===0}}">还没有收到 TA 的胶囊\n快去提醒 TA 埋一个吧~</text>
+        <text wx:else>还没埋下过胶囊\n给未来的 TA 写封信吧~</text>
+      </view>
+
+      <block wx:for="{{currentTab===0 ? inboxList : sentList}}" wx:key="_id">
+        <view 
+          class="capsule-card {{item.isOpened ? 'opened' : ''}}" 
+          bindtap="onCapsuleTap" 
+          data-item="{{item}}"
+        >
+          <view class="card-left">
+            <view class="status-icon-box">
+              <text wx:if="{{item.isLocked}}">🔒</text>
+              <text wx:elif="{{item.canOpen}}">🎁</text>
+              <text wx:else>📂</text>
+            </view>
+            <view class="line-connect"></view>
+          </view>
+
+          <view class="card-right">
+            <view class="card-date-label">开启日期: {{item.openDate}}</view>
+            <view class="card-title" wx:if="{{item.isLocked}}">封印中的胶囊</view>
+            <view class="card-title highlight" wx:elif="{{item.canOpen}}">时间已到，点击开启！</view>
+            <view class="card-title normal" wx:else>美好的回忆</view>
+            <view class="card-desc" wx:if="{{item.isLocked}}">来自 {{item.createDate}} 的寄语</view>
+            <view class="card-desc" wx:else>{{item.content ? '包含文字信件' : ''}} {{item.imageFileID ? '+ 珍贵照片' : ''}}</view>
+          </view>
+
+          <view class="status-tag" wx:if="{{currentTab===1}}">
+            {{item.status === 1 ? 'TA已读' : '未开启'}}
+          </view>
+        </view>
+      </block>
+
+    </view>
+    <view style="height: 150rpx;"></view>
+  </scroll-view>
+
+  <view class="fab-area">
+    <view class="limit-tip" wx:if="{{currentTab===1}}">
+        剩余容量: {{limit - usage}}/{{limit}}
+    </view>
+    <view class="fab-btn" bindtap="navToCreate">
+        <text>💊 埋胶囊</text>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showModal}}" bindtap="closeModal">
+    <view class="modal-box" catchtap="true">
+      <block wx:if="{{modalType === 'locked'}}">
+        <view class="modal-icon">⏳</view>
+        <view class="modal-title">封印中</view>
+        <view class="modal-desc">这颗胶囊还需要等待</view>
+        <view class="countdown-num">{{countdownStr}}</view>
+        <view class="modal-desc">才能开启哦</view>
+        <button class="btn-close" bindtap="closeModal">我知道了</button>
+      </block>
+      <block wx:if="{{modalType === 'open_confirm'}}">
+        <view class="modal-icon bounce">🎁</view>
+        <view class="modal-title">时间到了！</view>
+        <view class="modal-desc">这是 TA 在 {{selectedCapsule.createDate}} 为你埋下的惊喜。</view>
+        <button class="btn-open" bindtap="doOpenCapsule">立即开启</button>
+      </block>
+      <block wx:if="{{modalType === 'content'}}">
+        <view class="content-scroll">
+          <view class="letter-paper">
+            <view class="letter-header">To: 未来的你</view>
+            <text class="letter-body">{{selectedCapsule.content}}</text>
+            <image wx:if="{{selectedCapsule.imageFileID}}" src="{{selectedCapsule.imageFileID}}" mode="widthFix" class="letter-img" bindtap="previewImg"></image>
+            <view class="letter-footer">From: {{selectedCapsule.createDate}}</view>
+          </view>
+        </view>
+        <view class="close-bar" bindtap="closeModal">✕</view>
+      </block>
+    </view>
+  </view>
+
+  <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
+    <view class="god-rays"></view>
+    <view class="confetti-container">
+      <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+      <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+      <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+      <view class="confetti c10"></view>
+    </view>
+    <view class="egg-card bounce-in">
+      <view class="card-ribbon">LUCKY TIME</view>
+      <view class="icon-stage">
+        <view class="halo-ring"></view>
+        <text class="egg-icon">{{eggData.icon}}</text>
+        <view class="shine-star s-left">✨</view>
+        <view class="shine-star s-right">✨</view>
+      </view>
+      <view class="egg-title">{{eggData.title}}</view>
+      <view class="egg-desc">{{eggData.desc}}</view>
+      <view class="egg-reward-box">
+        <text class="reward-label">获得奖励</text>
+        <view class="reward-val-row">
+          <text class="val-num">+{{eggData.bonus}}</text>
+          <text class="val-unit">g 爱意 💧</text>
+        </view>
+      </view>
+      <button class="btn-get-egg" bindtap="closeEggModal">
+        <text>开心收下 ❤️</text>
+      </button>
+    </view>
+  </view>
+
+</view>

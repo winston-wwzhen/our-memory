@@ -57,18 +57,22 @@
       <view class="grid-icon">📌</view>
       <text class="grid-title">爱的留言板</text>
       <text class="grid-desc">日常碎碎念</text>
+      
+      <view class="notification-pin" wx:if="{{messageHint}}">📌</view>
     </view>
-
+    
     <view class="grid-item paper-texture" bindtap="navToQuiz">
-      <view class="grid-icon">📝</view>
-      <text class="grid-title">默契问答</text>
-      <text class="grid-desc">每日一测</text>
+      <view class="grid-icon">🧩</view>
+      <text class="grid-title">默契大闯关</text>
+      <text class="grid-desc">挑战灵魂契合度</text>
     </view>
 
     <view class="grid-item paper-texture" bindtap="navToCapsule">
       <view class="grid-icon">💊</view>
       <text class="grid-title">时光胶囊</text>
       <text class="grid-desc">寄给未来</text>
+      
+      <view class="notification-heart" wx:if="{{capsuleRedDot}}">❤</view>
     </view>
 
     <view class="grid-item paper-texture" bindtap="navToGuide">
@@ -85,11 +89,11 @@
   </view>
 
   <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
-    <view class="log-modal-container" catchtap="return"> <view class="log-modal-header">
+    <view class="log-modal-container" catchtap="return"> 
+      <view class="log-modal-header">
         <text>📜 呵护日记</text>
         <view class="close-icon" bindtap="toggleLogModal">×</view>
       </view>
-      
       <scroll-view scroll-y class="log-scroll-view">
         <view class="empty-log" wx:if="{{logs.length === 0}}">
           <text>暂无记录，快去浇水吧~</text>

@@ -1,0 +1,130 @@
+/* miniprogram/pages/quiz/index.wxss */
+page { background: #f5f7fa; padding: 30rpx; box-sizing: border-box; color: #333; padding-bottom: 60rpx; }
+
+/* Home Header */
+.header-banner {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  padding: 50rpx 40rpx; color: #fff; border-radius: 0 0 40rpx 40rpx;
+  box-shadow: 0 10rpx 30rpx rgba(255, 107, 129, 0.3); margin: -30rpx -30rpx 40rpx -30rpx;
+}
+.banner-title { font-size: 50rpx; font-weight: 900; letter-spacing: 2rpx; }
+.banner-sub { font-size: 24rpx; opacity: 0.8; letter-spacing: 4rpx; margin-top: 6rpx; }
+
+/* Current Card */
+.current-card {
+  background: #fff; margin-bottom: 50rpx; border-radius: 30rpx; padding: 40rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.05); 
+  position: relative;
+}
+.round-badge-row { display: flex; align-items: center; justify-content: center; margin-bottom: 30rpx; }
+.round-badge-txt { font-size: 30rpx; font-weight: bold; color: #333; margin-left: 10rpx; }
+.progress-bar-box { background: #f8f9fa; padding: 20rpx; border-radius: 16rpx; margin-bottom: 40rpx; text-align: center; }
+.p-label { font-size: 22rpx; color: #999; margin-bottom: 10rpx; }
+.p-avatars { display: flex; justify-content: center; align-items: center; gap: 30rpx; font-weight: bold; font-size: 28rpx; }
+.p-user.mine { color: #ff6b81; }
+.p-user.partner { color: #039be5; }
+.p-vs { color: #ddd; font-size: 22rpx; }
+
+.empty-round-box { text-align: center; padding: 20rpx 0; }
+.empty-emoji { font-size: 80rpx; display: block; margin-bottom: 20rpx; animation: float 3s infinite; }
+.empty-title { font-size: 28rpx; color: #666; margin-bottom: 40rpx; display: block; }
+
+.btn-start {
+  background: linear-gradient(90deg, #ff9a9e, #ff6b81); color: #fff; border-radius: 50rpx;
+  width: 80%; box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.4); font-size: 30rpx; font-weight: bold;
+}
+
+/* History Section (美化重点) */
+.section-header { padding: 0 10rpx; margin-bottom: 20rpx; display: flex; align-items: center; }
+.sec-title { font-size: 32rpx; font-weight: 900; color: #444; position: relative; padding-left: 20rpx; }
+.sec-title::before { content: ""; position: absolute; left: 0; top: 6rpx; bottom: 6rpx; width: 8rpx; background: #ff6b81; border-radius: 4rpx; }
+
+.history-list { display: flex; flex-direction: column; gap: 20rpx; }
+.history-item {
+  background: #fff; padding: 30rpx 40rpx; border-radius: 24rpx;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
+  transition: all 0.2s;
+}
+.history-item:active { background: #fafafa; transform: scale(0.99); }
+
+.h-left { display: flex; flex-direction: column; }
+.h-round { font-size: 30rpx; font-weight: bold; color: #333; }
+.h-num { font-size: 36rpx; color: #ff6b81; margin: 0 4rpx; }
+.h-time { font-size: 22rpx; color: #bbb; margin-top: 8rpx; font-family: monospace; }
+
+.h-right { display: flex; align-items: center; }
+.h-score-box { display: flex; align-items: baseline; margin-right: 20rpx; }
+.h-score-box .val { font-size: 40rpx; font-weight: 900; color: #ccc; }
+.h-score-box .unit { font-size: 22rpx; color: #ccc; margin-left: 4rpx; }
+.h-score-box.high .val, .h-score-box.high .unit { color: #ffca28; } /* 高分金色 */
+.arrow { font-size: 28rpx; color: #ddd; font-weight: bold; }
+
+.no-history { text-align: center; color: #ccc; margin-top: 60rpx; font-size: 24rpx; }
+
+/* Answering */
+.question-card {
+  background: #fff; border-radius: 30rpx; padding: 60rpx 40rpx; text-align: center;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.05); margin: 40rpx 0 60rpx 0;
+}
+.q-step { font-size: 24rpx; color: #bbb; letter-spacing: 2rpx; margin-bottom: 20rpx; text-transform: uppercase; }
+.q-title { font-size: 38rpx; font-weight: bold; line-height: 1.6; color: #333; }
+
+.option-btn {
+  background: #fff; margin: 0 10rpx 30rpx 10rpx; padding: 36rpx; border-radius: 24rpx;
+  text-align: center; font-size: 32rpx; color: #555; font-weight: 500;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.03); border: 2rpx solid transparent;
+  transition: all 0.2s;
+}
+.option-btn:active { background: #fff0f5; border-color: #ff6b81; transform: scale(0.98); color: #ff6b81; }
+
+/* Waiting */
+.waiting-box { text-align: center; margin-top: 200rpx; }
+.wait-icon { font-size: 100rpx; animation: pulse 2s infinite; margin-bottom: 30rpx; }
+.wait-text { font-size: 36rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; }
+.wait-sub { font-size: 26rpx; color: #999; margin-bottom: 80rpx; }
+.btn-refresh { background: #fff; color: #ff6b81; border: 2rpx solid #ff6b81; border-radius: 50rpx; width: 50%; font-size: 28rpx; margin-bottom: 30rpx; }
+.btn-back { background: transparent; color: #aaa; border: none; font-size: 26rpx; }
+
+/* Result */
+.result-header {
+  background: #fff; padding: 60rpx 0; text-align: center; border-radius: 30rpx;
+  margin-bottom: 30rpx; box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.03);
+}
+.score-circle {
+  width: 180rpx; height: 180rpx; border: 10rpx solid #ff9a9e; border-radius: 50%;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  margin: 0 auto 20rpx auto; 
+}
+.score-val { font-size: 70rpx; font-weight: 900; line-height: 1; color: #ff6b81; }
+.score-label { font-size: 20rpx; color: #999; margin-top: 6rpx; }
+.result-comment { font-size: 30rpx; font-weight: bold; color: #333; letter-spacing: 2rpx; }
+
+.review-list { padding: 0; }
+.review-item {
+  background: #fff; padding: 30rpx; border-radius: 20rpx; margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
+}
+.r-q { font-size: 26rpx; font-weight: bold; margin-bottom: 20rpx; color: #666; border-bottom: 1rpx solid #f5f5f5; padding-bottom: 16rpx; }
+.r-ans-row { display: flex; justify-content: space-between; align-items: center; font-size: 28rpx; }
+.r-col { width: 42%; display: flex; flex-direction: column; }
+.r-col.right { align-items: flex-end; text-align: right; }
+.r-col .label { font-size: 20rpx; color: #ccc; margin-bottom: 6rpx; }
+.r-val { font-weight: bold; color: #333; }
+.r-val.match { color: #ff6b81; }
+.vs-icon { font-size: 32rpx; color: #eee; font-weight: 900; }
+.vs-icon.match { color: #ff6b81; }
+
+.btn-next-round { background: #5d4037; color: #fff; border-radius: 50rpx; width: 80%; margin: 60rpx auto; box-shadow: 0 8rpx 20rpx rgba(93,64,55,0.3); }
+
+/* Egg Animation */
+.egg-modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999; display: flex; justify-content: center; align-items: center; }
+.egg-card { width: 500rpx; background: #fff; border-radius: 30rpx; padding: 50rpx; text-align: center; animation: popUp 0.5s; }
+.egg-icon { font-size: 80rpx; display: block; margin-bottom: 20rpx; }
+.egg-title { font-size: 32rpx; font-weight: bold; color: #ff6b81; margin-bottom: 10rpx; }
+.egg-desc { font-size: 26rpx; color: #666; margin-bottom: 40rpx; }
+.btn-get-egg { background: #ff6b81; color: #fff; border-radius: 40rpx; }
+
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10rpx); } }
+@keyframes pulse { 0% { opacity: 0.6; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.6; transform: scale(0.95); } }
+@keyframes popUp { from { transform: scale(0); } to { transform: scale(1); } }

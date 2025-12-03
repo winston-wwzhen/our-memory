@@ -1,2 +1,84 @@
-<!--pages/capsule_create/index.wxml-->
-<text>pages/capsule_create/index.wxml</text>
+<view class="create-container">
+  
+  <view class="header-tip">给未来的我们写封信</view>
+
+  <view class="form-card">
+    <textarea 
+      class="content-input" 
+      placeholder="写下想对未来 TA 说的话..." 
+      maxlength="500" 
+      bindinput="onInput"
+      value="{{content}}"
+    ></textarea>
+
+    <view class="image-section">
+      <view class="img-box" wx:if="{{imageFileID}}">
+        <image src="{{imageFileID}}" mode="aspectFill"></image>
+        <view class="del-btn" bindtap="deleteImage">✕</view>
+      </view>
+      <view class="upload-btn" bindtap="chooseImage" wx:else>
+        <text class="camera-icon">📷</text>
+        <text>添加照片</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="setting-card">
+    <view class="setting-row">
+      <text class="label">开启日期</text>
+      <picker mode="date" start="{{startDate}}" bindchange="onDateChange">
+        <view class="picker-val {{date ? 'selected' : ''}}">
+          {{date || '点击选择 >'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="shortcuts">
+      <view 
+        class="tag" 
+        wx:for="{{shortcuts}}" 
+        wx:key="label" 
+        bindtap="selectShortcut" 
+        data-days="{{item.days}}"
+      >{{item.label}}</view>
+    </view>
+  </view>
+
+  <button class="btn-submit" bindtap="submit">
+    埋下胶囊 (剩余: {{limit - usage}})
+  </button>
+  
+  <view class="footer-tip">埋下后不可修改，直到那一天到来</view>
+
+  <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
+    <view class="god-rays"></view>
+    <view class="confetti-container">
+      <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+      <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+      <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+      <view class="confetti c10"></view>
+    </view>
+    <view class="egg-card bounce-in">
+      <view class="card-ribbon">LUCKY TIME</view>
+      <view class="icon-stage">
+        <view class="halo-ring"></view>
+        <text class="egg-icon">{{eggData.icon}}</text>
+        <view class="shine-star s-left">✨</view>
+        <view class="shine-star s-right">✨</view>
+      </view>
+      <view class="egg-title">{{eggData.title}}</view>
+      <view class="egg-desc">{{eggData.desc}}</view>
+      <view class="egg-reward-box">
+        <text class="reward-label">获得奖励</text>
+        <view class="reward-val-row">
+          <text class="val-num">+{{eggData.bonus}}</text>
+          <text class="val-unit">g 爱意 💧</text>
+        </view>
+      </view>
+      <button class="btn-get-egg" bindtap="closeEggModal">
+        <text>开心收下 ❤️</text>
+      </button>
+    </view>
+  </view>
+
+</view>
