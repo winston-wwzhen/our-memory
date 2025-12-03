@@ -8,6 +8,7 @@
     "pages/capsule/index",
     "pages/capsule_create/index",
     "pages/quiz/index",
+    "pages/guide/index",
     "pages/history/index",
     "pages/mine/index"
   ],

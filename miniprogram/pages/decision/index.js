@@ -136,18 +136,21 @@ Page({
 
   shuffleCards: function () {
     this.setData({ isShuffling: true });
-
+    // 🟢 洗牌完成震动
     setTimeout(() => {
       this.setData({ isShuffling: false });
+      wx.vibrateShort({ type: "light" });
     }, 1200);
   },
 
   flipCard: function (e) {
     if (this.data.showResult || this.data.isShuffling) return;
 
+    // 🟢 点击震动
+    wx.vibrateShort({ type: "light" });
+
     const index = e.currentTarget.dataset.index;
     const theme = this.data.themes[this.data.currentTab];
-
     const randomIdx = Math.floor(Math.random() * theme.options.length);
     const result = theme.options[randomIdx];
 
@@ -159,6 +162,8 @@ Page({
 
     // 延迟展示大图
     setTimeout(() => {
+      // 🟢 结果揭晓：改为重一点的短震，取消长震
+      wx.vibrateShort({ type: "heavy" });
       this.setData({
         showResult: true,
         finalResult: result,

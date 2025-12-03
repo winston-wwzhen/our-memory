@@ -1098,4 +1098,62 @@ exports.main = async (event, context) => {
 
     return { status: 200, msg: "ok", isRoundFinished, triggerEgg };
   }
+
+  // 获取恋爱清单完成状态
+  if (action === "get_love_list_status") {
+    const userRes = await db
+      .collection("users")
+      .where({ _openid: myOpenID })
+      .get();
+    if (userRes.data.length === 0) return { status: 404 };
+
+    const me = userRes.data[0];
+    // 返回已完成的 ID 数组
+    return { status: 200, finishedList: me.finished_love_list || [] };
+  }
+
+  // 切换恋爱清单项状态 (打卡/取消)
+  if (action === "toggle_love_list_item") {
+    const { itemId } = event;
+    if (!itemId) return { status: 400 };
+
+    const userRes = await db
+      .collection("users")
+      .where({ _openid: myOpenID })
+      .get();
+    const me = userRes.data[0];
+    const list = me.finished_love_list || [];
+
+    let newList = [];
+    let isFinished = false;
+
+    if (list.includes(itemId)) {
+      // 已完成 -> 取消
+      newList = list.filter((id) => id !== itemId);
+    } else {
+      // 未完成 -> 打卡
+      newList = [...list, itemId];
+      isFinished = true;
+
+      // 打卡奖励
+      await db
+        .collection("users")
+        .doc(me._id)
+        .update({ data: { water_count: _.inc(5) } });
+      await addLog(myOpenID, "love_list", `打卡了恋爱清单 No.${itemId}`);
+    }
+
+    await db
+      .collection("users")
+      .doc(me._id)
+      .update({
+        data: { finished_love_list: newList },
+      });
+
+    return {
+      status: 200,
+      isFinished,
+      msg: isFinished ? "打卡成功 +5g爱意" : "已取消打卡",
+    };
+  }
 };

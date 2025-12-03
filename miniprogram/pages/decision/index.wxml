@@ -29,13 +29,29 @@
   <view class="card-stage">
     
     <view class="result-modal {{showResult ? 'visible' : ''}}">
+      <view class="modal-mask"></view>
+      
+      <view class="god-rays"></view>
+      
+      <view class="confetti-container">
+        <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+        <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+        <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+        <view class="confetti c10"></view>
+      </view>
+
       <view class="modal-card bounce-in">
-        <view class="ribbon-top">✨ 命运的指引</view>
-        <text class="modal-emoji">🎁</text>
-        <text class="modal-value">{{finalResult}}</text>
+        <view class="ribbon-top">✨ 命运的指引 ✨</view>
+        
+        <view class="result-content">
+          <text class="result-emoji">🔮</text>
+          <view class="result-label">决定就是</view>
+          <text class="result-val">{{finalResult}}</text>
+        </view>
+
         <view class="btn-group">
-          <button class="btn-secondary" bindtap="resetGame">再试一次</button>
-          <button class="btn-primary" open-type="share">告诉 TA</button>
+          <button class="btn-secondary" bindtap="resetGame">再试一次 🔄</button>
+          <button class="btn-primary" open-type="share">告诉 TA 📢</button>
         </view>
       </view>
     </view>
@@ -61,14 +77,12 @@
                 <text class="card-hint">Fate</text>
               </view>
             </view>
+
             <view class="card-face">
               <view class="face-frame">
                 <text class="face-icon top">✨</text>
-                
                 <text class="face-text">{{item.value}}</text>
-                
                 <text class="face-icon bottom">✨</text>
-                
                 <view class="face-bg-pattern"></view>
               </view>
             </view>

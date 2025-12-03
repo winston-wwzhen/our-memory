@@ -1,0 +1,104 @@
+<view class="guide-container">
+  
+  <view class="main-tabs">
+    <view class="tab {{currentTab===0?'active':''}}" bindtap="switchTab" data-idx="0">📝 恋爱清单</view>
+    <view class="tab {{currentTab===1?'active':''}}" bindtap="switchTab" data-idx="1">🎁 送礼指南</view>
+    <view class="tab {{currentTab===2?'active':''}}" bindtap="switchTab" data-idx="2">🆘 吵架急救</view>
+  </view>
+
+  <scroll-view scroll-y class="content-scroll" wx:if="{{currentTab===0}}">
+    <view class="progress-card">
+      <view class="progress-info">
+        <text class="p-title">我们的达成率</text>
+        <text class="p-val">{{progress}}%</text>
+      </view>
+      <view class="progress-bar-bg">
+        <view class="progress-bar-fill" style="width: {{progress}}%;"></view>
+      </view>
+      <text class="p-tip">点亮每一个共同的第一次 ✨</text>
+    </view>
+
+    <view class="list-grid">
+      <block wx:for="{{loveList}}" wx:key="id">
+        <wxs module="util">
+          module.exports.includes = function(arr, val) { return arr.indexOf(val) > -1; }
+        </wxs>
+        
+        <view 
+          class="grid-item {{util.includes(finishedIds, item.id) ? 'done' : ''}}" 
+          bindtap="toggleItem" 
+          data-id="{{item.id}}"
+          data-index="{{index}}"
+        >
+          <view class="item-icon">{{item.icon}}</view>
+          <text class="item-title">{{item.title}}</text>
+          <view class="check-mark" wx:if="{{util.includes(finishedIds, item.id)}}">✓</view>
+        </view>
+      </block>
+    </view>
+    <view class="footer-space"></view>
+  </scroll-view>
+
+  <scroll-view scroll-y class="content-scroll" wx:if="{{currentTab===1}}">
+    <view class="sub-tabs">
+      <view 
+        class="sub-tab {{giftTabIndex===index?'active':''}}" 
+        wx:for="{{giftGuide}}" 
+        wx:key="category"
+        bindtap="switchGiftTab"
+        data-idx="{{index}}"
+      >{{item.category}}</view>
+    </view>
+
+    <view class="gift-list">
+      <view 
+        class="gift-card" 
+        wx:for="{{giftGuide[giftTabIndex].items}}" 
+        wx:key="name"
+        bindtap="copyGift"
+        data-text="{{item.name}}"
+      >
+        <view class="gift-info">
+          <view class="gift-name">
+            {{item.name}}
+            <text class="gift-tag">{{item.tag}}</text>
+          </view>
+          <text class="gift-desc">{{item.desc}}</text>
+        </view>
+        <view class="copy-btn">复制</view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <scroll-view scroll-y class="content-scroll" wx:if="{{currentTab===2}}">
+    <view class="sos-header">
+      <text class="sos-title">🚑 急救中心</text>
+      <text class="sos-sub">别让爱输给情绪</text>
+    </view>
+
+    <view class="section-label">道歉金句 (点击复制)</view>
+    <view class="quote-list">
+      <view 
+        class="quote-item" 
+        wx:for="{{sosQuotes}}" 
+        wx:key="*this"
+        bindtap="copyQuote"
+        data-text="{{item}}"
+      >
+        <text>{{item}}</text>
+        <text class="copy-icon">📄</text>
+      </view>
+    </view>
+
+    <view class="section-label">行动胜于言语</view>
+    <view class="action-card" bindtap="navToCoupon">
+      <view class="ac-icon">🤝</view>
+      <view class="ac-info">
+        <text class="ac-title">申请和好</text>
+        <text class="ac-desc">去【特权工坊】兑换一张和好卡，给彼此一个台阶。</text>
+      </view>
+      <view class="ac-arrow">Go</view>
+    </view>
+  </scroll-view>
+
+</view>

@@ -65,6 +65,8 @@
       <view class="grid-icon">🧩</view>
       <text class="grid-title">默契大闯关</text>
       <text class="grid-desc">挑战灵魂契合度</text>
+      
+      <view class="notification-quiz" wx:if="{{quizHint}}">❓</view>
     </view>
 
     <view class="grid-item paper-texture" bindtap="navToCapsule">

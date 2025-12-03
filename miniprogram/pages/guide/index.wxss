@@ -1,0 +1,93 @@
+/* miniprogram/pages/guide/index.wxss */
+page { background: #fff0f5; height: 100vh; display: flex; flex-direction: column; }
+.guide-container { height: 100%; display: flex; flex-direction: column; }
+
+/* Main Tabs */
+.main-tabs {
+  display: flex; background: #fff; padding: 20rpx 30rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.03); z-index: 10;
+}
+.tab {
+  flex: 1; text-align: center; padding: 16rpx 0; font-size: 28rpx; color: #999;
+  border-radius: 40rpx; margin: 0 10rpx; transition: all 0.3s;
+}
+.tab.active { background: #ff6b81; color: #fff; font-weight: bold; box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.3); }
+
+.content-scroll { flex: 1; padding: 30rpx; box-sizing: border-box; }
+
+/* 1. Love List */
+.progress-card {
+  background: linear-gradient(135deg, #ff9a9e, #fecfef);
+  border-radius: 24rpx; padding: 30rpx; color: #fff;
+  margin-bottom: 40rpx; box-shadow: 0 8rpx 20rpx rgba(255, 154, 158, 0.3);
+}
+.progress-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16rpx; }
+.p-title { font-size: 30rpx; font-weight: bold; }
+.p-val { font-size: 48rpx; font-weight: 900; }
+.progress-bar-bg { height: 12rpx; background: rgba(255,255,255,0.3); border-radius: 10rpx; overflow: hidden; margin-bottom: 16rpx; }
+.progress-bar-fill { height: 100%; background: #fff; border-radius: 10rpx; transition: width 0.5s; }
+.p-tip { font-size: 22rpx; opacity: 0.9; }
+
+.list-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+.grid-item {
+  width: 31%; background: #fff; border-radius: 20rpx;
+  padding: 30rpx 0; margin-bottom: 20rpx;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.03);
+  position: relative; transition: all 0.2s;
+  border: 2rpx solid transparent;
+}
+.grid-item.done { background: #fff5f7; border-color: #ff6b81; }
+.item-icon { font-size: 50rpx; margin-bottom: 10rpx; filter: grayscale(100%); opacity: 0.5; }
+.grid-item.done .item-icon { filter: grayscale(0); opacity: 1; transform: scale(1.1); }
+.item-title { font-size: 24rpx; color: #999; }
+.grid-item.done .item-title { color: #ff6b81; font-weight: bold; }
+.check-mark {
+  position: absolute; top: 10rpx; right: 10rpx;
+  width: 30rpx; height: 30rpx; background: #ff6b81;
+  color: #fff; border-radius: 50%; font-size: 20rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.footer-space { height: 60rpx; }
+
+/* 2. Gift Guide */
+.sub-tabs { display: flex; margin-bottom: 30rpx; background: #fff; border-radius: 16rpx; padding: 8rpx; }
+.sub-tab { flex: 1; text-align: center; font-size: 26rpx; color: #666; padding: 12rpx 0; border-radius: 12rpx; }
+.sub-tab.active { background: #e3f2fd; color: #1976d2; font-weight: bold; }
+
+.gift-card {
+  background: #fff; padding: 30rpx; border-radius: 20rpx;
+  margin-bottom: 20rpx; display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.03);
+}
+.gift-info { flex: 1; }
+.gift-name { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 8rpx; }
+.gift-tag { font-size: 20rpx; color: #ff8f00; background: #fff8e1; padding: 2rpx 10rpx; border-radius: 8rpx; margin-left: 10rpx; font-weight: normal; }
+.gift-desc { font-size: 24rpx; color: #999; }
+.copy-btn { font-size: 22rpx; color: #ff6b81; border: 1rpx solid #ff6b81; padding: 6rpx 16rpx; border-radius: 20rpx; }
+
+/* 3. SOS */
+.sos-header { text-align: center; margin-bottom: 40rpx; }
+.sos-title { font-size: 40rpx; font-weight: 900; color: #d32f2f; display: block; }
+.sos-sub { font-size: 24rpx; color: #ef9a9a; letter-spacing: 4rpx; }
+
+.section-label { font-size: 26rpx; color: #888; margin-bottom: 20rpx; margin-top: 20rpx; font-weight: bold; }
+.quote-item {
+  background: #fff; padding: 30rpx; border-radius: 16rpx; margin-bottom: 20rpx;
+  font-size: 28rpx; color: #555; line-height: 1.5;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.03);
+}
+.copy-icon { font-size: 24rpx; opacity: 0.5; }
+
+.action-card {
+  background: #fff; padding: 30rpx; border-radius: 24rpx;
+  display: flex; align-items: center;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.05);
+  border: 2rpx solid #ffe4e1;
+}
+.ac-icon { font-size: 60rpx; margin-right: 20rpx; }
+.ac-info { flex: 1; display: flex; flex-direction: column; }
+.ac-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 6rpx; }
+.ac-desc { font-size: 22rpx; color: #999; }
+.ac-arrow { background: #5d4037; color: #fff; font-size: 22rpx; padding: 8rpx 20rpx; border-radius: 20rpx; }

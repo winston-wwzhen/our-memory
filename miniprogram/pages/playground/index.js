@@ -18,6 +18,7 @@ Page({
     // 提示状态
     capsuleRedDot: false,
     messageHint: false,
+    quizHint: false,
   },
 
   onShow: function () {
@@ -34,6 +35,7 @@ Page({
     if (app.globalData.userInfo && app.globalData.userInfo.partner_id) {
       this.checkCapsuleRedDot();
       this.checkMessageHint();
+      this.checkQuizHint();
     }
   },
 
@@ -89,6 +91,31 @@ Page({
           const inbox = res.result.inbox || [];
           const hasNewSurprise = inbox.some((item) => item.canOpen);
           this.setData({ capsuleRedDot: hasNewSurprise });
+        }
+      },
+    });
+  },
+
+  checkQuizHint: function () {
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: { action: "get_quiz_home" },
+      success: (res) => {
+        if (res.result.status === 200) {
+          const round = res.result.currentRound;
+          if (round) {
+            // 逻辑：如果当前有进行中的轮次
+            // 并且 我的进度 < 总题数 (说明我还没做完)
+            // 并且 (我的进度 < 对方进度 OR 对方已经做完了等待结算)
+            // 简单来说：只要我还没做完，且轮次已开启，就应该提示我去推图
+            if (round.my_progress < round.total) {
+              this.setData({ quizHint: true });
+            } else {
+              this.setData({ quizHint: false });
+            }
+          } else {
+            this.setData({ quizHint: false });
+          }
         }
       },
     });
@@ -255,11 +282,12 @@ Page({
   },
   navToQuiz: function () {
     if (!this.checkPartner()) return;
+    this.setData({ quizHint: false });
     wx.navigateTo({ url: "/pages/quiz/index" });
   },
   navToGuide: function () {
     if (!this.checkPartner()) return;
-    wx.showToast({ title: "秘籍编写中...", icon: "none" });
+    wx.navigateTo({ url: "/pages/guide/index" });
   },
   onTodo: function () {
     if (!this.checkPartner()) return;
