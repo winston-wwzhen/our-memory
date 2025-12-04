@@ -15,9 +15,9 @@ const TEST_CONFIG = {
 };
 
 // 🟢 配置中心 (修复版)
-const NORMAL_FREE_LIMIT = 1;  // 普通用户
-const VIP_DAILY_LIMIT = 3;    // VIP用户
-const REG_DAY_LIMIT = 10;     // 首日特权
+const NORMAL_FREE_LIMIT = 1; // 普通用户
+const VIP_DAILY_LIMIT = 3; // VIP用户
+const REG_DAY_LIMIT = 10; // 首日特权
 const DAILY_AD_LIMIT = 1;
 
 // 🎨 风格配置表 (后端做最终校验)
@@ -140,17 +140,18 @@ exports.main = async (event, context) => {
 
   let remainingAttempts = 0;
   const SUDO_USERS = await getSudoUsers();
-  
+
   // 获取用户信息判断额度和身份
   const userRes = await db.collection("users").where({ _openid: openid }).get();
-  
+
   if (userRes.data.length === 0) {
-      return { status: 404, msg: "用户未注册" };
+    return { status: 404, msg: "用户未注册" };
   }
-  
+
   const user = userRes.data[0];
   const isPermanentVip = SUDO_USERS.includes(openid);
-  const isTrialVip = user.vip_expire_date && new Date(user.vip_expire_date) > new Date();
+  const isTrialVip =
+    user.vip_expire_date && new Date(user.vip_expire_date) > new Date();
   const isVip = isPermanentVip || isTrialVip;
 
   // 判断是否为测试账号
@@ -158,7 +159,7 @@ exports.main = async (event, context) => {
     TEST_CONFIG.ENABLE && TEST_CONFIG.WHITELIST.includes(openid);
 
   // 🛡️ 风格鉴权 (体验VIP也可解锁)
-  const targetStyle = STYLE_CONFIG[styleId] ? styleId : "201"; 
+  const targetStyle = STYLE_CONFIG[styleId] ? styleId : "201";
   if (STYLE_CONFIG[targetStyle].isVip && !isVip) {
     return {
       status: 403,
@@ -168,54 +169,54 @@ exports.main = async (event, context) => {
 
   // 🆕 1. 频次检查 (修复版逻辑)
   if (!isPermanentVip) {
-      // 计算注册天数判断是否首日
-      let registerDays = 1;
-      if (user.createdAt) {
-        const created = new Date(user.createdAt);
-        const now = new Date();
-        const diffTime = Math.abs(now - created);
-        registerDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      }
-      
-      // 确定今日基础限额 (逻辑修复)
-      let baseLimit = NORMAL_FREE_LIMIT; // 默认为 1
-      if (isVip) {
-          // 只有 VIP 身份才能享受 10 或 3
-          baseLimit = registerDays <= 1 ? REG_DAY_LIMIT : VIP_DAILY_LIMIT;
-      }
+    // 计算注册天数判断是否首日
+    let registerDays = 1;
+    if (user.createdAt) {
+      const created = new Date(user.createdAt);
+      const now = new Date();
+      const diffTime = Math.abs(now - created);
+      registerDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
 
-      const stats = user.daily_usage || { date: "", count: 0, ad_count: 0 };
-      const isToday = stats.date === todayStr;
+    // 确定今日基础限额 (逻辑修复)
+    let baseLimit = NORMAL_FREE_LIMIT; // 默认为 1
+    if (isVip) {
+      // 只有 VIP 身份才能享受 10 或 3
+      baseLimit = registerDays <= 1 ? REG_DAY_LIMIT : VIP_DAILY_LIMIT;
+    }
 
-      const currentUsed = isToday ? stats.count || 0 : 0;
-      const adRewards = isToday ? stats.ad_count || 0 : 0;
+    const stats = user.daily_usage || { date: "", count: 0, ad_count: 0 };
+    const isToday = stats.date === todayStr;
 
-      // 总额度 = 基础限额 + 广告奖励
-      const totalLimit = baseLimit + adRewards;
+    const currentUsed = isToday ? stats.count || 0 : 0;
+    const adRewards = isToday ? stats.ad_count || 0 : 0;
 
-      if (currentUsed >= totalLimit) {
-        const canWatchAd = adRewards < DAILY_AD_LIMIT;
+    // 总额度 = 基础限额 + 广告奖励
+    const totalLimit = baseLimit + adRewards;
 
-        return {
-          status: 403,
-          msg: canWatchAd
-            ? `次数用尽！看个广告复活吧~`
-            : `今日次数已耗尽 (${totalLimit}/${totalLimit})，去Fun乐园玩耍吧~`,
-          requireAd: canWatchAd, 
-          redirectFun: !canWatchAd, 
-        };
-      }
+    if (currentUsed >= totalLimit) {
+      const canWatchAd = adRewards < DAILY_AD_LIMIT;
 
-      const updateData = isToday
-        ? { "daily_usage.count": _.inc(1) }
-        : { daily_usage: { date: todayStr, count: 1, ad_count: 0 } };
+      return {
+        status: 403,
+        msg: canWatchAd
+          ? `次数用尽！看个广告复活吧~`
+          : `今日次数已耗尽 (${totalLimit}/${totalLimit})，去Fun乐园玩耍吧~`,
+        requireAd: canWatchAd,
+        redirectFun: !canWatchAd,
+      };
+    }
 
-      await db
-        .collection("users")
-        .where({ _openid: openid })
-        .update({ data: updateData });
+    const updateData = isToday
+      ? { "daily_usage.count": _.inc(1) }
+      : { daily_usage: { date: todayStr, count: 1, ad_count: 0 } };
 
-      remainingAttempts = Math.max(0, totalLimit - (currentUsed + 1));
+    await db
+      .collection("users")
+      .where({ _openid: openid })
+      .update({ data: updateData });
+
+    remainingAttempts = Math.max(0, totalLimit - (currentUsed + 1));
   } else {
     remainingAttempts = 999;
   }
