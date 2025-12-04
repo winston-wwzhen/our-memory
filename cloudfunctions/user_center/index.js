@@ -5,6 +5,56 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// ==========================================
+// 1. 默认配置兜底 (Fallback Config)
+// ==========================================
+const DEFAULT_CONFIG = {
+  NORMAL_FREE_LIMIT: 1, // 普通用户每日额度
+  VIP_DAILY_LIMIT: 3, // VIP每日额度
+  REG_DAY_LIMIT: 10, // 注册首日奖励额度
+  VIP_TRIAL_DAYS: 3, // 新人VIP试用天数
+  DAILY_AD_LIMIT: 1, // 每日广告解锁次数
+  DAILY_LOGIN_BONUS: 50, // 每日登录奖励爱意值
+  DAILY_MSG_LIMIT: 20, // 每日留言上限
+  DEFAULT_CAPSULE_LIMIT: 10, // 胶囊容量上限
+  QUESTIONS_PER_ROUND: 10, // 每轮问答题数
+
+  // 花园相关配置 (新增)
+  WATER_COST: 10, // 每次浇水消耗
+  WATER_GROWTH: 10, // 每次浇水增加的成长值
+  HARVEST_MIN_GROWTH: 300, // 最小收获成长值
+  CHECKIN_REWARD: 50, // 每日拍照打卡奖励
+};
+
+// ==========================================
+// 2. 配置缓存控制 (Memory Cache)
+// ==========================================
+let cachedConfig = null;
+let cacheTime = 0;
+const CACHE_TTL = 60 * 1000 * 5; // 缓存有效期 5 分钟
+
+async function getBizConfig() {
+  const now = Date.now();
+  if (cachedConfig && now - cacheTime < CACHE_TTL) {
+    return cachedConfig;
+  }
+
+  try {
+    const res = await db.collection("app_config").doc("business_rules").get();
+    // 合并配置，防止数据库缺少字段导致报错
+    cachedConfig = { ...DEFAULT_CONFIG, ...res.data };
+    cacheTime = now;
+    console.log("✅ 配置已更新 (From DB):", cachedConfig);
+    return cachedConfig;
+  } catch (err) {
+    console.warn("⚠️ 获取配置失败，使用默认配置:", err);
+    return DEFAULT_CONFIG;
+  }
+}
+
+// ==========================================
+// 3. 通用工具函数
+// ==========================================
 const RANDOM_NAMES = [
   "予你星河",
   "满眼星辰",
@@ -19,9 +69,11 @@ const RANDOM_NAMES = [
   "星河滚烫",
   "人间理想",
 ];
+
 function getRandomName() {
   return RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)];
 }
+
 async function getSudoUsers() {
   try {
     const res = await db.collection("app_config").doc("global_settings").get();
@@ -30,11 +82,13 @@ async function getSudoUsers() {
     return [];
   }
 }
+
 function getTodayStr() {
   const now = new Date();
   const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
   return beijingTime.toISOString().split("T")[0];
 }
+
 async function addLog(openid, type, content, extra = {}) {
   try {
     await db.collection("logs").add({
@@ -52,9 +106,15 @@ async function addLog(openid, type, content, extra = {}) {
   }
 }
 
+// ==========================================
+// 4. 主入口函数
+// ==========================================
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const myOpenID = wxContext.OPENID;
+
+  // 🟢 优先获取配置
+  const CONFIG = await getBizConfig();
 
   const {
     action,
@@ -78,8 +138,7 @@ exports.main = async (event, context) => {
     openDate,
     capsuleId,
     answer,
-    quizId, // 问答相关
-    // 🟢 轮次问答参数
+    quizId,
     roundId,
     questionIdx,
     date,
@@ -91,16 +150,7 @@ exports.main = async (event, context) => {
   const todayStr = getTodayStr();
   const SUDO_USERS = await getSudoUsers();
 
-  const NORMAL_FREE_LIMIT = 1;
-  const VIP_DAILY_LIMIT = 3;
-  const REG_DAY_LIMIT = 10;
-  const VIP_TRIAL_DAYS = 3;
-  const DAILY_AD_LIMIT = 1;
-  const DAILY_LOGIN_BONUS = 50;
-  const DAILY_MSG_LIMIT = 20;
-  const DEFAULT_CAPSULE_LIMIT = 10;
-  const QUESTIONS_PER_ROUND = 10;
-
+  // 彩蛋触发逻辑
   const tryTriggerEgg = async (
     eggId,
     bonus,
@@ -110,12 +160,15 @@ exports.main = async (event, context) => {
     probability = 1.0
   ) => {
     if (probability < 1.0 && Math.random() > probability) return null;
-    let shouldTrigger = false,
-      userEggId = null;
+
+    let shouldTrigger = false;
+    let userEggId = null;
+
     const eggRes = await db
       .collection("user_eggs")
       .where({ _openid: myOpenID, egg_id: eggId })
       .get();
+
     if (eggRes.data.length > 0) {
       if (isRepeatable) {
         shouldTrigger = true;
@@ -124,12 +177,15 @@ exports.main = async (event, context) => {
     } else {
       shouldTrigger = true;
     }
+
     if (shouldTrigger) {
       if (userEggId) {
         await db
           .collection("user_eggs")
           .doc(userEggId)
-          .update({ data: { count: _.inc(1), unlocked_at: db.serverDate() } });
+          .update({
+            data: { count: _.inc(1), unlocked_at: db.serverDate() },
+          });
       } else {
         await db.collection("user_eggs").add({
           data: {
@@ -147,16 +203,18 @@ exports.main = async (event, context) => {
     return null;
   };
 
-  // === 1. 登录 (保持不变) ===
+  // === Action 1: 用户登录与状态检查 ===
   if (action === "login") {
     let currentUser = null,
       loginBonus = 0,
       registerDays = 1;
+
     const res = await db.collection("users").where({ _openid: myOpenID }).get();
+
     if (res.data.length > 0) {
       currentUser = res.data[0];
       if (currentUser.last_login_date !== todayStr) {
-        loginBonus = DAILY_LOGIN_BONUS;
+        loginBonus = CONFIG.DAILY_LOGIN_BONUS; // 使用配置
         const resetUsage = {
           date: todayStr,
           count: 0,
@@ -176,52 +234,60 @@ exports.main = async (event, context) => {
         currentUser.water_count = (currentUser.water_count || 0) + loginBonus;
         currentUser.daily_usage = resetUsage;
       }
-      if (currentUser.createdAt)
+      if (currentUser.createdAt) {
         registerDays =
           Math.ceil(
             Math.abs(new Date() - new Date(currentUser.createdAt)) /
               (1000 * 60 * 60 * 24)
           ) || 1;
+      }
     } else {
       const vipExpire = new Date();
-      vipExpire.setDate(vipExpire.getDate() + VIP_TRIAL_DAYS);
+      vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS); // 使用配置
+
       const newUser = {
         _openid: myOpenID,
         nickName: userInfo?.nickName || getRandomName(),
         avatarUrl: userInfo?.avatarUrl || "",
         partner_id: null,
         bind_request_from: null,
-        water_count: DAILY_LOGIN_BONUS,
+        water_count: CONFIG.DAILY_LOGIN_BONUS, // 使用配置
         rose_balance: 0,
         last_login_date: todayStr,
         createdAt: db.serverDate(),
         vip_expire_date: vipExpire,
         daily_usage: { date: todayStr, count: 0, ad_count: 0, msg_count: 0 },
-        capsule_limit: DEFAULT_CAPSULE_LIMIT,
+        capsule_limit: CONFIG.DEFAULT_CAPSULE_LIMIT, // 使用配置
       };
+
       const addRes = await db.collection("users").add({ data: newUser });
       currentUser = { ...newUser, _id: addRes._id };
-      loginBonus = DAILY_LOGIN_BONUS;
+      loginBonus = CONFIG.DAILY_LOGIN_BONUS;
       registerDays = 1;
       await addLog(myOpenID, "register", "开启了我们的纪念册");
     }
+
     const isPermanentVip = SUDO_USERS.includes(myOpenID);
     const isTrialVip =
       currentUser.vip_expire_date &&
       new Date(currentUser.vip_expire_date) > new Date();
     const isVip = isPermanentVip || isTrialVip;
+
+    // 使用配置计算额度
     let currentLimit = isPermanentVip
       ? 9999
       : isVip
       ? registerDays <= 1
-        ? REG_DAY_LIMIT
-        : VIP_DAILY_LIMIT
-      : NORMAL_FREE_LIMIT;
+        ? CONFIG.REG_DAY_LIMIT
+        : CONFIG.VIP_DAILY_LIMIT
+      : CONFIG.NORMAL_FREE_LIMIT;
+
     const stats = currentUser.daily_usage || {};
     const remaining = Math.max(
       0,
       currentLimit + (stats.ad_count || 0) - (stats.count || 0)
     );
+
     let partnerInfo = null;
     if (currentUser.partner_id) {
       const partnerRes = await db
@@ -231,6 +297,7 @@ exports.main = async (event, context) => {
         .get();
       if (partnerRes.data.length > 0) partnerInfo = partnerRes.data[0];
     }
+
     return {
       status: 200,
       user: currentUser,
@@ -242,12 +309,11 @@ exports.main = async (event, context) => {
       remaining,
       dailyFreeLimit: currentLimit,
       adCount: stats.ad_count || 0,
-      dailyAdLimit: DAILY_AD_LIMIT,
+      dailyAdLimit: CONFIG.DAILY_AD_LIMIT, // 使用配置
     };
   }
 
-  // ... (保留原有 Action 2-9) ...
-  // watch_ad_reward, get_garden, water_flower, harvest_garden, check_in, redeem_coupon, get_my_coupons, make_decision, get_partner_decision, request_bind, respond_bind, update_profile, update_anniversary, unbind, post_message, delete_message, like_message, get_messages, update_status, bury_capsule, get_capsules, open_capsule
+  // === Action 2: 广告奖励 ===
   if (action === "watch_ad_reward") {
     const userRes = await db
       .collection("users")
@@ -255,8 +321,15 @@ exports.main = async (event, context) => {
       .get();
     const user = userRes.data[0];
     const stats = user.daily_usage || { date: todayStr };
-    if ((stats.date === todayStr ? stats.ad_count || 0 : 0) >= DAILY_AD_LIMIT)
-      return { status: 403, msg: "上限" };
+
+    // 使用配置
+    if (
+      (stats.date === todayStr ? stats.ad_count || 0 : 0) >=
+      CONFIG.DAILY_AD_LIMIT
+    ) {
+      return { status: 403, msg: "今日广告解锁次数已达上限" };
+    }
+
     const updateData =
       stats.date === todayStr
         ? { "daily_usage.ad_count": _.inc(1) }
@@ -268,9 +341,12 @@ exports.main = async (event, context) => {
               msg_count: 0,
             },
           };
+
     await db.collection("users").doc(user._id).update({ data: updateData });
     return { status: 200, msg: "奖励到账" };
   }
+
+  // === Action 3: 获取花园状态 ===
   if (action === "get_garden") {
     const userRes = await db
       .collection("users")
@@ -278,16 +354,20 @@ exports.main = async (event, context) => {
       .get();
     const me = userRes.data[0];
     const partnerId = me.partner_id;
+
     let conditions = [{ owners: myOpenID }];
     if (partnerId) conditions.push({ owners: partnerId });
+
     const gardenRes = await db
       .collection("gardens")
       .where(_.or(conditions))
       .orderBy("growth_value", "desc")
       .get();
+
     let myGarden = null;
     if (gardenRes.data.length > 0) {
       myGarden = gardenRes.data[0];
+      // 自动修复 owners
       if (partnerId && !myGarden.owners.includes(partnerId))
         await db
           .collection("gardens")
@@ -298,6 +378,8 @@ exports.main = async (event, context) => {
           .collection("gardens")
           .doc(myGarden._id)
           .update({ data: { owners: _.addToSet(myOpenID) } });
+
+      // 结算玫瑰
       if (myGarden.rose_balance > 0) {
         await db
           .collection("users")
@@ -322,7 +404,9 @@ exports.main = async (event, context) => {
       await db.collection("gardens").add({ data: newGarden });
       myGarden = newGarden;
     }
+
     myGarden.rose_balance = me.rose_balance || 0;
+
     let recentLogs = [];
     try {
       const owners = myGarden.owners || [myOpenID];
@@ -338,6 +422,7 @@ exports.main = async (event, context) => {
         isMine: log._openid === myOpenID,
       }));
     } catch (e) {}
+
     return {
       status: 200,
       garden: myGarden,
@@ -345,19 +430,25 @@ exports.main = async (event, context) => {
       logs: recentLogs,
     };
   }
+
+  // === Action 4: 浇水 ===
   if (action === "water_flower") {
-    const COST = 10,
-      GROWTH = 10;
+    const COST = CONFIG.WATER_COST; // 使用配置
+    const GROWTH = CONFIG.WATER_GROWTH; // 使用配置
+
     const userRes = await db
       .collection("users")
       .where({ _openid: myOpenID })
       .get();
     const me = userRes.data[0];
+
     if ((me.water_count || 0) < COST) return { status: 400, msg: "爱意不足" };
+
     await db
       .collection("users")
       .doc(me._id)
       .update({ data: { water_count: _.inc(-COST) } });
+
     const gardenRes = await db
       .collection("gardens")
       .where({ owners: myOpenID })
@@ -374,6 +465,8 @@ exports.main = async (event, context) => {
     }
     return { status: 404 };
   }
+
+  // === Action 5: 收获 ===
   if (action === "harvest_garden") {
     const gardenRes = await db
       .collection("gardens")
@@ -381,7 +474,10 @@ exports.main = async (event, context) => {
       .get();
     if (gardenRes.data.length > 0) {
       const garden = gardenRes.data[0];
-      if (garden.growth_value < 300) return { status: 400, msg: "未盛开" };
+      // 使用配置
+      if (garden.growth_value < CONFIG.HARVEST_MIN_GROWTH)
+        return { status: 400, msg: "未盛开" };
+
       await db
         .collection("gardens")
         .doc(garden._id)
@@ -392,12 +488,14 @@ exports.main = async (event, context) => {
             updatedAt: db.serverDate(),
           },
         });
+
       const owners = garden.owners || [];
       if (owners.length > 0)
         await db
           .collection("users")
           .where({ _openid: _.in(owners) })
           .update({ data: { rose_balance: _.inc(1) } });
+
       await addLog(
         myOpenID,
         "harvest",
@@ -407,9 +505,12 @@ exports.main = async (event, context) => {
     }
     return { status: 404 };
   }
+
+  // === Action 6: 每日打卡 ===
   if (action === "check_in") {
     if (!imageFileID) return { status: 400 };
-    const CHECKIN_REWARD = 50;
+    const CHECKIN_REWARD = CONFIG.CHECKIN_REWARD; // 使用配置
+
     const oldLog = await db
       .collection("logs")
       .where({
@@ -418,6 +519,7 @@ exports.main = async (event, context) => {
         type: "daily_check_in",
       })
       .get();
+
     if (oldLog.data.length > 0) {
       await db
         .collection("logs")
@@ -449,14 +551,18 @@ exports.main = async (event, context) => {
       return { status: 200, msg: "打卡成功" };
     }
   }
+
+  // === Action 7: 兑换优惠券 ===
   if (action === "redeem_coupon") {
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
     if ((me.rose_balance || 0) < cost) return { status: 400, msg: "玫瑰不足" };
+
     await db
       .collection("users")
       .doc(me._id)
       .update({ data: { rose_balance: _.inc(-cost) } });
+
     await db.collection("coupons").add({
       data: {
         _openid: myOpenID,
@@ -472,6 +578,8 @@ exports.main = async (event, context) => {
     await addLog(myOpenID, "redeem", `兑换${title}`);
     return { status: 200, msg: "兑换成功" };
   }
+
+  // === Action 8: 获取我的优惠券 ===
   if (action === "get_my_coupons") {
     const res = await db
       .collection("coupons")
@@ -480,6 +588,8 @@ exports.main = async (event, context) => {
       .get();
     return { status: 200, data: res.data };
   }
+
+  // === Action 9: 做决定 ===
   if (action === "make_decision") {
     await addLog(myOpenID, "decision", `决定${category}：${result}`);
     await db
@@ -490,6 +600,8 @@ exports.main = async (event, context) => {
       });
     return { status: 200, msg: "已生效" };
   }
+
+  // === Action 10: 获取对方决定 ===
   if (action === "get_partner_decision") {
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
@@ -507,21 +619,27 @@ exports.main = async (event, context) => {
     }
     return { status: 200, data: pd };
   }
+
+  // === Action 11: 请求绑定 ===
   if (action === "request_bind") {
     if (!partnerCode || partnerCode === myOpenID)
       return { status: 400, msg: "编号无效" };
+
     const pr = await db
       .collection("users")
       .where({ _openid: partnerCode })
       .get();
     if (pr.data.length === 0) return { status: 404 };
     if (pr.data[0].partner_id) return { status: 403 };
+
     await db
       .collection("users")
       .where({ _openid: partnerCode })
       .update({ data: { bind_request_from: myOpenID } });
     return { status: 200, msg: "请求已发送" };
   }
+
+  // === Action 12: 响应绑定 ===
   if (action === "respond_bind") {
     if (!partnerCode) return { status: 400 };
     if (decision === "reject") {
@@ -540,11 +658,14 @@ exports.main = async (event, context) => {
         .collection("users")
         .where({ _openid: partnerCode })
         .update({ data: { partner_id: myOpenID, bind_request_from: null } });
+
       await addLog(myOpenID, "bind", "绑定成功");
       await addLog(partnerCode, "bind", "绑定成功");
       return { status: 200, msg: "绑定成功" };
     }
   }
+
+  // === Action 13: 更新资料 ===
   if (action === "update_profile") {
     await db
       .collection("users")
@@ -552,6 +673,8 @@ exports.main = async (event, context) => {
       .update({ data: { avatarUrl, nickName } });
     return { status: 200, msg: "OK" };
   }
+
+  // === Action 14: 更新纪念日 ===
   if (action === "update_anniversary") {
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
@@ -566,9 +689,12 @@ exports.main = async (event, context) => {
         .collection("users")
         .where({ _openid: me.partner_id })
         .update({ data });
+
     await addLog(myOpenID, "update_anniversary", `修改纪念日${date}`);
     return { status: 200, msg: "已更新" };
   }
+
+  // === Action 15: 解除绑定 ===
   if (action === "unbind") {
     if (!SUDO_USERS.includes(myOpenID)) return { status: 403, msg: "暂未开放" };
     const myRes = await db
@@ -576,8 +702,10 @@ exports.main = async (event, context) => {
       .where({ _openid: myOpenID })
       .get();
     if (myRes.data.length === 0) return { status: 404 };
+
     const me = myRes.data[0];
     const pid = me.partner_id;
+
     await db
       .collection("users")
       .where({ _openid: myOpenID })
@@ -587,19 +715,25 @@ exports.main = async (event, context) => {
         .collection("users")
         .where({ _openid: pid })
         .update({ data: { partner_id: null } });
+
     await addLog(myOpenID, "unbind", "解除关联");
     return { status: 200, msg: "已解除" };
   }
 
+  // === Action 16: 发布便签 ===
   if (action === "post_message") {
     if (!content) return { status: 400 };
     if (content.length > 20) return { status: 400, msg: "限20字" };
+
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
     let usage = me.daily_usage || { date: todayStr, msg_count: 0 };
     if (usage.date !== todayStr) usage = { date: todayStr, msg_count: 0 };
-    if ((usage.msg_count || 0) >= DAILY_MSG_LIMIT)
+
+    // 使用配置
+    if ((usage.msg_count || 0) >= CONFIG.DAILY_MSG_LIMIT)
       return { status: 403, msg: "次数用尽" };
+
     const rot = Math.floor(Math.random() * 10) - 5;
     await db.collection("messages").add({
       data: {
@@ -613,7 +747,9 @@ exports.main = async (event, context) => {
         isLiked: false,
       },
     });
+
     await addLog(myOpenID, "post_message", `便签:${content}`, { color });
+
     let rw = 5,
       msg = "已贴上墙",
       egg = null;
@@ -630,6 +766,7 @@ exports.main = async (event, context) => {
       msg = "✨ 幸运女神降临！";
       egg = lucky;
     }
+
     await db
       .collection("users")
       .doc(me._id)
@@ -646,6 +783,8 @@ exports.main = async (event, context) => {
       });
     return { status: 200, msg, triggerEgg: egg };
   }
+
+  // === Action 17: 删除便签 ===
   if (action === "delete_message") {
     try {
       const m = await db.collection("messages").doc(id).get();
@@ -657,6 +796,8 @@ exports.main = async (event, context) => {
       return { status: 500 };
     }
   }
+
+  // === Action 18: 点赞/盖章便签 ===
   if (action === "like_message") {
     try {
       const m = await db.collection("messages").doc(id).get();
@@ -671,13 +812,18 @@ exports.main = async (event, context) => {
       return { status: 500 };
     }
   }
+
+  // === Action 19: 获取便签列表 ===
   if (action === "get_messages") {
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
     const pid = me.partner_id;
     let usage = me.daily_usage || { date: todayStr };
     if (usage.date !== todayStr) usage = { date: todayStr };
-    const remain = Math.max(0, DAILY_MSG_LIMIT - (usage.msg_count || 0));
+
+    // 使用配置
+    const remain = Math.max(0, CONFIG.DAILY_MSG_LIMIT - (usage.msg_count || 0));
+
     const q = [myOpenID];
     if (pid) q.push(pid);
     const targetDate = queryDate || todayStr;
@@ -686,6 +832,7 @@ exports.main = async (event, context) => {
       .where({ _openid: _.in(q), dateStr: targetDate })
       .orderBy("createdAt", "asc")
       .get();
+
     const nameMap = { [myOpenID]: me.nickName || "我" };
     let pStatus = null;
     if (pid) {
@@ -712,6 +859,8 @@ exports.main = async (event, context) => {
       remainingMsgCount: remain,
     };
   }
+
+  // === Action 20: 更新状态 ===
   if (action === "update_status") {
     await db
       .collection("users")
@@ -728,18 +877,25 @@ exports.main = async (event, context) => {
     await addLog(myOpenID, "update_status", `状态:${statusIcon}`);
     return { status: 200, msg: "已同步" };
   }
+
+  // === Action 21: 埋下胶囊 ===
   if (action === "bury_capsule") {
     if (!content && !imageFileID) return { status: 400 };
     if (!openDate) return { status: 400 };
     if (new Date(openDate) <= new Date(todayStr)) return { status: 400 };
+
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
     if (!me.partner_id) return { status: 403 };
-    const limit = me.capsule_limit || DEFAULT_CAPSULE_LIMIT;
+
+    // 使用配置
+    const limit = me.capsule_limit || CONFIG.DEFAULT_CAPSULE_LIMIT;
+
     const cnt = (
       await db.collection("capsules").where({ _openid: myOpenID }).count()
     ).total;
     if (cnt >= limit) return { status: 403, code: "LIMIT_EXCEEDED" };
+
     await db.collection("capsules").add({
       data: {
         _openid: myOpenID,
@@ -752,6 +908,7 @@ exports.main = async (event, context) => {
         status: 0,
       },
     });
+
     await addLog(myOpenID, "bury_capsule", content ? "埋下文字" : "埋下图片", {
       openDate,
     });
@@ -759,6 +916,7 @@ exports.main = async (event, context) => {
       .collection("users")
       .doc(me._id)
       .update({ data: { water_count: _.inc(10) } });
+
     let egg = null;
     const h = (new Date().getHours() + 8) % 24;
     if (h >= 0 && h < 4) {
@@ -796,6 +954,8 @@ exports.main = async (event, context) => {
     }
     return { status: 200, msg: "已埋下", triggerEgg: egg };
   }
+
+  // === Action 22: 获取胶囊列表 ===
   if (action === "get_capsules") {
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
@@ -813,6 +973,7 @@ exports.main = async (event, context) => {
         .orderBy("createDate", "desc")
         .get()
     ).data;
+
     const proc = (i, isInbox) => {
       const ok = i.openDate <= todayStr;
       const sec = isInbox && i.status === 0;
@@ -828,24 +989,30 @@ exports.main = async (event, context) => {
         isOpened: i.status === 1,
       };
     };
+
     return {
       status: 200,
       inbox: inbox.map((i) => proc(i, true)),
       sent: sent.map((i) => proc(i, false)),
-      limit: me.capsule_limit || DEFAULT_CAPSULE_LIMIT,
+      // 使用配置
+      limit: me.capsule_limit || CONFIG.DEFAULT_CAPSULE_LIMIT,
       usage: sent.length,
     };
   }
+
+  // === Action 23: 开启胶囊 ===
   if (action === "open_capsule") {
     const cap = (await db.collection("capsules").doc(capsuleId).get()).data;
     if (cap.to_openid !== myOpenID || cap.openDate > todayStr)
       return { status: 403 };
     if (cap.status === 1) return { status: 200, data: cap };
+
     await db
       .collection("capsules")
       .doc(capsuleId)
       .update({ data: { status: 1 } });
     await addLog(myOpenID, "open_capsule", "开启胶囊");
+
     let egg = null;
     if (
       (
@@ -872,9 +1039,7 @@ exports.main = async (event, context) => {
     return { status: 200, data: cap, msg: "开启成功", triggerEgg: egg };
   }
 
-  // === 10. 默契问答 (Couple Quiz) - 🟢 核心更新 ===
-
-  // 获取问答首页
+  // === Action 24: 获取问答首页 (Couple Quiz) ===
   if (action === "get_quiz_home") {
     const userRes = await db
       .collection("users")
@@ -885,14 +1050,12 @@ exports.main = async (event, context) => {
 
     if (!partnerId) return { status: 403, msg: "请先绑定伴侣" };
 
-    // 1. 历史战绩
     const historyRes = await db
       .collection("quiz_rounds")
       .where({ owners: _.all([myOpenID, partnerId]), is_finished: true })
       .orderBy("round_seq", "desc")
       .get();
 
-    // 2. 当前进行中的
     const activeRes = await db
       .collection("quiz_rounds")
       .where({ owners: _.all([myOpenID, partnerId]), is_finished: false })
@@ -902,7 +1065,7 @@ exports.main = async (event, context) => {
     let currentRound = null;
     if (activeRes.data.length > 0) {
       const r = activeRes.data[0];
-      const isUserA = myOpenID < partnerId; // 判定角色
+      const isUserA = myOpenID < partnerId;
       const myProgress = isUserA ? r.answers_a.length : r.answers_b.length;
       const partnerProgress = isUserA ? r.answers_b.length : r.answers_a.length;
 
@@ -911,18 +1074,19 @@ exports.main = async (event, context) => {
         round_seq: r.round_seq,
         my_progress: myProgress,
         partner_progress: partnerProgress,
-        total: QUESTIONS_PER_ROUND,
+        total: CONFIG.QUESTIONS_PER_ROUND, // 使用配置
         status: "playing",
       };
 
-      if (myProgress === QUESTIONS_PER_ROUND)
+      if (myProgress === CONFIG.QUESTIONS_PER_ROUND)
+        // 使用配置
         currentRound.status = "waiting_partner";
     }
 
     return { status: 200, history: historyRes.data, currentRound };
   }
 
-  // 开启新一轮
+  // === Action 25: 开启新一轮问答 ===
   if (action === "start_new_round") {
     const userRes = await db
       .collection("users")
@@ -932,14 +1096,12 @@ exports.main = async (event, context) => {
     const partnerId = me.partner_id;
     if (!partnerId) return { status: 403 };
 
-    // 检查未完成
     const activeCount = await db
       .collection("quiz_rounds")
       .where({ owners: _.all([myOpenID, partnerId]), is_finished: false })
       .count();
     if (activeCount.total > 0) return { status: 400, msg: "还有未完成的" };
 
-    // 获取下一轮序号
     const maxRoundRes = await db
       .collection("quiz_rounds")
       .where({ owners: _.all([myOpenID, partnerId]) })
@@ -949,7 +1111,6 @@ exports.main = async (event, context) => {
     const nextSeq =
       (maxRoundRes.data.length > 0 ? maxRoundRes.data[0].round_seq : 0) + 1;
 
-    // 随机抽取题目 (仅选 choice 类型的)
     const allQuizRes = await db
       .collection("quiz_pool")
       .where({ type: "choice" })
@@ -961,13 +1122,15 @@ exports.main = async (event, context) => {
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
 
-    // 🟢 关键修正：将 is_person 属性也带入题目数据中
-    const selectedQuestions = pool.slice(0, QUESTIONS_PER_ROUND).map((q) => ({
-      _id: q._id,
-      title: q.title,
-      options: q.options,
-      is_person: q.is_person || false,
-    }));
+    // 使用配置 QUESTIONS_PER_ROUND
+    const selectedQuestions = pool
+      .slice(0, CONFIG.QUESTIONS_PER_ROUND)
+      .map((q) => ({
+        _id: q._id,
+        title: q.title,
+        options: q.options,
+        is_person: q.is_person || false,
+      }));
 
     const isUserA = myOpenID < partnerId;
     const owners = isUserA ? [myOpenID, partnerId] : [partnerId, myOpenID];
@@ -988,7 +1151,7 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "已开启" };
   }
 
-  // 获取答题详情
+  // === Action 26: 获取答题详情 ===
   if (action === "get_round_detail") {
     const { roundId } = event;
     const roundRes = await db.collection("quiz_rounds").doc(roundId).get();
@@ -999,7 +1162,9 @@ exports.main = async (event, context) => {
 
     if (round.is_finished)
       return { status: 200, mode: "result", round, isUserA };
-    if (myAnswers.length >= QUESTIONS_PER_ROUND)
+
+    // 使用配置
+    if (myAnswers.length >= CONFIG.QUESTIONS_PER_ROUND)
       return { status: 200, mode: "waiting", progress: myAnswers.length };
 
     const question = round.questions[myAnswers.length];
@@ -1008,26 +1173,25 @@ exports.main = async (event, context) => {
       mode: "answering",
       question,
       index: myAnswers.length + 1,
-      total: QUESTIONS_PER_ROUND,
+      total: CONFIG.QUESTIONS_PER_ROUND, // 使用配置
     };
   }
 
-  // 🟢 核心修改：提交答案 + 交叉判题
+  // === Action 27: 提交问答 ===
   if (action === "submit_round_answer") {
-    const { roundId, questionIdx, answer } = event;
+    const { roundId, answer } = event;
     if (!roundId || answer === undefined) return { status: 400 };
 
     const roundRes = await db.collection("quiz_rounds").doc(roundId).get();
     const round = roundRes.data;
 
-    // 判定角色
     const partnerId = round.owners.find((id) => id !== myOpenID);
     const isUserA = myOpenID < partnerId;
     const field = isUserA ? "answers_a" : "answers_b";
 
-    // 防超额提交
+    // 使用配置
     const currentAnswers = round[field] || [];
-    if (currentAnswers.length < QUESTIONS_PER_ROUND) {
+    if (currentAnswers.length < CONFIG.QUESTIONS_PER_ROUND) {
       await db
         .collection("quiz_rounds")
         .doc(roundId)
@@ -1036,7 +1200,6 @@ exports.main = async (event, context) => {
         });
     }
 
-    // 检查是否触发结算
     const newRoundRes = await db.collection("quiz_rounds").doc(roundId).get();
     const newRound = newRoundRes.data;
 
@@ -1046,11 +1209,15 @@ exports.main = async (event, context) => {
     let isRoundFinished = false;
     let triggerEgg = null;
 
-    if (lenA >= QUESTIONS_PER_ROUND && lenB >= QUESTIONS_PER_ROUND) {
-      // 防止重复结算
+    // 使用配置
+    if (
+      lenA >= CONFIG.QUESTIONS_PER_ROUND &&
+      lenB >= CONFIG.QUESTIONS_PER_ROUND
+    ) {
       if (!newRound.is_finished) {
         let score = 0;
-        for (let i = 0; i < QUESTIONS_PER_ROUND; i++) {
+        // 使用配置
+        for (let i = 0; i < CONFIG.QUESTIONS_PER_ROUND; i++) {
           const valA = newRound.answers_a[i];
           const valB = newRound.answers_b[i];
           const q = newRound.questions[i];
@@ -1068,7 +1235,6 @@ exports.main = async (event, context) => {
           }
         }
 
-        // 🟢 修复点：增加了 data 包裹层
         await db
           .collection("quiz_rounds")
           .doc(roundId)
@@ -1099,7 +1265,7 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "ok", isRoundFinished, triggerEgg };
   }
 
-  // 获取恋爱清单完成状态
+  // === Action 28: 获取恋爱清单状态 ===
   if (action === "get_love_list_status") {
     const userRes = await db
       .collection("users")
@@ -1108,11 +1274,10 @@ exports.main = async (event, context) => {
     if (userRes.data.length === 0) return { status: 404 };
 
     const me = userRes.data[0];
-    // 返回已完成的 ID 数组
     return { status: 200, finishedList: me.finished_love_list || [] };
   }
 
-  // 切换恋爱清单项状态 (打卡/取消)
+  // === Action 29: 切换恋爱清单状态 ===
   if (action === "toggle_love_list_item") {
     const { itemId } = event;
     if (!itemId) return { status: 400 };
@@ -1128,14 +1293,11 @@ exports.main = async (event, context) => {
     let isFinished = false;
 
     if (list.includes(itemId)) {
-      // 已完成 -> 取消
       newList = list.filter((id) => id !== itemId);
     } else {
-      // 未完成 -> 打卡
       newList = [...list, itemId];
       isFinished = true;
 
-      // 打卡奖励
       await db
         .collection("users")
         .doc(me._id)
@@ -1146,9 +1308,7 @@ exports.main = async (event, context) => {
     await db
       .collection("users")
       .doc(me._id)
-      .update({
-        data: { finished_love_list: newList },
-      });
+      .update({ data: { finished_love_list: newList } });
 
     return {
       status: 200,
