@@ -132,7 +132,7 @@ async function getSudoUsers() {
   }
 }
 
-// 🛡️ 图片安全校验 (新增)
+// 🛡️ 图片安全校验
 async function checkImageSafety(fileID) {
   if (!fileID) return true;
   try {
@@ -140,13 +140,15 @@ async function checkImageSafety(fileID) {
     const buffer = res.fileContent;
     const checkRes = await cloud.openapi.security.imgSecCheck({
       media: {
-        contentType: 'image/png', // 简单处理
-        value: buffer
-      }
+        contentType: "image/png", // 简单处理
+        value: buffer,
+      },
     });
     return checkRes.errCode === 0;
   } catch (err) {
     console.error("图片校验失败:", err);
+    // 忽略大图片错误，交由AI处理（或前端压缩）
+    if (err.errCode === 45002) return true;
     return false;
   }
 }
@@ -186,7 +188,7 @@ exports.main = async (event, context) => {
     };
   }
 
-  // 1. 频次检查
+  // 🔴【核心修复区域】：原子化扣费逻辑
   if (!isPermanentVip) {
     // 计算注册天数判断是否首日
     let registerDays = 1;
@@ -200,45 +202,65 @@ exports.main = async (event, context) => {
     // 确定今日基础限额
     let baseLimit = NORMAL_FREE_LIMIT; // 默认为 1
     if (isVip) {
-      // 只有 VIP 身份才能享受 10 或 3
       baseLimit = registerDays <= 1 ? REG_DAY_LIMIT : VIP_DAILY_LIMIT;
     }
 
     const stats = user.daily_usage || { date: "", count: 0, ad_count: 0 };
     const isToday = stats.date === todayStr;
-
     const currentUsed = isToday ? stats.count || 0 : 0;
     const adRewards = isToday ? stats.ad_count || 0 : 0;
-
-    // 总额度 = 基础限额 + 广告奖励
     const totalLimit = baseLimit + adRewards;
 
-    if (currentUsed >= totalLimit) {
-      const canWatchAd = adRewards < DAILY_AD_LIMIT;
+    if (isToday) {
+      // 🔒 1. 当天：使用 CAS 乐观锁进行原子扣除
+      // 只有当数据库中的 count 确实小于 totalLimit 时，update 才会成功
+      const res = await db
+        .collection("users")
+        .where({
+          _openid: openid,
+          "daily_usage.date": todayStr,
+          "daily_usage.count": _.lt(totalLimit), // 核心条件
+        })
+        .update({
+          data: { "daily_usage.count": _.inc(1) },
+        });
 
-      return {
-        status: 403,
-        msg: canWatchAd
-          ? `次数用尽！看个广告复活吧~`
-          : `今日次数已耗尽 (${totalLimit}/${totalLimit})，去Fun乐园玩耍吧~`,
-        requireAd: canWatchAd,
-        redirectFun: !canWatchAd,
-      };
+      // 如果更新条数为 0，说明额度已满或被并发抢占
+      if (res.stats.updated === 0) {
+        const canWatchAd = adRewards < DAILY_AD_LIMIT;
+        return {
+          status: 403,
+          msg: canWatchAd
+            ? `次数用尽！看个广告复活吧~`
+            : `今日次数已耗尽 (${totalLimit}/${totalLimit})，去Fun乐园玩耍吧~`,
+          requireAd: canWatchAd,
+          redirectFun: !canWatchAd,
+        };
+      }
+    } else {
+      // 📅 2. 跨天：直接重置
+      // 跨天第一笔请求，直接覆盖为 1（已扣除本次）
+      await db
+        .collection("users")
+        .where({ _openid: openid })
+        .update({
+          data: {
+            daily_usage: {
+              date: todayStr,
+              count: 1,
+              ad_count: 0,
+              msg_count: 0,
+            },
+          },
+        });
     }
 
-    const updateData = isToday
-      ? { "daily_usage.count": _.inc(1) }
-      : { daily_usage: { date: todayStr, count: 1, ad_count: 0 } };
-
-    await db
-      .collection("users")
-      .where({ _openid: openid })
-      .update({ data: updateData });
-
+    // 计算剩余次数用于展示（非严格实时，仅供参考）
     remainingAttempts = Math.max(0, totalLimit - (currentUsed + 1));
   } else {
     remainingAttempts = 999;
   }
+  // 🔴【核心修复区域结束】
 
   let finalBuffer = null;
 
@@ -246,15 +268,18 @@ exports.main = async (event, context) => {
     if (!imageFileID) throw new Error("Missing imageFileID");
 
     const downloadRes = await cloud.downloadFile({ fileID: imageFileID });
-    
-    // 🛡️ 新增：AI绘图前的图片安全校验
+
+    // 🛡️ AI绘图前的图片安全校验
     const isImgSafe = await checkImageSafety(imageFileID);
     if (!isImgSafe) {
-        // 回滚次数
-        if (!isPermanentVip) {
-            await db.collection("users").where({ _openid: openid }).update({ data: { "daily_usage.count": _.inc(-1) } });
-        }
-        return { status: 403, msg: "图片包含敏感内容，请更换一张" };
+      // ⚠️ 校验失败回滚额度
+      if (!isPermanentVip) {
+        await db
+          .collection("users")
+          .where({ _openid: openid })
+          .update({ data: { "daily_usage.count": _.inc(-1) } });
+      }
+      return { status: 403, msg: "图片包含敏感内容，请更换一张" };
     }
 
     if (isTestUser) {
@@ -285,6 +310,7 @@ exports.main = async (event, context) => {
     }
   } catch (aiError) {
     console.error("⚠️ AI Failed:", aiError);
+    // ⚠️ AI 生成失败回滚额度
     if (!isPermanentVip) {
       await db
         .collection("users")

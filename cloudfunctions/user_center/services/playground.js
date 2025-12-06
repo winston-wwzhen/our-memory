@@ -1,10 +1,25 @@
 const { addLog } = require("../utils/logger");
 const { checkTextSafety } = require("../utils/safety");
 
+// 🔒 安全配置：后端硬编码卡券价格，防止前端篡改
+// 也可以选择从数据库 static_content 集合读取，这里为了性能直接配置
+const COUPON_TEMPLATES = {
+  massage: { cost: 10, title: "💆‍♂️ 揉肩卡", type: "service" },
+  tea: { cost: 15, title: "🥤 投喂卡", type: "food" },
+  errand: { cost: 10, title: "💨 召唤卡", type: "service" },
+  dish: { cost: 30, title: "🍽️ 免洗金牌", type: "labor" },
+  clean: { cost: 40, title: "🧹 清洁卡", type: "labor" },
+  game: { cost: 50, title: "🎮 开黑卡", type: "play" },
+  forgive: { cost: 99, title: "🤝 和好卡", type: "special" },
+  shut: { cost: 80, title: "🤐 静音卡", type: "special" },
+  wish: { cost: 200, title: "🧞‍♂️ 许愿卡", type: "special" },
+};
+
 async function handle(action, event, ctx) {
   const { OPENID, db, _, CONFIG } = ctx;
 
   switch (action) {
+    // === 互动部分 (保持不变) ===
     case "make_decision": {
       const { category, result } = event;
       if (category || result) {
@@ -39,82 +54,103 @@ async function handle(action, event, ctx) {
       return { status: 200, data: pd };
     }
 
+    // === 🟢 修复核心：特权工坊 ===
     case "redeem_coupon": {
-      const { title, desc, cost, templateId, type } = event;
-      if (title || desc) {
-        if (!(await checkTextSafety(ctx, `${title} ${desc}`)))
-          return { status: 403, msg: "卡券信息包含敏感词" };
-      }
-      const me = (await db.collection("users").where({ _openid: OPENID }).get())
-        .data[0];
-      if ((me.rose_balance || 0) < cost)
-        return { status: 400, msg: "玫瑰不足" };
+      const { templateId } = event; // 只接收 ID，忽略前端传的 cost/title
 
-      await db
+      // 1. 校验模版有效性
+      const template = COUPON_TEMPLATES[templateId];
+      if (!template) return { status: 400, msg: "无效的卡券类型" };
+
+      const cost = template.cost;
+      const title = template.title;
+
+      // 2. 原子操作扣费 (解决并发负余额问题)
+      // 只有当 rose_balance >= cost 时才执行 update
+      const userRes = await db
         .collection("users")
-        .doc(me._id)
-        .update({ data: { rose_balance: _.inc(-cost) } });
+        .where({
+          _openid: OPENID,
+          rose_balance: _.gte(cost),
+        })
+        .update({
+          data: { rose_balance: _.inc(-cost) },
+        });
+
+      // stats.updated 为 0 说明条件不满足（余额不足）
+      if (userRes.stats.updated === 0) {
+        return { status: 400, msg: "玫瑰不足" };
+      }
+
+      // 3. 扣费成功后，发放卡券
       await db.collection("coupons").add({
         data: {
           _openid: OPENID,
           templateId,
           title,
-          desc,
-          type,
+          desc: event.desc || template.title, // 描述可以允许前端传，或者也读配置
+          type: template.type,
           cost,
-          status: 0,
+          status: 0, // 0:未使用
           createdAt: db.serverDate(),
         },
       });
+
       await addLog(ctx, "redeem", `兑换${title}`);
       return { status: 200, msg: "兑换成功" };
     }
 
     case "get_my_coupons": {
+      // 4. 性能修复：增加分页支持
+      const { page = 0, pageSize = 20 } = event;
+
       const res = await db
         .collection("coupons")
         .where({ _openid: OPENID })
         .orderBy("createdAt", "desc")
+        .skip(page * pageSize)
+        .limit(pageSize)
         .get();
+
       return { status: 200, data: res.data };
     }
 
-    // 🆕 新增：使用卡券功能
     case "use_coupon": {
-      const { id } = event; // Coupon ID is passed as 'id'
+      const { id } = event;
       if (!id) return { status: 400, msg: "缺少卡券 ID" };
 
-      const couponRes = await db.collection("coupons").doc(id).get();
-      const coupon = couponRes.data;
+      // 5. 逻辑修复：乐观锁核销
+      // 确保只有当 status 为 0 (未使用) 时才能更新为 2 (已使用)
+      const updateRes = await db
+        .collection("coupons")
+        .where({
+          _id: id,
+          _openid: OPENID, // 确保是自己的
+          status: 0,
+        })
+        .update({
+          data: {
+            status: 2,
+            usedAt: db.serverDate(),
+          },
+        });
 
-      if (!coupon) {
-        return { status: 404, msg: "卡券不存在" };
-      }
-      
-      // 1. 校验权限
-      if (coupon._openid !== OPENID) {
-        return { status: 403, msg: "这不是你的卡券" };
+      if (updateRes.stats.updated === 0) {
+        return { status: 403, msg: "操作失败：卡券已被使用或不存在" };
       }
 
-      // 2. 校验状态 (0: 未使用)
-      if (coupon.status !== 0) {
-        return { status: 403, msg: coupon.status === 2 ? "卡券已使用" : "卡券状态异常" };
-      }
-      
-      // 3. 执行使用（将状态更新为 2: 已使用）
-      await db.collection("coupons").doc(id).update({
-        data: {
-          status: 2,
-          usedAt: db.serverDate(),
-        },
-      });
-
-      // 4. 记录日志
-      await addLog(ctx, "use_coupon", `使用卡券: ${coupon.title}`);
+      // 获取一下卡券信息用于写日志（可选）
+      const coupon = (await db.collection("coupons").doc(id).get()).data;
+      await addLog(
+        ctx,
+        "use_coupon",
+        `使用卡券: ${coupon ? coupon.title : "未知卡券"}`
+      );
 
       return { status: 200, msg: "卡券核销成功！" };
     }
 
+    // === 恋爱清单 (保持不变) ===
     case "get_love_list_status": {
       const userRes = await db
         .collection("users")

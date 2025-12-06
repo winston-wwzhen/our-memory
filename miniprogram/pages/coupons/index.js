@@ -9,27 +9,38 @@ Page({
     templates: TEMPLATES,
     myCoupons: [],
 
-    // 弹窗相关状态 (兑换时用，与使用无关)
+    // 分页状态
+    page: 0,
+    isEnd: false,
+
+    // 弹窗相关
     showModal: false,
     selectedItem: null,
   },
 
   onLoad: function () {
-    this.setData({
-      templates: TEMPLATES,
-    });
+    this.setData({ templates: TEMPLATES });
   },
 
   onShow: function () {
+    // 每次显示重置第一页
+    this.setData({ page: 0, isEnd: false, myCoupons: [] });
     this.fetchData();
   },
 
   onPullDownRefresh: function () {
+    this.setData({ page: 0, isEnd: false, myCoupons: [] });
     this.fetchData(() => wx.stopPullDownRefresh());
   },
 
+  onReachBottom: function () {
+    if (!this.data.isEnd) {
+      this.fetchData();
+    }
+  },
+
   fetchData: function (cb) {
-    // 1. 获取玫瑰余额
+    // 1. 获取玫瑰余额 (保持不变)
     wx.cloud.callFunction({
       name: "user_center",
       data: { action: "get_garden" },
@@ -40,18 +51,26 @@ Page({
       },
     });
 
-    // 2. 获取我的卡包
+    // 2. 获取我的卡包 (🟢 增加分页逻辑)
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "get_my_coupons" },
+      data: {
+        action: "get_my_coupons",
+        page: this.data.page,
+        pageSize: 20,
+      },
       success: (res) => {
         if (res.result.status === 200) {
           const list = res.result.data.map((item) => {
-            // 注意：coupon.js 中的状态为 0: 未使用, 1: 核销中(暂未用), 2: 已使用
             item.createTimeStr = new Date(item.createdAt).toLocaleDateString();
             return item;
           });
-          this.setData({ myCoupons: list });
+
+          this.setData({
+            myCoupons: this.data.myCoupons.concat(list),
+            page: this.data.page + 1,
+            isEnd: list.length < 20, // 如果返回少于20条，说明到底了
+          });
         }
         if (cb) cb();
       },
@@ -62,52 +81,49 @@ Page({
     this.setData({ currentTab: Number(e.currentTarget.dataset.idx) });
   },
 
-  // 兑换：打开确认弹窗
   onRedeem: function (e) {
     const item = e.currentTarget.dataset.item;
     if (this.data.roseBalance < item.cost) {
       wx.showToast({ title: "玫瑰不足哦~", icon: "none" });
       return;
     }
-
-    this.setData({
-      selectedItem: item,
-      showModal: true,
-    });
+    this.setData({ selectedItem: item, showModal: true });
   },
 
-  // 关闭兑换弹窗
   closeModal: function () {
     this.setData({ showModal: false });
   },
 
-  // 确认兑换 (点击弹窗确认按钮)
   confirmRedeem: function () {
     if (!this.data.selectedItem) return;
     this.doRedeem(this.data.selectedItem);
-    this.closeModal(); 
+    this.closeModal();
   },
 
+  // 🟢 修复：调用兑换接口
   doRedeem: function (item) {
     wx.showLoading({ title: "制作中..." });
     wx.cloud.callFunction({
       name: "user_center",
       data: {
         action: "redeem_coupon",
-        templateId: item.id,
-        title: item.title,
-        desc: item.desc,
-        cost: item.cost,
-        type: item.type,
+        templateId: item.id, // 核心：只传 ID
+        // 移除 cost, title 等前端数据，防止篡改
       },
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: "制作成功", icon: "success" });
-          this.fetchData(); // 刷新余额和列表
-          this.setData({ currentTab: 1 }); // 自动跳到卡包
+          // 刷新列表
+          this.setData({ page: 0, isEnd: false, myCoupons: [] });
+          this.fetchData();
+          this.setData({ currentTab: 1 });
         } else {
-          wx.showToast({ title: res.result.msg, icon: "none" });
+          wx.showModal({
+            title: "提示",
+            content: res.result.msg,
+            showCancel: false,
+          });
         }
       },
       fail: () => {
@@ -117,21 +133,18 @@ Page({
     });
   },
 
-  // 使用卡券
+  // 🟢 修复：使用卡券接口
   onUseCoupon: function (e) {
-    const id = e.currentTarget.dataset.id; // 获取卡券ID
+    const id = e.currentTarget.dataset.id;
     const status = e.currentTarget.dataset.status;
-    
-    // 状态 > 0 表示已使用或核销中，禁止再次操作
-    if (status > 0) return;
 
-    // 找到当前卡券的详细信息用于弹窗展示
-    const couponToUse = this.data.myCoupons.find(c => c._id === id);
+    if (status > 0) return; // 0:未使用
+
+    const couponToUse = this.data.myCoupons.find((c) => c._id === id);
     if (!couponToUse) return;
 
     wx.showModal({
       title: "使用卡券确认",
-      // 优化提示文案，告诉用户这是对伴侣的承诺
       content: `你正在使用卡券【${couponToUse.title}】，确认向你的伴侣兑现这项承诺吗？`,
       confirmText: "立即使用",
       confirmColor: "#ff6b81",
@@ -143,8 +156,7 @@ Page({
     });
   },
 
-  // 🆕 新增：执行核销逻辑
-  doUseCoupon: function(couponId) {
+  doUseCoupon: function (couponId) {
     wx.showLoading({ title: "核销中..." });
     wx.cloud.callFunction({
       name: "user_center",
@@ -156,14 +168,19 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: "核销成功！", icon: "success" });
-          this.fetchData(); // 刷新卡包列表
+          // 局部更新本地数据，避免全量刷新闪烁
+          const newCoupons = this.data.myCoupons.map((c) => {
+            if (c._id === couponId) c.status = 2; // 更新为已使用
+            return c;
+          });
+          this.setData({ myCoupons: newCoupons });
         } else {
           wx.showToast({ title: res.result.msg, icon: "none" });
         }
       },
       fail: () => {
         wx.hideLoading();
-        wx.showToast({ title: "网络错误，核销失败", icon: "none" });
+        wx.showToast({ title: "网络错误", icon: "none" });
       },
     });
   },

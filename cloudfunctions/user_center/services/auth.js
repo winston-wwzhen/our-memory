@@ -131,7 +131,7 @@ async function handle(action, event, ctx) {
       if (pr.data.length === 0) return { status: 404 };
       // 检查接收方是否已绑定
       if (pr.data[0].partner_id) return { status: 403, msg: "对方已绑定伴侣" };
-      
+
       // 在接收方记录上设置邀请人（OPENID）
       await db
         .collection("users")
@@ -143,55 +143,73 @@ async function handle(action, event, ctx) {
     case "respond_bind": {
       const { decision, partnerCode } = event; // partnerCode 是邀请人（Inviter）的 OpenID
       if (!partnerCode) return { status: 400 };
-      
+
       // 1. 拒绝 (Recipient: OPENID)
       if (decision === "reject") {
         await db
           .collection("users")
           .where({ _openid: OPENID })
-          .update({ data: { bind_request_from: null } }); 
+          .update({ data: { bind_request_from: null } });
         return { status: 200, msg: "已拒绝" };
       }
-      
+
       // 2. 接受 (Recipient: OPENID)
       if (decision === "accept") {
-        // 检查邀请人（partnerCode）是否仍可绑定
-        const inviterRes = await db.collection("users").where({ _openid: partnerCode }).get();
-        if (inviterRes.data.length === 0 || inviterRes.data[0].partner_id) 
-            return { status: 403, msg: "对方已绑定或用户不存在" };
-
-        // === 🟢 绑定时赠送 VIP 试用逻辑 START ===
+        // 准备 VIP 赠送数据
         const vipExpire = new Date();
         vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
         const vipUpdate = {
-            vip_expire_date: vipExpire,
+          vip_expire_date: vipExpire,
         };
-        // === 绑定时赠送 VIP 试用逻辑 END ===
 
-        // A. Recipient Update (接受方)
-        await db
+        // 🔒 第一步：原子更新接受方（自己），确保自己当前未绑定
+        const resA = await db
           .collection("users")
-          .where({ _openid: OPENID })
+          .where({
+            _openid: OPENID,
+            partner_id: null, // 👈 核心修复：必须是单身才能绑定
+          })
           .update({
-            data: { 
-                partner_id: partnerCode, 
-                bind_request_from: null,
-                ...vipUpdate // 赠送 VIP 试用
+            data: {
+              partner_id: partnerCode,
+              bind_request_from: null,
+              ...vipUpdate,
             },
           });
-          
-        // B. Inviter Update (邀请方)
-        await db
+
+        // 如果更新数为 0，说明 where 条件不满足（即已经绑定了别人）
+        if (resA.stats.updated === 0) {
+          return { status: 403, msg: "操作失败：你当前已绑定伴侣" };
+        }
+
+        // 🔒 第二步：原子更新邀请方（对方），确保对方当前未绑定
+        const resB = await db
           .collection("users")
-          .where({ _openid: partnerCode })
-          .update({ 
-            data: { 
-                partner_id: OPENID, 
-                bind_request_from: null,
-                bind_notification: true, 
-                ...vipUpdate // 赠送 VIP 试用
-            } 
+          .where({
+            _openid: partnerCode,
+            partner_id: null, // 👈 核心修复：对方也必须是单身
+          })
+          .update({
+            data: {
+              partner_id: OPENID,
+              bind_request_from: null,
+              bind_notification: true,
+              ...vipUpdate,
+            },
           });
+
+        // 🚨 异常回滚处理：如果对方在这一瞬间绑定了别人
+        if (resB.stats.updated === 0) {
+          // 回滚自己的状态：解绑
+          await db
+            .collection("users")
+            .where({ _openid: OPENID })
+            .update({
+              data: { partner_id: null },
+            });
+          return { status: 403, msg: "绑定失败：对方已绑定伴侣" };
+        }
+
         await addLog(ctx, "bind", "绑定成功");
         return { status: 200, msg: "绑定成功" };
       }
@@ -235,7 +253,7 @@ async function handle(action, event, ctx) {
     }
 
     case "unbind": {
-      if (!SUDO_USERS.includes(OPENID)) return { status: 403, msg: "暂未开放" };
+      // if (!SUDO_USERS.includes(OPENID)) return { status: 403, msg: "暂未开放" };
       const myRes = await db
         .collection("users")
         .where({ _openid: OPENID })
@@ -258,11 +276,11 @@ async function handle(action, event, ctx) {
 
     // 清除绑定通知标志
     case "clear_bind_notification": {
-        await db
-          .collection("users")
-          .where({ _openid: OPENID })
-          .update({ data: { bind_notification: false } });
-        return { status: 200 };
+      await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .update({ data: { bind_notification: false } });
+      return { status: 200 };
     }
 
     case "update_status": {
