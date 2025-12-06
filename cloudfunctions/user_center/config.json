@@ -4,5 +4,6 @@
       "security.msgSecCheck",
       "security.imgSecCheck"
     ]
-  }
+  },
+  "timeout": 20
 }

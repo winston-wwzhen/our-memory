@@ -9,7 +9,7 @@ const db = cloud.database();
 const _ = db.command;
 
 const TEST_CONFIG = {
-  WHITELIST: ["oLvaA10VxUftuv5nwuzJ5b8AWDyY"],
+  WHITELIST: [],
   // 是否开启测试拦截 (上线时可改为 false)
   ENABLE: true,
 };
@@ -22,17 +22,17 @@ const DAILY_AD_LIMIT = 1;
 
 // 🎨 风格配置表 (后端做最终校验)
 const STYLE_CONFIG = {
+  125: { isVip: false, name: "国风工笔" },
   201: { isVip: false, name: "日漫风" },
-  210: { isVip: false, name: "2.5D动画" },
   121: { isVip: false, name: "黏土" },
-  125: { isVip: true, name: "国风工笔" },
-  127: { isVip: false, name: "瓷器" },
-  129: { isVip: true, name: "美式复古" },
-  130: { isVip: false, name: "蒸汽朋克" },
-  132: { isVip: false, name: "素描" },
-  133: { isVip: true, name: "莫奈花园" },
+  129: { isVip: false, name: "美式复古" },
+  210: { isVip: false, name: "2.5D动画" },
   134: { isVip: false, name: "厚涂手绘" },
+  127: { isVip: false, name: "瓷器" },
+  133: { isVip: true, name: "莫奈花园" },
   126: { isVip: true, name: "玉石" },
+  130: { isVip: true, name: "蒸汽朋克" },
+  132: { isVip: true, name: "素描" },
 };
 
 // ============================================================

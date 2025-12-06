@@ -51,25 +51,6 @@ App({
       console.log(
         `✨ 我们的纪念册 (Our Memory) 已启动 | 环境: ${targetEnv.envId} ✨`
       );
-
-      // 🟢 启动时静默拉取最新配置
-      this.fetchRemoteConfig();
-    }
-  },
-
-  fetchRemoteConfig: async function () {
-    try {
-      const db = wx.cloud.database();
-      const res = await db.collection("app_config").doc("static_content").get();
-      const content = res.data;
-
-      // 更新本地缓存
-      wx.setStorageSync("COUPON_TEMPLATES", content.coupon_templates);
-      wx.setStorageSync("LOVE_LIST", content.guide_love_list);
-
-      console.log("前端静态配置已更新");
-    } catch (e) {
-      console.error("配置拉取失败，将使用本地兜底数据", e);
     }
   },
 });

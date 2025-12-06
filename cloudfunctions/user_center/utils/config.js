@@ -15,25 +15,9 @@ const DEFAULT_CONFIG = {
   CHECKIN_REWARD: 50,
 };
 
-let cachedConfig = null;
-let cacheTime = 0;
-const CACHE_TTL = 60 * 1000 * 5; // 5分钟缓存
 
 async function getBizConfig(db) {
-  const now = Date.now();
-  if (cachedConfig && now - cacheTime < CACHE_TTL) {
-    return cachedConfig;
-  }
-
-  try {
-    const res = await db.collection("app_config").doc("business_rules").get();
-    cachedConfig = { ...DEFAULT_CONFIG, ...res.data };
-    cacheTime = now;
-    return cachedConfig;
-  } catch (err) {
-    console.warn("⚠️ 获取配置失败，使用默认配置");
-    return DEFAULT_CONFIG;
-  }
+  return DEFAULT_CONFIG;
 }
 
 async function getSudoUsers(db) {
@@ -45,15 +29,4 @@ async function getSudoUsers(db) {
   }
 }
 
-// 增加风格配置获取
-async function getStylesConfig(db) {
-  try {
-    const res = await db.collection("app_config").doc("style_config").get();
-    return res.data.styles || [];
-  } catch (err) {
-    console.warn("⚠️ 获取风格配置失败:", err);
-    return []; // 前端可以有本地兜底
-  }
-}
-
-module.exports = { getBizConfig, getSudoUsers, getStylesConfig };
+module.exports = { getBizConfig, getSudoUsers };

@@ -24,7 +24,7 @@ async function checkTextSafety(ctx, content) {
 }
 
 async function checkImageSafety(ctx, fileID) {
-  if (!fileID) return true;
+  if (!fileID) return { pass: true };
   const { cloud } = ctx;
   try {
     const res = await cloud.downloadFile({ fileID });
@@ -34,10 +34,14 @@ async function checkImageSafety(ctx, fileID) {
         value: res.fileContent,
       },
     });
-    return checkRes.errCode === 0;
+    return { pass: checkRes.errCode === 0 };
   } catch (err) {
     console.error("图片校验失败:", err);
-    return false;
+    // 🟢 核心修改：捕获 45002 错误
+    if (err.errCode === 45002) {
+      return { pass: false, msg: "图片过大，请压缩后上传" };
+    }
+    return { pass: false, msg: "图片包含敏感内容" };
   }
 }
 

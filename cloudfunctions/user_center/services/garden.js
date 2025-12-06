@@ -157,8 +157,12 @@ async function handle(action, event, ctx) {
     case "check_in": {
       const { imageFileID, style } = event;
       if (!imageFileID) return { status: 400 };
-      if (!(await checkImageSafety(ctx, imageFileID)))
-        return { status: 403, msg: "图片包含不当内容" };
+      // 图片安全检查，暂时不开启
+      // const safetyRes = await checkImageSafety(ctx, imageFileID);
+      // if (!safetyRes.pass) {
+        // 返回具体的错误信息（是违规还是太大）
+        // return { status: 403, msg: safetyRes.msg || "图片校验未通过" };
+      // }
 
       const oldLog = await db
         .collection("logs")

@@ -533,3 +533,11 @@ page {
 
 @keyframes fadeIn { from { opacity: 0;
 } to { opacity: 1; } }
+
+/* 新增：已保存状态的按钮样式 */
+.btn-confirm-main.saved-state {
+  background: #a5d6a7; /* 柔和的绿色，表示成功 */
+  box-shadow: none;
+  opacity: 0.9;
+  transform: scale(0.98); /* 稍微缩小一点，表示按下的状态 */
+}

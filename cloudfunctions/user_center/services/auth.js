@@ -1,5 +1,5 @@
 const { getTodayStr, getRandomName } = require("../utils/common");
-const { getSudoUsers, getStylesConfig } = require("../utils/config");
+const { getSudoUsers } = require("../utils/config");
 const { addLog } = require("../utils/logger");
 const { checkTextSafety, checkImageSafety } = require("../utils/safety");
 
@@ -103,8 +103,6 @@ async function handle(action, event, ctx) {
         if (partnerRes.data.length > 0) partnerInfo = partnerRes.data[0];
       }
 
-      const styles = await getStylesConfig(db);
-
       return {
         status: 200,
         user: currentUser,
@@ -117,7 +115,6 @@ async function handle(action, event, ctx) {
         dailyFreeLimit: currentLimit,
         adCount: stats.ad_count || 0,
         dailyAdLimit: CONFIG.DAILY_AD_LIMIT,
-        styleList: styles,
       };
     }
 

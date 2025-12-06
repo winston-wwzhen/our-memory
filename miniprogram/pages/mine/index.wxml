@@ -4,22 +4,18 @@
     <view class="timer-card paper-texture">
       <view class="timer-header">
         <text class="timer-title">我们已经相爱</text>
-        
         <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
           <view class="date-picker-wrap">
             <view class="timer-setting">
               <text wx:if="{{anniversary}}">起始日: {{anniversary}}</text>
               <text wx:else>⚙️ 设置纪念日</text>
             </view>
-            
             <view class="modifier-note" wx:if="{{userData.anniversaryModifier}}">
               <text>✎ 由 {{userData.anniversaryModifier}} 更新</text>
             </view>
           </view>
         </picker>
-
       </view>
-      
       <view class="timer-content">
         <text class="timer-number">{{daysCount}}</text>
         <text class="timer-unit">天</text>
@@ -42,56 +38,28 @@
   </block>
 
   <view class="user-card paper-texture">
-    <button 
-      class="avatar-wrapper" 
-      open-type="chooseAvatar" 
-      bind:chooseavatar="onChooseAvatar"
-    >
-      <image 
-        class="avatar-img" 
-        src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
-        mode="aspectFill"
-      ></image>
+    <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+      <image class="avatar-img" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="edit-badge">📷</view>
     </button>
-
     <view class="nickname-row">
       <view class="nickname-box">
-        <input 
-          type="nickname" 
-          class="nickname-input" 
-          placeholder="点击设置昵称" 
-          placeholder-class="nickname-placeholder"
-          value="{{userData.nickName}}" 
-          bind:change="onInputNickname"
-        />
+        <input type="nickname" class="nickname-input" placeholder="点击设置昵称" placeholder-class="nickname-placeholder" value="{{userData.nickName}}" bind:change="onInputNickname" />
         <text class="edit-icon">✎</text>
       </view>
       <view class="vip-tag {{vipStatus.isVip ? '' : 'gray'}}" bindtap="showVipInfo">
         <text>👑 VIP</text>
       </view>
     </view>
-    
     <view class="vip-info-area" wx:if="{{vipStatus.isVip}}">
-      <view class="vip-privilege-box">
-        <text>{{vipStatus.privilegeTip}}</text>
-      </view>
-      <view class="vip-expire-date" wx:if="{{vipStatus.expireDateStr}}">
-        <text>有效期至 {{vipStatus.expireDateStr}}</text>
-      </view>
+      <view class="vip-privilege-box"><text>{{vipStatus.privilegeTip}}</text></view>
+      <view class="vip-expire-date" wx:if="{{vipStatus.expireDateStr}}"><text>有效期至 {{vipStatus.expireDateStr}}</text></view>
     </view>
-    
     <view class="status-tag {{userData.partner_id ? 'connected' : 'waiting'}}">
       <text wx:if="{{userData.partner_id}}">❤️ 恋爱纪念册</text>
       <text wx:else>✨ 开启单人篇章</text>
     </view>
-
-    <button 
-      class="btn-save" 
-      bindtap="saveProfile" 
-      size="mini"
-      wx:if="{{needSave}}"
-    >保存资料</button>
+    <button class="btn-save" bindtap="saveProfile" size="mini" wx:if="{{needSave}}">保存资料</button>
   </view>
 
   <view class="action-card paper-texture" wx:if="{{!userData.partner_id}}">
@@ -99,70 +67,102 @@
       <text class="card-title">邀请另一半</text>
       <text class="card-subtitle">Invite your love</text>
     </view>
-    
     <view class="code-section">
       <text class="label">我的专属编号</text>
       <view class="code-display" bindtap="copyMyKey">
         <text class="code-text">{{userData._openid || '生成中...'}}</text>
         <view class="copy-tag">复制</view>
       </view>
-      <button class="btn-share-pill" open-type="share">
-        📤 发送给 TA
+      <button class="btn-share-pill" bindtap="showInviteModal">
+        📤 邀请另一半
       </button>
     </view>
-
     <view class="divider-line"></view>
-
     <view class="input-section">
       <text class="label">填入 TA 的编号</text>
       <view class="input-wrapper">
-        <input 
-          class="code-input" 
-          placeholder="在此粘贴 TA 的编号..." 
-          bindinput="onInputKey"
-          value="{{inputPartnerCode}}"
-        />
+        <input class="code-input" placeholder="在此粘贴 TA 的编号..." bindinput="onInputKey" value="{{inputPartnerCode}}"/>
       </view>
       <button class="btn-connect-pill" bindtap="bindPartner">确认关联</button>
     </view>
   </view>
 
   <view class="action-card paper-texture connected-state" wx:else>
-    
     <view class="bg-decoration">✨</view>
-
     <view class="cp-avatars-box">
-      <image 
-        class="cp-avatar mine" 
-        src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" 
-        mode="aspectFill"
-      ></image>
-      
+      <image class="cp-avatar mine" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="heart-beat">❤</view>
-      
-      <image 
-        class="cp-avatar partner" 
-        src="{{partnerData.avatarUrl || '../../images/default-avatar.png'}}" 
-        mode="aspectFill"
-      ></image>
+      <image class="cp-avatar partner" src="{{partnerData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
     </view>
-
     <view class="love-content">
       <text class="love-title">我们正在共同记录</text>
-      
       <text class="love-partner" wx:if="{{partnerData.nickName}}">与 {{partnerData.nickName}}</text>
       <text class="love-partner" wx:else>与 TA ({{partnerShortID}})</text>
-      
       <text class="love-desc-sub">未来的每一天，都值得被珍藏。</text>
     </view>
-    
     <view class="footer-actions">
       <view class="unbind-link" bindtap="onUnbind">解除关联</view>
     </view>
   </view>
 
+  <button class="btn-contact" open-type="contact" session-from="mine_page">
+      <text class="contact-icon">🎧</text>
+      <text>联系客服 / 反馈建议</text>
+    </button>
+
   <view class="footer-info">
     <text>Designed for Love</text>
+  </view>
+
+  <view class="oath-modal-mask" wx:if="{{showModal}}" bindtap="hideModal">
+    
+    <view class="oath-card bounce-in" wx:if="{{modalType === 'invite'}}" catchtap="true">
+      <view class="oath-decoration-top">🕊️</view>
+      <view class="oath-title">愿得一人心</view>
+      <view class="oath-subtitle">白首不分离</view>
+      <view class="oath-divider">❦</view>
+      <view class="oath-warning">
+        <text class="warning-title">温馨提示</text>
+        <text class="warning-desc">纪念册一旦开启，暂不支持解除绑定哦。\n请确认要把这份唯一的邀请，发给认定的 TA 吗？</text>
+      </view>
+      <button class="btn-oath-confirm" open-type="share">
+        <text>🌹 确认，寄出邀请</text>
+      </button>
+      <view class="oath-cancel" bindtap="hideModal">我再想想</view>
+    </view>
+
+    <view class="oath-card bounce-in" wx:if="{{modalType === 'accept'}}" catchtap="true">
+      <view class="oath-decoration-top">💌</view>
+      <view class="oath-title">收到一份邀请</view>
+      <view class="oath-subtitle">Waiting for you</view>
+      <view class="oath-divider">❦</view>
+      <view class="oath-warning accept-style">
+        <text class="warning-desc">检测到包含爱意的密钥：\n</text>
+        <text class="code-highlight">{{inputPartnerCode}}</text>
+        <text class="warning-desc">\n\n是否接受邀请，开启你们的共同回忆？</text>
+      </view>
+      <button class="btn-oath-confirm" bindtap="confirmAccept">
+        <text>❤️ 我愿意</text>
+      </button>
+      <view class="oath-cancel" bindtap="hideModal">暂不处理</view>
+    </view>
+
+    <view class="oath-card bounce-in unbind-theme" wx:if="{{modalType === 'unbind'}}" catchtap="true">
+      <view class="oath-decoration-top">🍂</view>
+      <view class="oath-title">遗憾的决定</view>
+      <view class="oath-subtitle">Time to say goodbye?</view>
+      <view class="oath-divider">❦</view>
+      <view class="oath-warning unbind-style">
+        <text class="warning-title">冷静期提示</text>
+        <text class="warning-desc">解除关联后，所有的共同回忆将不再可见。\n相遇不易，真的要断开连接吗？</text>
+      </view>
+      <button class="btn-oath-confirm {{!canUnbind ? 'disabled' : 'danger'}}" bindtap="confirmUnbind">
+        <text wx:if="{{!canUnbind}}">请冷静 {{unbindCount}}s</text>
+        <text wx:else>💔 确认解绑</text>
+      </button>
+      <view class="oath-cancel" bindtap="hideModal">还是算了</view>
+    </view>
+
   </view>
 
 </view>

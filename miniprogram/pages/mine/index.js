@@ -4,6 +4,7 @@ const DEFAULT_AVATAR = "";
 
 Page({
   data: {
+    // === 原有业务数据 ===
     userData: {
       avatarUrl: DEFAULT_AVATAR,
       nickName: "微信用户",
@@ -12,7 +13,7 @@ Page({
     inputPartnerCode: "",
     needSave: false,
     partnerShortID: "",
-    isShowingRequest: false,
+    isShowingRequest: false, // 旧版请求绑定弹窗控制（保留以兼容旧逻辑）
     daysCount: 0,
     anniversary: "",
     
@@ -22,6 +23,15 @@ Page({
       expireDateStr: "",
       privilegeTip: "" 
     },
+
+    // === 🆕 弹窗控制中心 ===
+    showModal: false,
+    modalType: '', // 'invite' | 'accept' | 'unbind'
+    
+    // 解绑冷静期倒计时
+    unbindCount: 5,
+    canUnbind: false,
+    timer: null,
   },
 
   onLoad: function (options) {
@@ -29,7 +39,8 @@ Page({
       this.setData({
         inputPartnerCode: options.inviteCode,
       });
-      wx.showToast({ title: "已自动填入密钥", icon: "success" });
+      // 🟢 优化点：检测到邀请码，自动弹出“接受邀请”确认框
+      this.showAcceptModal(); 
     }
   },
 
@@ -43,38 +54,108 @@ Page({
     });
   },
 
-  onShareAppMessage: function () {
+  // ============================================================
+  // 🟢 核心交互逻辑 (弹窗与分享)
+  // ============================================================
+
+  // 1. 打开“发出邀请”誓言弹窗
+  showInviteModal: function() {
+    wx.vibrateShort({ type: 'medium' });
+    this.setData({ 
+      showModal: true, 
+      modalType: 'invite' 
+    });
+  },
+
+  // 2. 打开“接受邀请”确认弹窗
+  showAcceptModal: function() {
+    wx.vibrateShort({ type: 'heavy' });
+    this.setData({ 
+      showModal: true, 
+      modalType: 'accept' 
+    });
+  },
+
+  // 3. 打开“申请解绑”冷静期弹窗
+  onUnbind: function() {
+    wx.vibrateShort({ type: 'heavy' });
+    this.setData({ 
+      showModal: true, 
+      modalType: 'unbind',
+      unbindCount: 5,  // 重置倒计时
+      canUnbind: false
+    });
+
+    // 启动 5秒 倒计时
+    this.startUnbindTimer();
+  },
+
+  // 倒计时逻辑
+  startUnbindTimer: function() {
+    if (this.data.timer) clearInterval(this.data.timer);
+    
+    const timer = setInterval(() => {
+      let next = this.data.unbindCount - 1;
+      if (next <= 0) {
+        clearInterval(timer);
+        this.setData({ unbindCount: 0, canUnbind: true });
+      } else {
+        this.setData({ unbindCount: next });
+      }
+    }, 1000);
+    
+    this.setData({ timer });
+  },
+
+  // 通用：关闭任意弹窗
+  hideModal: function() {
+    if (this.data.timer) clearInterval(this.data.timer);
+    this.setData({ showModal: false });
+  },
+
+  // 动作 A：确认接受邀请 -> 执行绑定
+  confirmAccept: function() {
+    this.hideModal();
+    this.bindPartner(); // 调用原有的绑定请求逻辑
+  },
+
+  // 动作 B：确认解绑 -> 执行解绑
+  confirmUnbind: function() {
+    if (!this.data.canUnbind) return;
+    this.hideModal();
+    this.executeUnbind(); // 调用原有的解绑请求逻辑
+  },
+
+  // 🟢 核心：分享逻辑重写
+  onShareAppMessage: function (res) {
+    // 只有点击了弹窗里的“确认寄出”按钮，才携带参数
+    if (res.from === 'button' && this.data.modalType === 'invite') {
+      // 分享后关闭弹窗
+      this.hideModal();
+      
+      const myOpenId = this.data.userData._openid;
+      const myName = this.data.userData.nickName || '你的另一半';
+
+      return {
+        title: `💌 ${myName} 邀请你开启：我们的纪念册`,
+        // 携带 inviteCode 参数，接收方点开会触发 onLoad -> showAcceptModal
+        path: `/pages/mine/index?inviteCode=${myOpenId}`, 
+        imageUrl: '/images/share-cover.png', // 建议在 images 目录下放一张温馨的图
+      };
+    }
+
+    // 默认右上角转发逻辑
     const myKey = this.data.userData._openid;
-    if (!myKey) return;
     return {
       title: "邀请你共同开启我们的纪念册",
-      path: "/pages/mine/index?inviteCode=" + myKey,
+      path: "/pages/mine/index?inviteCode=" + (myKey || ''),
       imageUrl: "/images/share-cover.png",
     };
   },
 
-  // 🆕 修改：点击 VIP 标签显示权益弹窗 (区分 VIP 和 非VIP)
-  showVipInfo: function () {
-    if (this.data.vipStatus.isVip) {
-      // 尊贵的 VIP 用户
-      wx.showModal({
-        title: '💎 内测 VIP 尊享权益',
-        content: '感谢成为首批内测体验官！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会\n\n(额度每日凌晨刷新，快去体验不同风格吧！)',
-        showCancel: false,
-        confirmText: '太棒了',
-        confirmColor: '#ff6b81'
-      });
-    } else {
-      // 潜在的 VIP 用户
-      wx.showModal({
-        title: '🚀 VIP 筹备中',
-        content: '为了带给你们更好的体验，VIP 会员计划正在紧锣密鼓地筹备中！\n\n后续将解锁更多专属风格、无限畅玩特权，敬请期待~',
-        showCancel: false,
-        confirmText: '期待',
-        confirmColor: '#9e9e9e' // 使用灰色或中性色按钮
-      });
-    }
-  },
+  // ============================================================
+  // 🟢 原有业务逻辑 (保持不变)
+  // ============================================================
 
   checkLogin: function (callback) {
     wx.cloud.callFunction({
@@ -101,7 +182,7 @@ Page({
             vipDateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
           }
 
-          // 2. 根据注册天数生成特权提示文案（用于页面底部小字提示）
+          // 2. 根据注册天数生成特权提示文案
           let tipText = "💎 VIP特权：每日享有 3 次拍照机会"; 
           if (registerDays <= 1) {
             tipText = "✨ 首日特权：今日获赠 10 次拍照机会";
@@ -194,6 +275,7 @@ Page({
     });
   },
 
+  // 处理被动收到的请求（旧版逻辑保留，作为兜底）
   handleIncomingRequest: function (requesterID) {
     if (this.data.isShowingRequest) return;
     this.setData({ isShowingRequest: true });
@@ -241,22 +323,7 @@ Page({
     });
   },
 
-  onUnbind: function () {
-    wx.showModal({
-      title: "解除关联",
-      content: "确定要解除与 TA 的关联吗？\n解除后将无法再共同记录回忆。",
-      confirmText: "解除",
-      confirmColor: "#ccc",
-      cancelText: "再想想",
-      cancelColor: "#5d4037",
-      success: (res) => {
-        if (res.confirm) {
-          this.executeUnbind();
-        }
-      },
-    });
-  },
-
+  // 真正的解绑请求逻辑
   executeUnbind: function () {
     wx.showLoading({ title: "处理中..." });
     wx.cloud.callFunction({
@@ -293,6 +360,7 @@ Page({
     this.setData({ inputPartnerCode: e.detail.value });
   },
 
+  // 主动发起绑定请求（保留手动输入模式）
   bindPartner: function () {
     const code = this.data.inputPartnerCode;
     if (!code) return wx.showToast({ title: "请输入对方编号", icon: "none" });
@@ -359,6 +427,26 @@ Page({
     } catch (err) {
       wx.hideLoading();
       wx.showToast({ title: "保存失败", icon: "none" });
+    }
+  },
+
+  showVipInfo: function () {
+    if (this.data.vipStatus.isVip) {
+      wx.showModal({
+        title: '💎 内测 VIP 尊享权益',
+        content: '感谢成为首批内测体验官！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会\n\n(额度每日凌晨刷新，快去体验不同风格吧！)',
+        showCancel: false,
+        confirmText: '太棒了',
+        confirmColor: '#ff6b81'
+      });
+    } else {
+      wx.showModal({
+        title: '🚀 VIP 筹备中',
+        content: '为了带给你们更好的体验，VIP 会员计划正在紧锣密鼓地筹备中！\n\n后续将解锁更多专属风格、无限畅玩特权，敬请期待~',
+        showCancel: false,
+        confirmText: '期待',
+        confirmColor: '#9e9e9e'
+      });
     }
   },
 });

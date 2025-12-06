@@ -53,8 +53,7 @@ page {
   align-items: flex-end;
 }
 
-.timer-setting { font-size: 22rpx; color: #a1887f; background: rgba(255,255,255,0.6); padding: 4rpx 12rpx; border-radius: 20rpx;
-}
+.timer-setting { font-size: 22rpx; color: #a1887f; background: rgba(255,255,255,0.6); padding: 4rpx 12rpx; border-radius: 20rpx; }
 
 /* 修改人提示文字 */
 .modifier-note {
@@ -65,12 +64,15 @@ page {
   font-style: italic;
 }
 
-.timer-content { margin: 10rpx 0; display: flex; align-items: baseline; justify-content: center; }
+.timer-content { margin: 10rpx 0;
+  display: flex; align-items: baseline; justify-content: center; }
 .timer-number { font-size: 70rpx; font-weight: 900; color: #ff6b81;
-font-family: 'Courier New', monospace; line-height: 1; }
+font-family: 'Courier New', monospace; line-height: 1;
+}
 .timer-unit { font-size: 26rpx; color: #8d6e63; margin-left: 10rpx; font-weight: bold; }
 .timer-footer { font-size: 20rpx;
-color: #d7ccc8; letter-spacing: 4rpx; text-transform: uppercase; }
+color: #d7ccc8; letter-spacing: 4rpx; text-transform: uppercase;
+}
 
 /* === 顶部：单人欢迎卡片 === */
 .welcome-card {
@@ -84,19 +86,22 @@ color: #d7ccc8; letter-spacing: 4rpx; text-transform: uppercase; }
   justify-content: center;
   align-items: center;
 }
-.welcome-header { margin-bottom: 16rpx; width: 100%; }
+.welcome-header { margin-bottom: 16rpx; width: 100%;
+}
 .welcome-title { font-size: 32rpx; color: #5d4037; font-weight: 800; margin-bottom: 4rpx; display: block;
 }
-.welcome-subtitle { font-size: 18rpx; color: #a1887f; letter-spacing: 2rpx; text-transform: uppercase; display: block; opacity: 0.8; }
+.welcome-subtitle { font-size: 18rpx; color: #a1887f; letter-spacing: 2rpx;
+  text-transform: uppercase; display: block; opacity: 0.8; }
 .welcome-content { display: flex; flex-direction: column;
-align-items: center; font-size: 24rpx; color: #795548; line-height: 1.5; }
+align-items: center; font-size: 24rpx; color: #795548; line-height: 1.5;
+}
 .welcome-content text { margin-bottom: 4rpx;
 }
 
 /* === 中部：用户头像卡片 === */
 .user-card {
   display: flex; flex-direction: column; align-items: center;
-  padding-bottom: 16rpx; 
+  padding-bottom: 16rpx;
 }
 .avatar-wrapper {
   padding: 0;
@@ -109,11 +114,13 @@ align-items: center; font-size: 24rpx; color: #795548; line-height: 1.5; }
   border: 6rpx solid #fff; 
   overflow: visible; position: relative;
 }
-.avatar-wrapper::after { border: none; }
+.avatar-wrapper::after { border: none;
+}
 .avatar-img { width: 100%; height: 100%; border-radius: 50%;
 background-color: #f0f0f0; display: block; }
 .edit-badge {
-  position: absolute; bottom: -4rpx; right: -4rpx;
+  position: absolute; bottom: -4rpx;
+  right: -4rpx;
   width: 40rpx; height: 40rpx; 
   background: #fff;
   border-radius: 50%;
@@ -122,17 +129,20 @@ background-color: #f0f0f0; display: block; }
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15); border: 4rpx solid #fdfbf7;
   color: #5d4037; z-index: 10;
 }
-.nickname-row { margin-bottom: 12rpx; display: flex; justify-content: center; width: 100%; align-items: center; }
+.nickname-row { margin-bottom: 12rpx; display: flex;
+  justify-content: center; width: 100%; align-items: center; }
 .nickname-box {
   display: flex;
   align-items: center; justify-content: center;
-  background: #fffbf0; padding: 8rpx 24rpx; 
+  background: #fffbf0; padding: 8rpx 24rpx;
   border-radius: 40rpx; border: 2rpx dashed #e0d6c6; transition: all 0.2s;
 }
-.nickname-input { font-size: 28rpx; font-weight: 600; color: #5d4037; text-align: center; min-width: 120rpx; max-width: 300rpx; }
+.nickname-input { font-size: 28rpx; font-weight: 600; color: #5d4037; text-align: center;
+  min-width: 120rpx; max-width: 300rpx; }
 .nickname-placeholder { color: #ccc; font-weight: normal;
 }
-.edit-icon { font-size: 24rpx; color: #a1887f; margin-left: 10rpx; opacity: 0.6; }
+.edit-icon { font-size: 24rpx; color: #a1887f; margin-left: 10rpx; opacity: 0.6;
+}
 
 /* VIP 标签与特权展示 */
 .vip-tag {
@@ -149,17 +159,18 @@ background-color: #f0f0f0; display: block; }
   animation: pulse-vip 2s infinite;
 }
 
-/* 🆕 灰色 VIP 样式 */
+/* 灰色 VIP 样式 */
 .vip-tag.gray {
   background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
   color: #fff;
   box-shadow: none;
-  animation: none; /* 灰色状态移除心跳动画 */
+  animation: none;
 }
 
 @keyframes pulse-vip {
   0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.05);
+  }
   100% { transform: scale(1); }
 }
 
@@ -188,11 +199,11 @@ background-color: #f0f0f0; display: block; }
 }
 
 .status-tag { font-size: 20rpx; padding: 4rpx 16rpx; border-radius: 30rpx;
-margin-top: 4rpx; margin-bottom: 12rpx; }
+  margin-top: 4rpx; margin-bottom: 12rpx; }
 .status-tag.waiting { background: #f5f5f5; color: #999; }
 .status-tag.connected { background: #ffe4e8; color: #ff6b81; }
 .btn-save { background: #5d4037;
-color: #fff; border-radius: 30rpx; margin-top: 0; font-size: 22rpx; }
+  color: #fff; border-radius: 30rpx; margin-top: 0; font-size: 22rpx; }
 
 /* === 底部：邀请/操作卡片 === */
 .action-card {
@@ -204,10 +215,10 @@ color: #fff; border-radius: 30rpx; margin-top: 0; font-size: 22rpx; }
 }
 .card-header { text-align: center; margin-bottom: 16rpx; }
 .card-title { font-size: 28rpx; font-weight: bold;
-color: #5d4037; display: block; }
+  color: #5d4037; display: block; }
 .card-subtitle { font-size: 16rpx; color: #b0a4a4; letter-spacing: 2rpx; margin-top: 2rpx; text-transform: uppercase; }
 .label { font-size: 20rpx;
-color: #8d6e63; margin-bottom: 8rpx; display: block; font-weight: 500; }
+  color: #8d6e63; margin-bottom: 8rpx; display: block; font-weight: 500; }
 
 .code-section { margin-bottom: 16rpx; }
 .code-display {
@@ -216,9 +227,9 @@ color: #8d6e63; margin-bottom: 8rpx; display: block; font-weight: 500; }
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx;
 }
 .code-text { font-family: monospace; color: #5d4037;
-font-size: 22rpx; width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  font-size: 22rpx; width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .copy-tag { font-size: 18rpx; color: #ff9a9e; border: 2rpx solid #ff9a9e;
-padding: 2rpx 10rpx; border-radius: 20rpx; }
+  padding: 2rpx 10rpx; border-radius: 20rpx; }
 .btn-share-pill {
   width: 100% !important; background: #5d4037; color: #fff; border-radius: 40rpx;
   font-size: 24rpx;
@@ -227,10 +238,10 @@ padding: 2rpx 10rpx; border-radius: 20rpx; }
 }
 
 .divider-line { height: 2rpx; background: #eee;
-margin: 16rpx 0; position: relative; }
+  margin: 16rpx 0; position: relative; }
 .divider-line::after {
   content: "OR"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-background: #fff; padding: 0 16rpx; color: #ccc; font-size: 16rpx;
+  background: #fff; padding: 0 16rpx; color: #ccc; font-size: 16rpx;
 }
 
 .input-wrapper { background: #f9f9f9; padding: 14rpx 20rpx; border-radius: 12rpx; margin-bottom: 12rpx;
@@ -252,12 +263,12 @@ background: #fff; padding: 0 16rpx; color: #ccc; font-size: 16rpx;
 }
 .cp-avatars-box { display: flex; align-items: center; justify-content: center; margin-bottom: 20rpx; }
 .cp-avatar { width: 90rpx; height: 90rpx;
-border-radius: 50%; border: 4rpx solid #fff; box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1); }
+  border-radius: 50%; border: 4rpx solid #fff; box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1); }
 .heart-beat { font-size: 30rpx; color: #ff6b81; margin: 0 20rpx;
-animation: heartBeat 1.5s infinite; }
+  animation: heartBeat 1.5s infinite; }
 .love-content { display: flex; flex-direction: column; align-items: center; }
 .love-title { font-size: 26rpx; color: #5d4037; font-weight: bold;
-margin-bottom: 6rpx; }
+  margin-bottom: 6rpx; }
 .love-partner { font-size: 32rpx; color: #ff6b81; font-weight: 800; margin-bottom: 10rpx; }
 .love-desc-sub { font-size: 22rpx; color: #a1887f;
 }
@@ -266,6 +277,44 @@ margin-bottom: 6rpx; }
 }
 
 /* === 底部版权 === */
+/* === 🆕 客服按钮样式 === */
+.service-container {
+  margin-top: 20rpx;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.btn-contact {
+  background: transparent !important; /* 透明背景 */
+  color: #a1887f !important;        /* 与主题色一致的淡棕色 */
+  font-size: 24rpx;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10rpx 30rpx;
+  border-radius: 30rpx;
+  /* border: 1rpx solid #e0d6c6;  可选：如果你想要边框可以加上 */
+  box-shadow: none;
+}
+
+.btn-contact::after {
+  border: none;
+}
+
+/* 点击态 */
+.btn-contact:active {
+  opacity: 0.6;
+  background: rgba(0,0,0,0.02) !important;
+}
+
+.contact-icon {
+  margin-right: 8rpx;
+  font-size: 28rpx;
+}
+
+
 .footer-info {
   text-align: center;
   font-size: 18rpx; color: #e0e0e0; 
@@ -277,3 +326,162 @@ margin-bottom: 6rpx; }
 @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1);
 } }
 button:active { transform: scale(0.98); opacity: 0.9; }
+
+/* === 🆕 誓言弹窗样式 === */
+.oath-modal-mask {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex; justify-content: center; align-items: center;
+}
+
+.oath-card {
+  width: 560rpx;
+  background: #fffbf0; /* 信纸黄 */
+  border-radius: 30rpx;
+  padding: 50rpx 40rpx;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20rpx 60rpx rgba(93, 64, 55, 0.3);
+  border: 6rpx solid #fff;
+}
+
+.oath-decoration-top { font-size: 60rpx; margin-bottom: 20rpx; animation: float 3s infinite ease-in-out; }
+
+.oath-title {
+  font-size: 40rpx; font-weight: 900; color: #5d4037;
+  letter-spacing: 4rpx; margin-bottom: 10rpx;
+  /* font-family: "Songti SC", serif; 小程序可能不生效，回退默认 */
+}
+
+.oath-subtitle {
+  font-size: 28rpx; color: #8d6e63; letter-spacing: 10rpx;
+  margin-bottom: 30rpx;
+}
+
+.oath-divider { color: #d7ccc8; font-size: 40rpx; margin-bottom: 30rpx; }
+
+.oath-warning {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 40rpx;
+  border: 2rpx dashed #e0d6c6;
+}
+
+.warning-title { display: block; font-size: 24rpx; font-weight: bold; color: #ff6b81; margin-bottom: 8rpx; }
+.warning-desc { display: block; font-size: 22rpx; color: #a1887f; line-height: 1.6; }
+
+.btn-oath-confirm {
+  width: 100% !important;
+  background: linear-gradient(135deg, #ff9a9e, #ff6b81);
+  color: #fff; border-radius: 50rpx;
+  padding: 24rpx 0; font-size: 30rpx; font-weight: bold;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.3);
+  margin-bottom: 24rpx;
+}
+
+.oath-cancel { font-size: 24rpx; color: #ccc; text-decoration: underline; padding: 10rpx; }
+
+@keyframes float { 
+  0%, 100% { transform: translateY(0); } 
+  50% { transform: translateY(-10rpx); } 
+}
+.bounce-in { animation: bounceIn 0.4s; }
+@keyframes bounceIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* === 🆕 誓言弹窗样式 (增强版) === */
+.oath-modal-mask {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex; justify-content: center; align-items: center;
+}
+
+.oath-card {
+  width: 560rpx;
+  background: #fffbf0; /* 默认信纸黄 */
+  border-radius: 30rpx;
+  padding: 50rpx 40rpx;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20rpx 60rpx rgba(93, 64, 55, 0.3);
+  border: 6rpx solid #fff;
+  transition: all 0.3s;
+}
+
+/* 解绑主题变灰 */
+.oath-card.unbind-theme {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+}
+
+.oath-decoration-top { font-size: 60rpx; margin-bottom: 20rpx; animation: float 3s infinite ease-in-out; }
+
+.oath-title {
+  font-size: 40rpx; font-weight: 900; color: #5d4037;
+  letter-spacing: 4rpx; margin-bottom: 10rpx;
+}
+
+.oath-subtitle {
+  font-size: 28rpx; color: #8d6e63; letter-spacing: 10rpx;
+  margin-bottom: 30rpx;
+}
+
+.oath-divider { color: #d7ccc8; font-size: 40rpx; margin-bottom: 30rpx; }
+
+.oath-warning {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 40rpx;
+  border: 2rpx dashed #e0d6c6;
+}
+
+.code-highlight {
+  font-family: monospace; font-weight: bold; color: #ff6b81; 
+  background: #fff; padding: 4rpx 8rpx; border-radius: 8rpx;
+}
+
+.warning-title { display: block; font-size: 24rpx; font-weight: bold; color: #ff6b81; margin-bottom: 8rpx; }
+.unbind-theme .warning-title { color: #757575; }
+
+.warning-desc { display: block; font-size: 22rpx; color: #a1887f; line-height: 1.6; }
+.unbind-theme .warning-desc { color: #757575; }
+
+.btn-oath-confirm {
+  width: 100% !important;
+  background: linear-gradient(135deg, #ff9a9e, #ff6b81);
+  color: #fff; border-radius: 50rpx;
+  padding: 24rpx 0; font-size: 30rpx; font-weight: bold;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.3);
+  margin-bottom: 24rpx;
+  transition: all 0.3s;
+}
+
+/* 解绑按钮变灰/红 */
+.btn-oath-confirm.disabled {
+  background: #ccc; box-shadow: none; color: #fff;
+}
+.btn-oath-confirm.danger {
+  background: #d32f2f; box-shadow: 0 8rpx 20rpx rgba(211, 47, 47, 0.3);
+}
+
+.oath-cancel { font-size: 24rpx; color: #ccc; text-decoration: underline; padding: 10rpx; }
+
+@keyframes float { 
+  0%, 100% { transform: translateY(0); } 
+  50% { transform: translateY(-10rpx); } 
+}
+.bounce-in { animation: bounceIn 0.4s; }
+@keyframes bounceIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}

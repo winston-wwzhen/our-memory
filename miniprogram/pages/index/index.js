@@ -4,75 +4,69 @@ const app = getApp();
 // 🎨 本地兜底风格配置 (防止无网或首次加载白屏)
 const DEFAULT_STYLES = [
   {
+    id: "125",
+    name: "国风工笔",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E5%9B%BD%E9%A3%8E%E5%B7%A5%E7%AC%94.png?sign=15b57ebc93d57b2e82cf3e629e1aa5c8&t=1765008115",
+    isVip: false,
+  },
+  {
     id: "201",
     name: "日漫风",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/日漫风.png",
-    isVip: false,
-  },
-  {
-    id: "107",
-    name: "卡通插画",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/卡通插图.png",
-    isVip: false,
-  },
-  {
-    id: "210",
-    name: "2.5D动画",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/2.5D动画.png",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E6%97%A5%E6%BC%AB%E9%A3%8E.png?sign=6989b22c3222dd7c15aa0b91c78c9ae1&t=1765008129",
     isVip: false,
   },
   {
     id: "121",
     name: "黏土",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/黏土.png",
-    isVip: false,
-  },
-  {
-    id: "125",
-    name: "国风工笔",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/国风工笔.png",
-    isVip: true,
-  },
-  {
-    id: "127",
-    name: "瓷器",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/瓷器.png",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E9%BB%8F%E5%9C%9F.png?sign=05be2b007f8d5778b0d44155c417dcd5&t=1765008145",
     isVip: false,
   },
   {
     id: "129",
     name: "美式复古",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/美式复古.png",
-    isVip: true,
-  },
-  {
-    id: "130",
-    name: "蒸汽朋克",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/蒸汽朋克.png",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E7%BE%8E%E5%BC%8F%E5%A4%8D%E5%8F%A4.png?sign=8c016b605110992fbc6155b362aa5c23&t=1765008160",
     isVip: false,
   },
   {
-    id: "132",
-    name: "素描",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/素描.png",
+    id: "210",
+    name: "2.5D动画",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/2.5D%E5%8A%A8%E7%94%BB.png?sign=4282120a68b6826157b14446c43c623d&t=1765008172",
+    isVip: false,
+  },
+  {
+    id: "134",
+    name: "厚涂手绘",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E5%8E%9A%E6%B6%82%E6%89%8B%E7%BB%98.png?sign=7ec0fb3d605cc205f819db1d212bc116&t=1765008213",
+    isVip: false,
+  },
+  {
+    id: "127",
+    name: "瓷器",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E7%93%B7%E5%99%A8.png?sign=a8ec121cf1066ff876c1b4604f861cd7&t=1765008244",
     isVip: false,
   },
   {
     id: "133",
     name: "莫奈花园",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/莫奈花园.png",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E8%8E%AB%E5%A5%88%E8%8A%B1%E5%9B%AD.png?sign=84ef6b6b94f52a5c085cc1b459443a5f&t=1765008196",
     isVip: true,
-  },
-  {
-    id: "134",
-    name: "厚涂手绘",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/厚涂手绘.png",
-    isVip: false,
   },
   {
     id: "126",
     name: "玉石",
-    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/碧绿风.png",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E7%A2%A7%E7%BB%BF%E9%A3%8E.png?sign=da8652c57d92590abcd88fe9939b9e09&t=1765008232",
+    isVip: true,
+  },
+  {
+    id: "130",
+    name: "蒸汽朋克",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E8%92%B8%E6%B1%BD%E6%9C%8B%E5%85%8B.png?sign=9f90d3995c0c046ed97082e7539e2e04&t=1765008256",
+    isVip: true,
+  },
+  {
+    id: "132",
+    name: "素描",
+    img: "https://636c-cloud1-0g4462vv9d9954a5-1387968548.tcb.qcloud.la/images/%E7%B4%A0%E6%8F%8F.png?sign=ec9db8b1ef9ff70c953dc8f595e0e78e&t=1765008184",
     isVip: true,
   },
 ];
@@ -115,6 +109,8 @@ Page({
     dailyAdLimit: 1,
     showAdModal: false,
     adCountdown: 3,
+
+    isSaved: false
   },
 
   onShow: function () {
@@ -127,6 +123,7 @@ Page({
       pendingSave: false,
       aiEvaluation: null,
       loading: false,
+      isSaved: false,
     });
 
     this.fetchDailyMission();
@@ -420,6 +417,7 @@ Page({
         this.callCloudBrain(res.fileID);
       },
       fail: (err) => {
+        console.error("【上传报错】详细信息:", err)
         this.setData({ loading: false, displayImage: "" });
         wx.showToast({ title: "上传失败", icon: "none" });
       },
@@ -542,9 +540,10 @@ Page({
         if (res.result.status === 200) {
           wx.showToast({ title: res.result.msg, icon: "none", duration: 2500 });
           this.setData({
-            pendingSave: false,
+            // pendingSave: false,
+            // displayImage: "",
             hasCheckedInToday: true,
-            displayImage: "",
+            isSaved: true,
           });
           this.pickDailyQuote();
           this.checkUserStatus();
@@ -565,6 +564,7 @@ Page({
       pendingSave: false,
       tempFileID: "",
       aiEvaluation: null,
+      isSaved: false,
     });
   },
 

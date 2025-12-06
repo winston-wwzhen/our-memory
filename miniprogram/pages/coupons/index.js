@@ -16,9 +16,8 @@ Page({
 
   onLoad: function () {
     // 🟢 优先从缓存读取，没有则用本地文件
-    const remoteTemplates = wx.getStorageSync("COUPON_TEMPLATES");
     this.setData({
-      templates: remoteTemplates || LOCAL_TEMPLATES,
+      templates: TEMPLATES,
     });
   },
 

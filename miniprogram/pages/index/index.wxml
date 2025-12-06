@@ -114,11 +114,12 @@
     </view>
 
     <view class="action-bar slide-in-up" wx:if="{{pendingSave}}">
-      <view class="replace-tip" wx:if="{{hasCheckedInToday}}">
+      <view class="replace-tip" wx:if="{{hasCheckedInToday && !isSaved}}">
         ⚠️ 今日已打卡，确认将覆盖原图
       </view>
 
       <view class="confirm-actions">
+  
         <view class="action-btn-wrapper" catchtap="onSaveToPhone">
           <view class="btn-circle sub"><text>⬇️</text></view>
           <text class="btn-label">私藏</text>
@@ -126,11 +127,14 @@
 
         <view class="action-btn-wrapper" catchtap="onRetry">
           <view class="btn-circle sub"><text>🔄</text></view>
-          <text class="btn-label">再来一张 ({{remainingCount}})</text>
+          <text class="btn-label">{{isSaved ? '再拍一张' : '再来一张'}} ({{remainingCount}})</text>
         </view>
 
-        <button class="btn-confirm-main" catchtap="onConfirmSave">
-          存入纪念册 ❤️
+        <button 
+          class="btn-confirm-main {{isSaved ? 'saved-state' : ''}}" 
+          catchtap="{{isSaved ? '' : 'onConfirmSave'}}"
+        >
+          {{isSaved ? '已珍藏 ✨' : '存入纪念册 ❤️'}}
         </button>
       </view>
     </view>
