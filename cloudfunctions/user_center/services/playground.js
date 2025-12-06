@@ -79,6 +79,42 @@ async function handle(action, event, ctx) {
       return { status: 200, data: res.data };
     }
 
+    // 🆕 新增：使用卡券功能
+    case "use_coupon": {
+      const { id } = event; // Coupon ID is passed as 'id'
+      if (!id) return { status: 400, msg: "缺少卡券 ID" };
+
+      const couponRes = await db.collection("coupons").doc(id).get();
+      const coupon = couponRes.data;
+
+      if (!coupon) {
+        return { status: 404, msg: "卡券不存在" };
+      }
+      
+      // 1. 校验权限
+      if (coupon._openid !== OPENID) {
+        return { status: 403, msg: "这不是你的卡券" };
+      }
+
+      // 2. 校验状态 (0: 未使用)
+      if (coupon.status !== 0) {
+        return { status: 403, msg: coupon.status === 2 ? "卡券已使用" : "卡券状态异常" };
+      }
+      
+      // 3. 执行使用（将状态更新为 2: 已使用）
+      await db.collection("coupons").doc(id).update({
+        data: {
+          status: 2,
+          usedAt: db.serverDate(),
+        },
+      });
+
+      // 4. 记录日志
+      await addLog(ctx, "use_coupon", `使用卡券: ${coupon.title}`);
+
+      return { status: 200, msg: "卡券核销成功！" };
+    }
+
     case "get_love_list_status": {
       const userRes = await db
         .collection("users")

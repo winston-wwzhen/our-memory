@@ -1,94 +1,290 @@
-const cloud = require("wx-server-sdk");
+const { getTodayStr, getRandomName } = require("../utils/common");
+const { getSudoUsers } = require("../utils/config");
+const { addLog } = require("../utils/logger");
+const { checkTextSafety, checkImageSafety } = require("../utils/safety");
 
-// 初始化云环境
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
-const db = cloud.database();
-const _ = db.command;
+async function handle(action, event, ctx) {
+  const { OPENID, db, _, CONFIG } = ctx;
+  const SUDO_USERS = await getSudoUsers(db);
+  const todayStr = getTodayStr();
 
-// 引入业务模块
-const authService = require("./services/auth");
-const gardenService = require("./services/garden");
-const messageService = require("./services/message");
-const capsuleService = require("./services/capsule");
-const quizService = require("./services/quiz");
-const playgroundService = require("./services/playground");
+  switch (action) {
+    case "login": {
+      const { userInfo } = event;
+      let currentUser = null,
+        loginBonus = 0,
+        registerDays = 1;
 
-// 引入配置工具
-const { getBizConfig } = require("./utils/config");
+      const res = await db.collection("users").where({ _openid: OPENID }).get();
 
-exports.main = async (event, context) => {
-  const { action } = event;
-  const wxContext = cloud.getWXContext();
+      if (res.data.length > 0) {
+        currentUser = res.data[0];
+        if (currentUser.last_login_date !== todayStr) {
+          loginBonus = CONFIG.DAILY_LOGIN_BONUS;
+          const resetUsage = {
+            date: todayStr,
+            count: 0,
+            ad_count: 0,
+            msg_count: 0,
+          };
+          await db
+            .collection("users")
+            .doc(currentUser._id)
+            .update({
+              data: {
+                water_count: _.inc(loginBonus),
+                last_login_date: todayStr,
+                daily_usage: resetUsage,
+              },
+            });
+          currentUser.water_count = (currentUser.water_count || 0) + loginBonus;
+          currentUser.daily_usage = resetUsage;
+        }
+        if (currentUser.createdAt) {
+          registerDays =
+            Math.ceil(
+              Math.abs(new Date() - new Date(currentUser.createdAt)) /
+                (1000 * 60 * 60 * 24)
+            ) || 1;
+        }
+      } else {
+        // 🟢 移除 VIP 试用赠送逻辑，改为在绑定时赠送
+        // const vipExpire = new Date();
+        // vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
 
-  // 获取全局配置
-  const CONFIG = await getBizConfig(db);
+        const newUser = {
+          _openid: OPENID,
+          nickName: userInfo?.nickName || getRandomName(),
+          avatarUrl: userInfo?.avatarUrl || "",
+          partner_id: null,
+          bind_request_from: null,
+          water_count: CONFIG.DAILY_LOGIN_BONUS,
+          rose_balance: 0,
+          last_login_date: todayStr,
+          createdAt: db.serverDate(),
+          // vip_expire_date: vipExpire, // 移除此字段初始化
+          daily_usage: { date: todayStr, count: 0, ad_count: 0, msg_count: 0 },
+          capsule_limit: CONFIG.DEFAULT_CAPSULE_LIMIT,
+        };
 
-  // 统一上下文对象，透传给所有 Service
-  const ctx = {
-    cloud,
-    db,
-    _,
-    wxContext,
-    OPENID: wxContext.OPENID,
-    CONFIG,
-  };
+        const addRes = await db.collection("users").add({ data: newUser });
+        currentUser = { ...newUser, _id: addRes._id };
+        loginBonus = CONFIG.DAILY_LOGIN_BONUS;
+        registerDays = 1;
+        await addLog(ctx, "register", "开启了我们的纪念册");
+      }
 
-  console.log(`⚡️ [Router] Action: ${action} | User: ${ctx.OPENID}`);
+      const isPermanentVip = SUDO_USERS.includes(OPENID);
+      const isTrialVip =
+        currentUser.vip_expire_date &&
+        new Date(currentUser.vip_expire_date) > new Date();
+      const isVip = isPermanentVip || isTrialVip;
 
-  switch (true) {
-    // 👤 用户与授权相关
-    case [
-      "login",
-      "request_bind",
-      "respond_bind",
-      "unbind",
-      "update_profile",
-      "update_anniversary",
-      "update_status",
-    ].includes(action):
-      return await authService.handle(action, event, ctx);
+      let currentLimit = isPermanentVip
+        ? 9999
+        : isVip
+        ? registerDays <= 1
+          ? CONFIG.REG_DAY_LIMIT
+          : CONFIG.VIP_DAILY_LIMIT
+        : CONFIG.NORMAL_FREE_LIMIT;
 
-    // 🌹 花园与每日打卡相关
-    case [
-      "get_garden",
-      "water_flower",
-      "harvest_garden",
-      "check_in",
-      "watch_ad_reward",
-    ].includes(action):
-      return await gardenService.handle(action, event, ctx);
+      const stats = currentUser.daily_usage || {};
+      const remaining = Math.max(
+        0,
+        currentLimit + (stats.ad_count || 0) - (stats.count || 0)
+      );
 
-    // 📝 留言板相关
-    case [
-      "post_message",
-      "delete_message",
-      "like_message",
-      "get_messages",
-    ].includes(action):
-      return await messageService.handle(action, event, ctx);
+      let partnerInfo = null;
+      if (currentUser.partner_id) {
+        const partnerRes = await db
+          .collection("users")
+          .where({ _openid: currentUser.partner_id })
+          .field({ nickName: true, avatarUrl: true, _openid: true })
+          .get();
+        if (partnerRes.data.length > 0) partnerInfo = partnerRes.data[0];
+      }
 
-    // 💊 时光胶囊相关
-    case ["bury_capsule", "get_capsules", "open_capsule"].includes(action):
-      return await capsuleService.handle(action, event, ctx);
+      return {
+        status: 200,
+        user: currentUser,
+        partner: partnerInfo,
+        loginBonus,
+        isVip,
+        vipExpireDate: isTrialVip ? currentUser.vip_expire_date : null,
+        registerDays,
+        remaining,
+        dailyFreeLimit: currentLimit,
+        adCount: stats.ad_count || 0,
+        dailyAdLimit: CONFIG.DAILY_AD_LIMIT,
+      };
+    }
 
-    // 🧩 默契问答相关
-    case action.startsWith("get_quiz_") ||
-      action.includes("round") ||
-      action === "start_new_round":
-      return await quizService.handle(action, event, ctx);
+    case "request_bind": {
+      // partnerCode 在此处为接收邀请的用户的 OpenID
+      const { partnerCode } = event;
+      if (!partnerCode || partnerCode === OPENID)
+        return { status: 400, msg: "编号无效" };
+      const pr = await db
+        .collection("users")
+        .where({ _openid: partnerCode })
+        .get();
+      if (pr.data.length === 0) return { status: 404 };
+      // 检查接收方是否已绑定
+      if (pr.data[0].partner_id) return { status: 403, msg: "对方已绑定伴侣" };
+      
+      // 在接收方记录上设置邀请人（OPENID）
+      await db
+        .collection("users")
+        .where({ _openid: partnerCode })
+        .update({ data: { bind_request_from: OPENID } });
+      return { status: 200, msg: "请求已发送" };
+    }
 
-    // 🎡 游乐园其他 (决定、优惠券、清单)
-    case [
-      "make_decision",
-      "get_partner_decision",
-      "redeem_coupon",
-      "get_my_coupons",
-      "get_love_list_status",
-      "toggle_love_list_item",
-    ].includes(action):
-      return await playgroundService.handle(action, event, ctx);
+    case "respond_bind": {
+      const { decision, partnerCode } = event; // partnerCode 是邀请人（Inviter）的 OpenID
+      if (!partnerCode) return { status: 400 };
+      
+      // 1. 拒绝 (Recipient: OPENID)
+      if (decision === "reject") {
+        await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .update({ data: { bind_request_from: null } }); 
+        return { status: 200, msg: "已拒绝" };
+      }
+      
+      // 2. 接受 (Recipient: OPENID)
+      if (decision === "accept") {
+        // 检查邀请人（partnerCode）是否仍可绑定
+        const inviterRes = await db.collection("users").where({ _openid: partnerCode }).get();
+        if (inviterRes.data.length === 0 || inviterRes.data[0].partner_id) 
+            return { status: 403, msg: "对方已绑定或用户不存在" };
 
-    default:
-      return { status: 404, msg: `未知的 Action: ${action}` };
+        // === 🟢 绑定时赠送 VIP 试用逻辑 START ===
+        const vipExpire = new Date();
+        vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
+        const vipUpdate = {
+            vip_expire_date: vipExpire,
+        };
+        // === 绑定时赠送 VIP 试用逻辑 END ===
+
+        // A. Recipient Update (接受方)
+        await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .update({
+            data: { 
+                partner_id: partnerCode, 
+                bind_request_from: null,
+                ...vipUpdate // 赠送 VIP 试用
+            },
+          });
+          
+        // B. Inviter Update (邀请方)
+        await db
+          .collection("users")
+          .where({ _openid: partnerCode })
+          .update({ 
+            data: { 
+                partner_id: OPENID, 
+                bind_request_from: null,
+                bind_notification: true, 
+                ...vipUpdate // 赠送 VIP 试用
+            } 
+          });
+        await addLog(ctx, "bind", "绑定成功");
+        return { status: 200, msg: "绑定成功" };
+      }
+      break;
+    }
+
+    case "update_profile": {
+      const { nickName, avatarUrl } = event;
+      if (nickName) {
+        if (!(await checkTextSafety(ctx, nickName)))
+          return { status: 403, msg: "昵称包含敏感内容" };
+      }
+      if (avatarUrl && avatarUrl.startsWith("cloud://")) {
+        if (!(await checkImageSafety(ctx, avatarUrl)))
+          return { status: 403, msg: "头像图片包含敏感内容" };
+      }
+      await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .update({ data: { avatarUrl, nickName } });
+      return { status: 200, msg: "OK" };
+    }
+
+    case "update_anniversary": {
+      const { date } = event;
+      const me = (await db.collection("users").where({ _openid: OPENID }).get())
+        .data[0];
+      const data = {
+        anniversaryDate: date,
+        anniversaryModifier: me.nickName,
+        anniversaryUpdatedAt: db.serverDate(),
+      };
+      await db.collection("users").doc(me._id).update({ data });
+      if (me.partner_id)
+        await db
+          .collection("users")
+          .where({ _openid: me.partner_id })
+          .update({ data });
+      await addLog(ctx, "update_anniversary", `修改纪念日${date}`);
+      return { status: 200, msg: "已更新" };
+    }
+
+    case "unbind": {
+      if (!SUDO_USERS.includes(OPENID)) return { status: 403, msg: "暂未开放" };
+      const myRes = await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .get();
+      if (myRes.data.length === 0) return { status: 404 };
+      const me = myRes.data[0];
+      const pid = me.partner_id;
+      await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .update({ data: { partner_id: null } });
+      if (pid)
+        await db
+          .collection("users")
+          .where({ _openid: pid })
+          .update({ data: { partner_id: null } });
+      await addLog(ctx, "unbind", "解除关联");
+      return { status: 200, msg: "已解除" };
+    }
+
+    // 清除绑定通知标志
+    case "clear_bind_notification": {
+        await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .update({ data: { bind_notification: false } });
+        return { status: 200 };
+    }
+
+    case "update_status": {
+      const { statusText, statusIcon } = event;
+      if (statusText && !(await checkTextSafety(ctx, statusText)))
+        return { status: 403, msg: "状态包含敏感词" };
+      await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .update({
+          data: {
+            status: {
+              icon: statusIcon,
+              text: statusText,
+              updatedAt: db.serverDate(),
+            },
+          },
+        });
+      await addLog(ctx, "update_status", `状态:${statusIcon}`);
+      return { status: 200, msg: "已同步" };
+    }
   }
-};
+}
+
+module.exports = { handle };

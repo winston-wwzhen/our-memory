@@ -48,8 +48,9 @@ async function handle(action, event, ctx) {
             ) || 1;
         }
       } else {
-        const vipExpire = new Date();
-        vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
+        // 🟢 移除 VIP 试用赠送逻辑，改为在绑定时赠送
+        // const vipExpire = new Date();
+        // vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
 
         const newUser = {
           _openid: OPENID,
@@ -61,7 +62,7 @@ async function handle(action, event, ctx) {
           rose_balance: 0,
           last_login_date: todayStr,
           createdAt: db.serverDate(),
-          vip_expire_date: vipExpire,
+          // vip_expire_date: vipExpire, // 移除此字段初始化
           daily_usage: { date: todayStr, count: 0, ad_count: 0, msg_count: 0 },
           capsule_limit: CONFIG.DEFAULT_CAPSULE_LIMIT,
         };
@@ -118,54 +119,83 @@ async function handle(action, event, ctx) {
       };
     }
 
-    // 🟢 移除手动输入的请求绑定逻辑，请使用邀请链接直接绑定
     case "request_bind": {
-      return { status: 404, msg: "请求绑定功能已移除，请使用邀请链接直接绑定" };
-    }
-
-    // 🟢 移除响应绑定逻辑
-    case "respond_bind": {
-      return { status: 404, msg: "响应绑定功能已移除，请使用邀请链接直接绑定" };
-    }
-    
-    // 🆕 新增直接绑定逻辑 (接收方点击邀请链接后触发)
-    case "direct_accept_bind": {
-      const { partnerCode } = event; // partnerCode 是邀请人的 OpenID
+      // partnerCode 在此处为接收邀请的用户的 OpenID
+      const { partnerCode } = event;
       if (!partnerCode || partnerCode === OPENID)
-        return { status: 400, msg: "编号无效或不能绑定自己" };
-      
-      // 1. 检查自己是否已绑定 (接收人)
-      const meRes = await db.collection("users").where({ _openid: OPENID }).get();
-      if (meRes.data.length === 0) return { status: 404, msg: "您的账户信息异常" };
-      const me = meRes.data[0];
-
-      if (me.partner_id) return { status: 403, msg: "您已绑定伴侣" };
-
-      // 2. 检查对方是否已绑定 (邀请人)
-      const partnerRes = await db
+        return { status: 400, msg: "编号无效" };
+      const pr = await db
         .collection("users")
         .where({ _openid: partnerCode })
         .get();
+      if (pr.data.length === 0) return { status: 404 };
+      // 检查接收方是否已绑定
+      if (pr.data[0].partner_id) return { status: 403, msg: "对方已绑定伴侣" };
       
-      if (partnerRes.data.length === 0) return { status: 404, msg: "对方用户不存在" };
-      const partner = partnerRes.data[0];
-      if (partner.partner_id) return { status: 403, msg: `对方（${partner.nickName}）已绑定伴侣` }; 
-
-      // 3. 执行双向绑定
-      await db
-        .collection("users")
-        .where({ _openid: OPENID })
-        .update({ data: { partner_id: partnerCode, bind_request_from: null } });
-        
+      // 在接收方记录上设置邀请人（OPENID）
       await db
         .collection("users")
         .where({ _openid: partnerCode })
-        .update({ data: { partner_id: OPENID, bind_request_from: null } });
-        
-      // 4. 记录日志
-      await addLog(ctx, "bind", "通过邀请链接直接绑定成功");
+        .update({ data: { bind_request_from: OPENID } });
+      return { status: 200, msg: "请求已发送" };
+    }
+
+    case "respond_bind": {
+      const { decision, partnerCode } = event; // partnerCode 是邀请人（Inviter）的 OpenID
+      if (!partnerCode) return { status: 400 };
       
-      return { status: 200, msg: "绑定成功" };
+      // 1. 拒绝 (Recipient: OPENID)
+      if (decision === "reject") {
+        await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .update({ data: { bind_request_from: null } }); 
+        return { status: 200, msg: "已拒绝" };
+      }
+      
+      // 2. 接受 (Recipient: OPENID)
+      if (decision === "accept") {
+        // 检查邀请人（partnerCode）是否仍可绑定
+        const inviterRes = await db.collection("users").where({ _openid: partnerCode }).get();
+        if (inviterRes.data.length === 0 || inviterRes.data[0].partner_id) 
+            return { status: 403, msg: "对方已绑定或用户不存在" };
+
+        // === 🟢 绑定时赠送 VIP 试用逻辑 START ===
+        const vipExpire = new Date();
+        vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
+        const vipUpdate = {
+            vip_expire_date: vipExpire,
+        };
+        // === 绑定时赠送 VIP 试用逻辑 END ===
+
+        // A. Recipient Update (接受方)
+        await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .update({
+            data: { 
+                partner_id: partnerCode, 
+                bind_request_from: null,
+                ...vipUpdate // 赠送 VIP 试用
+            },
+          });
+          
+        // B. Inviter Update (邀请方)
+        await db
+          .collection("users")
+          .where({ _openid: partnerCode })
+          .update({ 
+            data: { 
+                partner_id: OPENID, 
+                bind_request_from: null,
+                bind_notification: true, 
+                ...vipUpdate // 赠送 VIP 试用
+            } 
+          });
+        await addLog(ctx, "bind", "绑定成功");
+        return { status: 200, msg: "绑定成功" };
+      }
+      break;
     }
 
     case "update_profile": {
@@ -224,6 +254,15 @@ async function handle(action, event, ctx) {
           .update({ data: { partner_id: null } });
       await addLog(ctx, "unbind", "解除关联");
       return { status: 200, msg: "已解除" };
+    }
+
+    // 清除绑定通知标志
+    case "clear_bind_notification": {
+        await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .update({ data: { bind_notification: false } });
+        return { status: 200 };
     }
 
     case "update_status": {

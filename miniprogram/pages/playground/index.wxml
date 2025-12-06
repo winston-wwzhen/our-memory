@@ -47,26 +47,21 @@
   </view>
 
   <view class="grid-menu">
-    <view class="grid-item paper-texture" bindtap="navToDecision">
-      <view class="grid-icon">🎲</view>
-      <text class="grid-title">决定转盘</text>
-      <text class="grid-desc">治愈选择困难</text>
-    </view>
-    
-    <view class="grid-item paper-texture" bindtap="navToBoard">
-      <view class="grid-icon">📌</view>
-      <text class="grid-title">爱的留言板</text>
-      <text class="grid-desc">日常碎碎念</text>
-      
-      <view class="notification-pin" wx:if="{{messageHint}}">📌</view>
-    </view>
-    
+
     <view class="grid-item paper-texture" bindtap="navToQuiz">
       <view class="grid-icon">🧩</view>
       <text class="grid-title">默契大闯关</text>
       <text class="grid-desc">挑战灵魂契合度</text>
       
       <view class="notification-quiz" wx:if="{{quizHint}}">❓</view>
+    </view>
+
+    <view class="grid-item paper-texture" bindtap="navToBoard">
+      <view class="grid-icon">📌</view>
+      <text class="grid-title">爱的留言板</text>
+      <text class="grid-desc">日常碎碎念</text>
+      
+      <view class="notification-pin" wx:if="{{messageHint}}">📌</view>
     </view>
 
     <view class="grid-item paper-texture" bindtap="navToCapsule">
@@ -83,12 +78,19 @@
       <text class="grid-desc">生存与惊喜</text>
     </view>
 
+    <view class="grid-item paper-texture" bindtap="navToDecision">
+      <view class="grid-icon">🎲</view>
+      <text class="grid-title">命运的决定</text>
+      <text class="grid-desc">治愈选择困难</text>
+    </view>
+
     <view class="grid-item paper-texture" bindtap="navToCoupons">
       <view class="grid-icon">🎁</view>
       <text class="grid-title">特权工坊</text>
       <text class="grid-desc">爱的承诺</text>
     </view>
   </view>
+  
 
   <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
     <view class="log-modal-container" catchtap="return"> 
