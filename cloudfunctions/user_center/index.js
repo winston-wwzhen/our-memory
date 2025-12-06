@@ -19,12 +19,16 @@ const DEFAULT_CONFIG = {
   DEFAULT_CAPSULE_LIMIT: 10, // 胶囊容量上限
   QUESTIONS_PER_ROUND: 10, // 每轮问答题数
 
-  // 花园相关配置 (新增)
+  // 花园相关配置
   WATER_COST: 10, // 每次浇水消耗
   WATER_GROWTH: 10, // 每次浇水增加的成长值
   HARVEST_MIN_GROWTH: 300, // 最小收获成长值
   CHECKIN_REWARD: 50, // 每日拍照打卡奖励
 };
+
+// 🚫 本地敏感词黑名单 (正则表达式) - 第一道防线
+// 这里的词一旦出现，直接拦截，不调用微信接口
+const LOCAL_BLACKLIST_REGEX = /杀人|放火|炸弹|死|自杀|习|共党|法轮|色情|裸聊|招嫖/i; 
 
 // ==========================================
 // 2. 配置缓存控制 (Memory Cache)
@@ -44,11 +48,82 @@ async function getBizConfig() {
     // 合并配置，防止数据库缺少字段导致报错
     cachedConfig = { ...DEFAULT_CONFIG, ...res.data };
     cacheTime = now;
-    console.log("✅ 配置已更新 (From DB):", cachedConfig);
     return cachedConfig;
   } catch (err) {
     console.warn("⚠️ 获取配置失败，使用默认配置:", err);
     return DEFAULT_CONFIG;
+  }
+}
+
+// ==========================================
+// 🛡️ 安全校验工具函数
+// ==========================================
+
+/**
+ * 文本安全校验 (本地黑名单 + 微信V2接口)
+ * @param {string} content 需校验的文本
+ * @param {string} openid 用户的 openid (V2必填)
+ * @returns {Promise<boolean>} true=通过, false=违规或出错
+ */
+async function checkTextSafety(content, openid) {
+  if (!content) return true;
+
+  // =========== 第一道防线：本地黑名单 (Regex) ===========
+  if (LOCAL_BLACKLIST_REGEX.test(content)) {
+      console.warn(`🛡️ [本地拦截] 发现敏感词，直接阻断: ${content}`);
+      return false; 
+  }
+
+  // =========== 第二道防线：微信安全接口 V2 ===========
+  try {
+    const res = await cloud.openapi.security.msgSecCheck({
+      content: content,
+      version: 2, 
+      scene: 2, // 场景值：2 代表评论/留言
+      openid: openid
+    });
+    
+    // 只有明确建议 'pass' 才放行
+    if (res.errCode === 0 && res.result && res.result.suggest === 'pass') {
+        return true;
+    }
+    
+    // suggest 为 'risky' (风险) 或 'review' (需人工审核) 都视为不通过
+    console.warn(`🛡️ [微信AI拦截] 判定结果: ${res.result.suggest}, label: ${res.result.label}`);
+    return false;
+
+  } catch (err) {
+    console.error("🛡️ [微信接口异常]:", err);
+    // 接口报错（如超时、限流），为了安全起见，Fail-closed
+    return false; 
+  }
+}
+
+/**
+ * 图片安全校验
+ * @param {string} fileID 云存储文件的 fileID
+ * @returns {Promise<boolean>} 是否通过校验
+ */
+async function checkImageSafety(fileID) {
+  if (!fileID) return true;
+  try {
+    // 1. 获取图片临时链接或 buffer
+    const res = await cloud.downloadFile({
+      fileID: fileID,
+    });
+    const buffer = res.fileContent;
+
+    // 2. 调用校验接口
+    const checkRes = await cloud.openapi.security.imgSecCheck({
+      media: {
+        contentType: 'image/png', // 简单处理，微信后台会自动识别
+        value: buffer
+      }
+    });
+    return checkRes.errCode === 0;
+  } catch (err) {
+    console.error("图片校验失败:", err);
+    return false;
   }
 }
 
@@ -506,9 +581,15 @@ exports.main = async (event, context) => {
     return { status: 404 };
   }
 
-  // === Action 6: 每日打卡 ===
+  // === Action 6: 每日打卡 (含图片安全校验) ===
   if (action === "check_in") {
     if (!imageFileID) return { status: 400 };
+    
+    // 🛡️ 新增校验：图片安全检查
+    const isImgSafe = await checkImageSafety(imageFileID);
+    if (!isImgSafe) return { status: 403, msg: "图片包含不当内容，无法珍藏" };
+    // 🛡️ 校验结束
+
     const CHECKIN_REWARD = CONFIG.CHECKIN_REWARD; // 使用配置
 
     const oldLog = await db
@@ -552,8 +633,16 @@ exports.main = async (event, context) => {
     }
   }
 
-  // === Action 7: 兑换优惠券 ===
+  // === Action 7: 兑换优惠券 (含文本安全校验 V2) ===
   if (action === "redeem_coupon") {
+    // 🛡️ 文本校验 (传入 myOpenID)
+    if (title || desc) {
+      const isSafe = await checkTextSafety(`${title} ${desc}`, myOpenID);
+      if (!isSafe) {
+          return { status: 403, msg: "卡券信息包含敏感词" };
+      }
+    }
+
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
     if ((me.rose_balance || 0) < cost) return { status: 400, msg: "玫瑰不足" };
@@ -589,8 +678,16 @@ exports.main = async (event, context) => {
     return { status: 200, data: res.data };
   }
 
-  // === Action 9: 做决定 ===
+  // === Action 9: 做决定 (含文本安全校验 V2) ===
   if (action === "make_decision") {
+    // 🛡️ 文本校验 (传入 myOpenID)
+    if (category || result) {
+      const isSafe = await checkTextSafety(`${category} ${result}`, myOpenID);
+      if (!isSafe) {
+          return { status: 403, msg: "决定内容包含敏感词" };
+      }
+    }
+
     await addLog(myOpenID, "decision", `决定${category}：${result}`);
     await db
       .collection("users")
@@ -665,8 +762,23 @@ exports.main = async (event, context) => {
     }
   }
 
-  // === Action 13: 更新资料 ===
+  // === Action 13: 更新资料 (含文本/图片安全校验) ===
   if (action === "update_profile") {
+    // 🛡️ 文本校验 (V2)
+    if (nickName) {
+        const isNickSafe = await checkTextSafety(nickName, myOpenID);
+        if (!isNickSafe) {
+            return { status: 403, msg: "昵称包含敏感内容，请修改" };
+        }
+    }
+    // 🛡️ 图片校验
+    if (avatarUrl && avatarUrl.startsWith("cloud://")) {
+       const isAvatarSafe = await checkImageSafety(avatarUrl);
+       if (!isAvatarSafe) {
+           return { status: 403, msg: "头像图片包含敏感内容" };
+       }
+    }
+
     await db
       .collection("users")
       .where({ _openid: myOpenID })
@@ -720,10 +832,17 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "已解除" };
   }
 
-  // === Action 16: 发布便签 ===
+  // === Action 16: 发布便签 (含文本安全校验 V2) ===
   if (action === "post_message") {
+    console.log("📝 [post_message] 开始处理:", content);
     if (!content) return { status: 400 };
     if (content.length > 20) return { status: 400, msg: "限20字" };
+
+    // 🛡️ 文本校验 (传入 myOpenID)
+    const isSafe = await checkTextSafety(content, myOpenID);
+    if (!isSafe) {
+        return { status: 403, msg: "内容包含敏感词，请文明发言" };
+    }
 
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];
@@ -860,8 +979,16 @@ exports.main = async (event, context) => {
     };
   }
 
-  // === Action 20: 更新状态 ===
+  // === Action 20: 更新状态 (含文本安全校验 V2) ===
   if (action === "update_status") {
+    // 🛡️ 文本校验 (传入 myOpenID)
+    if (statusText) {
+        const isSafe = await checkTextSafety(statusText, myOpenID);
+        if (!isSafe) {
+            return { status: 403, msg: "状态包含敏感词" };
+        }
+    }
+
     await db
       .collection("users")
       .where({ _openid: myOpenID })
@@ -878,11 +1005,26 @@ exports.main = async (event, context) => {
     return { status: 200, msg: "已同步" };
   }
 
-  // === Action 21: 埋下胶囊 ===
+  // === Action 21: 埋下胶囊 (含文本/图片安全校验 V2) ===
   if (action === "bury_capsule") {
     if (!content && !imageFileID) return { status: 400 };
     if (!openDate) return { status: 400 };
     if (new Date(openDate) <= new Date(todayStr)) return { status: 400 };
+
+    // 🛡️ 文本校验 (传入 myOpenID)
+    if (content) {
+      const isTextSafe = await checkTextSafety(content, myOpenID);
+      if (!isTextSafe) {
+          return { status: 403, msg: "信件内容包含敏感词" };
+      }
+    }
+    // 🛡️ 图片校验
+    if (imageFileID) {
+      const isImgSafe = await checkImageSafety(imageFileID);
+      if (!isImgSafe) {
+          return { status: 403, msg: "图片包含敏感内容" };
+      }
+    }
 
     const me = (await db.collection("users").where({ _openid: myOpenID }).get())
       .data[0];

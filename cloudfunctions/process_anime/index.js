@@ -132,6 +132,25 @@ async function getSudoUsers() {
   }
 }
 
+// 🛡️ 图片安全校验 (新增)
+async function checkImageSafety(fileID) {
+  if (!fileID) return true;
+  try {
+    const res = await cloud.downloadFile({ fileID: fileID });
+    const buffer = res.fileContent;
+    const checkRes = await cloud.openapi.security.imgSecCheck({
+      media: {
+        contentType: 'image/png', // 简单处理
+        value: buffer
+      }
+    });
+    return checkRes.errCode === 0;
+  } catch (err) {
+    console.error("图片校验失败:", err);
+    return false;
+  }
+}
+
 exports.main = async (event, context) => {
   const { imageFileID, taskTitle, styleId = "201" } = event;
   const wxContext = cloud.getWXContext();
@@ -167,7 +186,7 @@ exports.main = async (event, context) => {
     };
   }
 
-  // 🆕 1. 频次检查 (修复版逻辑)
+  // 1. 频次检查
   if (!isPermanentVip) {
     // 计算注册天数判断是否首日
     let registerDays = 1;
@@ -178,7 +197,7 @@ exports.main = async (event, context) => {
       registerDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     }
 
-    // 确定今日基础限额 (逻辑修复)
+    // 确定今日基础限额
     let baseLimit = NORMAL_FREE_LIMIT; // 默认为 1
     if (isVip) {
       // 只有 VIP 身份才能享受 10 或 3
@@ -227,6 +246,17 @@ exports.main = async (event, context) => {
     if (!imageFileID) throw new Error("Missing imageFileID");
 
     const downloadRes = await cloud.downloadFile({ fileID: imageFileID });
+    
+    // 🛡️ 新增：AI绘图前的图片安全校验
+    const isImgSafe = await checkImageSafety(imageFileID);
+    if (!isImgSafe) {
+        // 回滚次数
+        if (!isPermanentVip) {
+            await db.collection("users").where({ _openid: openid }).update({ data: { "daily_usage.count": _.inc(-1) } });
+        }
+        return { status: 403, msg: "图片包含敏感内容，请更换一张" };
+    }
+
     if (isTestUser) {
       console.log(`🧪 [测试模式] 用户 ${openid} 跳过 AI API 调用`);
       finalBuffer = downloadRes.fileContent;
