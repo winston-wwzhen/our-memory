@@ -10,14 +10,13 @@ Page({
       nickName: "微信用户",
     },
     partnerData: null,
-    inputPartnerCode: "",
+    // 🟢 已移除：inputPartnerCode, partnerShortID
     needSave: false,
-    partnerShortID: "",
-    isShowingRequest: false, // 旧版请求绑定弹窗控制（保留以兼容旧逻辑）
+    isShowingRequest: false, 
     daysCount: 0,
     anniversary: "",
     
-    // VIP 状态数据
+    // VIP 状态数据...
     vipStatus: {
       isVip: false,
       expireDateStr: "",
@@ -26,21 +25,23 @@ Page({
 
     // === 🆕 弹窗控制中心 ===
     showModal: false,
-    modalType: '', // 'invite' | 'accept' | 'unbind'
+    modalType: '', // 'invite' | 'unbind'
     
     // 解绑冷静期倒计时
     unbindCount: 5,
     canUnbind: false,
     timer: null,
+
+    // 🆕 临时存储邀请码
+    inviteCode: null, 
   },
 
   onLoad: function (options) {
+    // 🟢 优化：接收到邀请码，临时存储，等待 checkLogin 确认身份后直接绑定
     if (options && options.inviteCode) {
       this.setData({
-        inputPartnerCode: options.inviteCode,
+        inviteCode: options.inviteCode,
       });
-      // 🟢 优化点：检测到邀请码，自动弹出“接受邀请”确认框
-      this.showAcceptModal(); 
     }
   },
 
@@ -67,16 +68,7 @@ Page({
     });
   },
 
-  // 2. 打开“接受邀请”确认弹窗
-  showAcceptModal: function() {
-    wx.vibrateShort({ type: 'heavy' });
-    this.setData({ 
-      showModal: true, 
-      modalType: 'accept' 
-    });
-  },
-
-  // 3. 打开“申请解绑”冷静期弹窗
+  // 2. 打开“申请解绑”冷静期弹窗
   onUnbind: function() {
     wx.vibrateShort({ type: 'heavy' });
     this.setData({ 
@@ -113,24 +105,16 @@ Page({
     this.setData({ showModal: false });
   },
 
-  // 动作 A：确认接受邀请 -> 执行绑定
-  confirmAccept: function() {
-    this.hideModal();
-    this.bindPartner(); // 调用原有的绑定请求逻辑
-  },
-
   // 动作 B：确认解绑 -> 执行解绑
   confirmUnbind: function() {
     if (!this.data.canUnbind) return;
     this.hideModal();
-    this.executeUnbind(); // 调用原有的解绑请求逻辑
+    this.executeUnbind(); 
   },
 
-  // 🟢 核心：分享逻辑重写
+  // 🟢 核心：分享逻辑（发送邀请）
   onShareAppMessage: function (res) {
-    // 只有点击了弹窗里的“确认寄出”按钮，才携带参数
     if (res.from === 'button' && this.data.modalType === 'invite') {
-      // 分享后关闭弹窗
       this.hideModal();
       
       const myOpenId = this.data.userData._openid;
@@ -138,13 +122,13 @@ Page({
 
       return {
         title: `💌 ${myName} 邀请你开启：我们的纪念册`,
-        // 携带 inviteCode 参数，接收方点开会触发 onLoad -> showAcceptModal
+        // 关键：携带 inviteCode 参数，接收方点击后直接触发绑定
         path: `/pages/mine/index?inviteCode=${myOpenId}`, 
-        imageUrl: '/images/share-cover.png', // 建议在 images 目录下放一张温馨的图
+        imageUrl: '/images/share-cover.png',
       };
     }
 
-    // 默认右上角转发逻辑
+    // 默认右上角转发逻辑（作为兜底，也携带邀请码）
     const myKey = this.data.userData._openid;
     return {
       title: "邀请你共同开启我们的纪念册",
@@ -153,8 +137,47 @@ Page({
     };
   },
 
+  // 🆕 核心新增：直接执行绑定（接收方）
+  directBind: function(partnerCode) {
+      if (this.data.userData.partner_id) {
+        wx.hideLoading();
+        return;
+      }
+      
+      wx.showLoading({ title: "正在连接爱意...", mask: true }); 
+
+      wx.cloud.callFunction({
+        name: "user_center",
+        data: { action: "direct_accept_bind", partnerCode: partnerCode }, 
+        success: (res) => {
+          wx.hideLoading();
+          if (res.result.status === 200) {
+            wx.showModal({ 
+              title: "绑定成功！", 
+              content: "恭喜你们正式开启了共同的回忆之旅！", 
+              showCancel: false,
+              confirmColor: "#ff6b81",
+            });
+            this.checkLogin(); 
+          } else {
+            wx.showModal({ 
+              title: "连接失败", 
+              content: res.result.msg || "未能成功连接，请确认对方是否已注册且处于未绑定状态。", 
+              showCancel: false,
+              confirmColor: "#ff6b81",
+            });
+            this.checkLogin(); 
+          }
+        },
+        fail: (err) => {
+          wx.hideLoading();
+          wx.showToast({ title: "网络错误", icon: "none" });
+        },
+      });
+  },
+  
   // ============================================================
-  // 🟢 原有业务逻辑 (保持不变)
+  // 🟢 业务逻辑
   // ============================================================
 
   checkLogin: function (callback) {
@@ -164,7 +187,7 @@ Page({
       success: (res) => {
         if (res.result.status === 200 || res.result.status === 201) {
           let { user, partner, isVip, loginBonus, vipExpireDate, registerDays } = res.result;
-
+          
           if (loginBonus && loginBonus > 0) {
             wx.showToast({
               title: `每日登录 +${loginBonus}g 爱意`,
@@ -174,15 +197,22 @@ Page({
           }
 
           app.globalData.userInfo = user;
+          
+          // 🟢 核心：接收人加载页面时，如果未绑定且有邀请码，直接触发绑定
+          if (this.data.inviteCode && !user.partner_id) {
+              const codeToBind = this.data.inviteCode;
+              this.setData({ inviteCode: null }); 
+              this.directBind(codeToBind);
+              return; 
+          }
 
-          // 1. 处理 VIP 过期时间
+          // ... (处理 VIP 状态)
           let vipDateStr = "";
           if (vipExpireDate) {
             const date = new Date(vipExpireDate);
             vipDateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
           }
 
-          // 2. 根据注册天数生成特权提示文案
           let tipText = "💎 VIP特权：每日享有 3 次拍照机会"; 
           if (registerDays <= 1) {
             tipText = "✨ 首日特权：今日获赠 10 次拍照机会";
@@ -195,7 +225,7 @@ Page({
               privilegeTip: tipText
             }
           });
-
+          
           // === 头像链接转换 ===
           const fileList = [];
           if (user.avatarUrl && user.avatarUrl.startsWith("cloud://")) {
@@ -225,10 +255,6 @@ Page({
           } else {
             this.updatePageData(user, partner);
           }
-
-          if (user.bind_request_from && !user.partner_id) {
-            this.handleIncomingRequest(user.bind_request_from);
-          }
         }
         if (callback) callback();
       },
@@ -245,7 +271,7 @@ Page({
       partnerData: partner,
       anniversary: user.anniversaryDate || "",
       daysCount: this.calculateDays(user.anniversaryDate),
-      partnerShortID: user.partner_id ? "..." + user.partner_id.slice(-6) : "",
+      // 🟢 已移除：partnerShortID
     });
   },
 
@@ -275,55 +301,6 @@ Page({
     });
   },
 
-  // 处理被动收到的请求（旧版逻辑保留，作为兜底）
-  handleIncomingRequest: function (requesterID) {
-    if (this.data.isShowingRequest) return;
-    this.setData({ isShowingRequest: true });
-    const shortID = "..." + requesterID.slice(-6);
-
-    wx.showModal({
-      title: "收到关联请求",
-      content: `用户 [${shortID}] 请求与你建立纪念册关联，是否同意？`,
-      confirmText: "同意",
-      confirmColor: "#ff6b81",
-      cancelText: "拒绝",
-      success: (res) => {
-        this.setData({ isShowingRequest: false });
-        if (res.confirm) {
-          this.respondToRequest("accept", requesterID);
-        } else {
-          this.respondToRequest("reject", requesterID);
-        }
-      },
-    });
-  },
-
-  respondToRequest: function (decision, requesterID) {
-    wx.showLoading({ title: decision === "accept" ? "绑定中..." : "处理中..." });
-    wx.cloud.callFunction({
-      name: "user_center",
-      data: {
-        action: "respond_bind",
-        decision: decision,
-        partnerCode: requesterID,
-      },
-      success: (res) => {
-        wx.hideLoading();
-        if (res.result.status === 200) {
-          wx.showToast({ title: decision === "accept" ? "连接成功！" : "已拒绝", icon: "none" });
-          this.checkLogin();
-        } else {
-          wx.showToast({ title: "操作失败", icon: "none" });
-        }
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        console.error(err);
-      },
-    });
-  },
-
-  // 真正的解绑请求逻辑
   executeUnbind: function () {
     wx.showLoading({ title: "处理中..." });
     wx.cloud.callFunction({
@@ -333,7 +310,7 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: "已解除关联", icon: "success" });
-          this.setData({ partnerShortID: "", partnerData: null });
+          this.setData({ partnerData: null });
           this.checkLogin();
         } else if (res.result.status === 403) {
           wx.showModal({ title: "提示", content: res.result.msg, showCancel: false });
@@ -348,6 +325,7 @@ Page({
     });
   },
 
+  // 🟢 复制按钮现在仅供调试或备份，不用于主要流程
   copyMyKey: function () {
     if (!this.data.userData._openid) return;
     wx.setClipboardData({
@@ -355,35 +333,8 @@ Page({
       success: () => wx.showToast({ title: "编号已复制", icon: "none" }),
     });
   },
-
-  onInputKey: function (e) {
-    this.setData({ inputPartnerCode: e.detail.value });
-  },
-
-  // 主动发起绑定请求（保留手动输入模式）
-  bindPartner: function () {
-    const code = this.data.inputPartnerCode;
-    if (!code) return wx.showToast({ title: "请输入对方编号", icon: "none" });
-
-    wx.showLoading({ title: "发送请求..." });
-    wx.cloud.callFunction({
-      name: "user_center",
-      data: { action: "request_bind", partnerCode: code },
-      success: (res) => {
-        wx.hideLoading();
-        if (res.result.status === 200) {
-          wx.showToast({ title: "请求已发送", icon: "success" });
-          this.setData({ inputPartnerCode: "" });
-        } else {
-          wx.showModal({ title: "发送失败", content: res.result.msg, showCancel: false });
-        }
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        wx.showToast({ title: "请求超时", icon: "none" });
-      },
-    });
-  },
+  
+  // 🟢 移除 onInputKey, bindPartner 等函数
 
   onChooseAvatar: function (e) {
     const { avatarUrl } = e.detail;

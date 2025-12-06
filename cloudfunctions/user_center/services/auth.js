@@ -118,48 +118,54 @@ async function handle(action, event, ctx) {
       };
     }
 
+    // 🟢 移除手动输入的请求绑定逻辑，请使用邀请链接直接绑定
     case "request_bind": {
-      const { partnerCode } = event;
+      return { status: 404, msg: "请求绑定功能已移除，请使用邀请链接直接绑定" };
+    }
+
+    // 🟢 移除响应绑定逻辑
+    case "respond_bind": {
+      return { status: 404, msg: "响应绑定功能已移除，请使用邀请链接直接绑定" };
+    }
+    
+    // 🆕 新增直接绑定逻辑 (接收方点击邀请链接后触发)
+    case "direct_accept_bind": {
+      const { partnerCode } = event; // partnerCode 是邀请人的 OpenID
       if (!partnerCode || partnerCode === OPENID)
-        return { status: 400, msg: "编号无效" };
-      const pr = await db
+        return { status: 400, msg: "编号无效或不能绑定自己" };
+      
+      // 1. 检查自己是否已绑定 (接收人)
+      const meRes = await db.collection("users").where({ _openid: OPENID }).get();
+      if (meRes.data.length === 0) return { status: 404, msg: "您的账户信息异常" };
+      const me = meRes.data[0];
+
+      if (me.partner_id) return { status: 403, msg: "您已绑定伴侣" };
+
+      // 2. 检查对方是否已绑定 (邀请人)
+      const partnerRes = await db
         .collection("users")
         .where({ _openid: partnerCode })
         .get();
-      if (pr.data.length === 0) return { status: 404 };
-      if (pr.data[0].partner_id) return { status: 403 };
+      
+      if (partnerRes.data.length === 0) return { status: 404, msg: "对方用户不存在" };
+      const partner = partnerRes.data[0];
+      if (partner.partner_id) return { status: 403, msg: `对方（${partner.nickName}）已绑定伴侣` }; 
+
+      // 3. 执行双向绑定
+      await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .update({ data: { partner_id: partnerCode, bind_request_from: null } });
+        
       await db
         .collection("users")
         .where({ _openid: partnerCode })
-        .update({ data: { bind_request_from: OPENID } });
-      return { status: 200, msg: "请求已发送" };
-    }
-
-    case "respond_bind": {
-      const { decision, partnerCode } = event;
-      if (!partnerCode) return { status: 400 };
-      if (decision === "reject") {
-        await db
-          .collection("users")
-          .where({ _openid: OPENID })
-          .update({ data: { bind_request_from: null } });
-        return { status: 200, msg: "已拒绝" };
-      }
-      if (decision === "accept") {
-        await db
-          .collection("users")
-          .where({ _openid: OPENID })
-          .update({
-            data: { partner_id: partnerCode, bind_request_from: null },
-          });
-        await db
-          .collection("users")
-          .where({ _openid: partnerCode })
-          .update({ data: { partner_id: OPENID, bind_request_from: null } });
-        await addLog(ctx, "bind", "绑定成功");
-        return { status: 200, msg: "绑定成功" };
-      }
-      break;
+        .update({ data: { partner_id: OPENID, bind_request_from: null } });
+        
+      // 4. 记录日志
+      await addLog(ctx, "bind", "通过邀请链接直接绑定成功");
+      
+      return { status: 200, msg: "绑定成功" };
     }
 
     case "update_profile": {
