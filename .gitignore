@@ -3,7 +3,7 @@ node_modules/
 miniprogram_npm/
 
 # === Secrets (绝对不能提交) ===
-cloudfunctions/**/config.js
+cloudfunctions/process_anime/config.js
 project.private.config.json
 
 # === Build / OS Files ===

@@ -1,9 +1,85 @@
 // miniprogram/pages/index/index.js
 const app = getApp();
 
+// 🎨 本地兜底风格配置 (防止无网或首次加载白屏)
+const DEFAULT_STYLES = [
+  {
+    id: "201",
+    name: "日漫风",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/日漫风.png",
+    isVip: false,
+  },
+  {
+    id: "107",
+    name: "卡通插画",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/卡通插图.png",
+    isVip: false,
+  },
+  {
+    id: "210",
+    name: "2.5D动画",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/2.5D动画.png",
+    isVip: false,
+  },
+  {
+    id: "121",
+    name: "黏土",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/黏土.png",
+    isVip: false,
+  },
+  {
+    id: "125",
+    name: "国风工笔",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/国风工笔.png",
+    isVip: true,
+  },
+  {
+    id: "127",
+    name: "瓷器",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/瓷器.png",
+    isVip: false,
+  },
+  {
+    id: "129",
+    name: "美式复古",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/美式复古.png",
+    isVip: true,
+  },
+  {
+    id: "130",
+    name: "蒸汽朋克",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/蒸汽朋克.png",
+    isVip: false,
+  },
+  {
+    id: "132",
+    name: "素描",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/素描.png",
+    isVip: false,
+  },
+  {
+    id: "133",
+    name: "莫奈花园",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/莫奈花园.png",
+    isVip: true,
+  },
+  {
+    id: "134",
+    name: "厚涂手绘",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/厚涂手绘.png",
+    isVip: false,
+  },
+  {
+    id: "126",
+    name: "玉石",
+    img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/碧绿风.png",
+    isVip: true,
+  },
+];
+
 Page({
   data: {
-    displayImage: "", 
+    displayImage: "",
     loading: false,
     loadingText: "甜蜜生成中❤...",
     todayDateStr: "",
@@ -11,88 +87,13 @@ Page({
 
     pendingSave: false,
     tempFileID: "",
-    remainingCount: 0, 
+    remainingCount: 0,
 
     hasCheckedInToday: false,
 
-    // 🎨 风格配置
-    styleList: [
-      {
-        id: "201",
-        name: "日漫风",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/日漫风.png",
-        isVip: false,
-      },
-      {
-        id: "107",
-        name: "卡通插画",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/卡通插图.png",
-        isVip: false,
-      },
-      {
-        id: "210",
-        name: "2.5D动画",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/2.5D动画.png",
-        isVip: false, 
-      },
-      {
-        id: "121",
-        name: "黏土",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/黏土.png",
-        isVip: false,
-      },
-      {
-        id: "125",
-        name: "国风工笔",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/国风工笔.png",
-        isVip: true, 
-      },
-      {
-        id: "127",
-        name: "瓷器",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/瓷器.png",
-        isVip: false,
-      },
-      {
-        id: "129",
-        name: "美式复古",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/美式复古.png",
-        isVip: true, 
-      },
-      {
-        id: "130",
-        name: "蒸汽朋克",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/蒸汽朋克.png",
-        isVip: false,
-      },
-      {
-        id: "132",
-        name: "素描",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/素描.png",
-        isVip: false,
-      },
-      {
-        id: "133",
-        name: "莫奈花园",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/莫奈花园.png",
-        isVip: true, 
-      },
-      {
-        id: "134",
-        name: "厚涂手绘",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/厚涂手绘.png",
-        isVip: false,
-      },
-      {
-        id: "126",
-        name: "玉石",
-        img: "cloud://cloud1-0g4462vv9d9954a5.636c-cloud1-0g4462vv9d9954a5-1387968548/images/碧绿风.png",
-        isVip: true, 
-      },
-    ],
+    // 🎨 风格配置：初始化使用兜底配置
+    styleList: DEFAULT_STYLES,
     currentStyleIndex: 0,
-
-    randomSampleImg: "",
 
     dailyQuote: {},
     quotes: [
@@ -109,7 +110,6 @@ Page({
       { text: "这世界很烦，但你要很可爱。", author: "佚名" },
     ],
 
-    // 🟢 移除 registerDays 和 isNewUser
     isVip: false,
     adCount: 0,
     dailyAdLimit: 1,
@@ -139,6 +139,12 @@ Page({
   onLoad: function () {
     this.fetchDailyMission();
     this.pickDailyQuote();
+
+    // 🟢 优化点：优先读取本地缓存的风格配置，避免每次都用默认的
+    const cachedStyles = wx.getStorageSync("STYLE_LIST");
+    if (cachedStyles && cachedStyles.length > 0) {
+      this.setData({ styleList: cachedStyles });
+    }
   },
 
   onStyleChange: function (e) {
@@ -158,6 +164,7 @@ Page({
             remaining,
             adCount,
             dailyAdLimit,
+            styleList, // 🟢 优化点：后端返回最新的风格配置
           } = res.result;
 
           if (loginBonus && loginBonus > 0) {
@@ -167,9 +174,14 @@ Page({
             });
           }
 
+          // 🟢 优化点：更新风格列表并缓存
+          if (styleList && styleList.length > 0) {
+            this.setData({ styleList });
+            wx.setStorageSync("STYLE_LIST", styleList);
+          }
+
           this.setData({
-            remainingCount: remaining, 
-            // 🟢 移除 registerDays 和 isNewUser 的计算
+            remainingCount: remaining,
             isVip: isVip,
             adCount: adCount || 0,
             dailyAdLimit: dailyAdLimit || 1,
@@ -184,6 +196,10 @@ Page({
     });
 
     // 获取最新回忆状态
+    this.checkTodayCheckIn();
+  },
+
+  checkTodayCheckIn: function () {
     wx.cloud.callFunction({
       name: "get_memory_lane",
       data: { page: 0, pageSize: 1 },
@@ -199,8 +215,7 @@ Page({
           if (latestLog.originalDate === todayStandard) {
             this.setData({
               hasCheckedInToday: true,
-              displayImage: "",
-              pendingSave: false,
+              // 如果今日已打卡，保留上次的状态或不强制重置
             });
           } else {
             this.setData({
@@ -223,21 +238,20 @@ Page({
   },
 
   fetchDailyMission: function () {
-    wx.showLoading({ title: "加载中..." });
+    // wx.showLoading({ title: "加载中..." }); // 可选：去掉loading以免打扰用户
     wx.cloud.callFunction({
       name: "get_daily_mission",
       success: (res) => {
-        wx.hideLoading();
+        // wx.hideLoading();
         if (res.result.status === 200) {
           this.setData({
             currentTask: res.result.task,
             todayDateStr: res.result.dateStr,
           });
-          this.checkUserStatus();
         }
       },
       fail: (err) => {
-        wx.hideLoading();
+        // wx.hideLoading();
         console.error(err);
       },
     });
@@ -246,11 +260,12 @@ Page({
   // 显示 VIP 权益
   showVipInfo: function () {
     wx.showModal({
-      title: '💎 内测 VIP 权益',
-      content: '感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会\n\n快去体验不同风格吧！',
+      title: "💎 内测 VIP 权益",
+      content:
+        "感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会\n\n快去体验不同风格吧！",
       showCancel: false,
-      confirmText: '太棒了',
-      confirmColor: '#ff6b81'
+      confirmText: "太棒了",
+      confirmColor: "#ff6b81",
     });
   },
 
@@ -355,6 +370,7 @@ Page({
     });
   },
 
+  // 🟢 重点优化：集成图片压缩逻辑
   startCameraFlow: function () {
     const that = this;
     wx.chooseMedia({
@@ -362,9 +378,27 @@ Page({
       mediaType: ["image"],
       sourceType: ["camera", "album"],
       camera: "front",
+      sizeType: ["compressed"], // 1. 优先使用系统压缩
       success(res) {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        that.uploadAndProcess(tempFilePath);
+
+        wx.showLoading({ title: "处理中..." });
+
+        // 2. 强制二次压缩 (质量60足够AI识别，极大提升上传速度)
+        wx.compressImage({
+          src: tempFilePath,
+          quality: 60,
+          success: (compressRes) => {
+            wx.hideLoading();
+            that.uploadAndProcess(compressRes.tempFilePath);
+          },
+          fail: (err) => {
+            // 如果某些机型压缩失败，降级使用原图
+            console.error("压缩失败，使用原图", err);
+            wx.hideLoading();
+            that.uploadAndProcess(tempFilePath);
+          },
+        });
       },
     });
   },
@@ -392,6 +426,7 @@ Page({
     });
   },
 
+  // 🟢 重点优化：真实感倒计时体验
   callCloudBrain: function (fileID) {
     const that = this;
     const taskTitle = this.data.currentTask
@@ -400,13 +435,23 @@ Page({
     const currentStyle = this.data.styleList[this.data.currentStyleIndex];
     const styleId = currentStyle.id;
 
-    // 🟢 核心修改：仅判断 VIP。VIP（含试用）则极速，非VIP则排队。
     if (!this.data.isVip) {
-      this.setData({ loadingText: "排队生成中(预计10s)..." });
-      setTimeout(() => {
-        that.doCloudCall(fileID, taskTitle, styleId);
-      }, 5000);
+      // 普通用户：动态倒计时
+      let seconds = 5;
+      this.setData({ loadingText: `排队生成中...(${seconds}s)` });
+
+      const timer = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          that.setData({ loadingText: "AI 正在绘制..." });
+          that.doCloudCall(fileID, taskTitle, styleId);
+        } else {
+          that.setData({ loadingText: `排队生成中...(${seconds}s)` });
+        }
+      }, 1000);
     } else {
+      // VIP 用户：无需等待
       this.setData({ loadingText: "VIP极速生成中✨..." });
       that.doCloudCall(fileID, taskTitle, styleId);
     }
