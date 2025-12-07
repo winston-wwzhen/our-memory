@@ -45,9 +45,6 @@
           <view class="card-header">
             <view class="header-left">
               <text class="user-tag">{{item.isMine ? 'ME' : 'TA'}}</text>
-              <text class="era-tag {{item.isPostBind ? 'era-couple' : 'era-single'}}">
-                {{item.isPostBind ? '二人世界' : '单身时光'}}
-              </text>
             </view>
             <view class="card-date">{{item.originalDate}}</view>
           </view>
