@@ -13,7 +13,7 @@ const envList = {
   // 🚀 生产/正式环境 (Production)
   // 用于线上发布，存放真实用户数据
   prod: {
-    envId: "YOUR_PRODUCTION_ENV_ID", // 🔴 请替换为你新创建的正式环境 ID
+    envId: "cloud1-0g4462vv9d9954a5", 
     name: "正式环境",
   },
 };
