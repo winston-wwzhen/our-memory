@@ -8,9 +8,16 @@ Page({
         id: "daily_food",
         title: "🍽️ 今天吃什么",
         options: [
-          "火锅", "烧烤", "日料", "快餐（汉堡/披萨）", 
-          "家常菜（我做）", "家常菜（TA做）", "麻辣烫/米线", 
-          "西餐（意面/牛排）", "点外卖（不限）", "掷硬币决定"
+          "火锅",
+          "烧烤",
+          "日料",
+          "快餐（汉堡/披萨）",
+          "家常菜（我做）",
+          "家常菜（TA做）",
+          "麻辣烫/米线",
+          "西餐（意面/牛排）",
+          "点外卖（不限）",
+          "掷硬币决定",
         ],
       },
       {
@@ -44,8 +51,14 @@ Page({
         id: "quick_purchase",
         title: "🛒 明天买什么",
         options: [
-          "奶茶", "咖啡", "快乐水/气泡水", "冰淇淋", "水果", 
-          "鲜花/小礼物", "零食大礼包", "矿泉水"
+          "奶茶",
+          "咖啡",
+          "快乐水/气泡水",
+          "冰淇淋",
+          "水果",
+          "鲜花/小礼物",
+          "零食大礼包",
+          "矿泉水",
         ],
       },
       {
@@ -66,6 +79,10 @@ Page({
     showResult: false,
     finalResult: "",
     partnerDecision: null,
+
+    // 🥚 彩蛋
+    showEggModal: false,
+    eggData: null,
   },
 
   onLoad: function () {
@@ -168,6 +185,13 @@ Page({
     wx.cloud.callFunction({
       name: "user_center",
       data: { action: "make_decision", category, result },
+      success: (res) => {
+        // 🥚 触发彩蛋：命运主宰
+        if (res.result && res.result.triggerEgg) {
+          this.setData({ showEggModal: true, eggData: res.result.triggerEgg });
+          wx.vibrateLong();
+        }
+      },
     });
   },
 
@@ -176,5 +200,9 @@ Page({
     setTimeout(() => {
       this.initGame();
     }, 300);
+  },
+
+  closeEggModal: function () {
+    this.setData({ showEggModal: false });
   },
 });

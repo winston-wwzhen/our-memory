@@ -19,6 +19,10 @@ Page({
     capsuleRedDot: false,
     messageHint: false,
     quizHint: false,
+
+    // 彩蛋相关
+    showEggModal: false,
+    eggData: null,
   },
 
   onShow: function () {
@@ -261,6 +265,15 @@ Page({
             duration: 2000,
           });
           this.fetchGardenData();
+
+          // 🥚 触发彩蛋：辛勤园丁
+          if (res.result.triggerEgg) {
+            this.setData({
+              showEggModal: true,
+              eggData: res.result.triggerEgg,
+            });
+            wx.vibrateLong();
+          }
         } else {
           wx.showToast({ title: res.result.msg, icon: "none" });
         }
@@ -272,6 +285,11 @@ Page({
       },
     });
   },
+
+  closeEggModal: function () {
+    this.setData({ showEggModal: false });
+  },
+
   navToDecision: function () {
     if (!this.checkPartner()) return;
     wx.navigateTo({ url: "/pages/decision/index" });

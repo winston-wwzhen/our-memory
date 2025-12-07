@@ -149,7 +149,27 @@ async function handle(action, event, ctx) {
             .where({ _openid: _.in(owners) })
             .update({ data: { rose_balance: _.inc(1) } });
         await addLog(ctx, "harvest", `收获第${garden.harvest_total + 1}朵玫瑰`);
-        return { status: 200, msg: "收获成功" };
+        // ✨ 新增彩蛋逻辑：🌹 辛勤园丁 (第一次收获)
+        let egg = null;
+        if (garden.harvest_total === 0) {
+          // 注意：这里判断的是收获前的数量
+          egg = await tryTriggerEgg(
+            ctx,
+            "gardener",
+            150,
+            "辛勤园丁",
+            "收获了第一朵玫瑰"
+          );
+          if (egg) {
+            // 奖励直接加到 water_count
+            await db
+              .collection("users")
+              .doc(me._id)
+              .update({ data: { water_count: _.inc(egg.bonus) } });
+          }
+        }
+
+        return { status: 200, msg: "收获成功", triggerEgg: egg }; // 记得返回 triggerEgg
       }
       return { status: 404 };
     }
@@ -160,8 +180,8 @@ async function handle(action, event, ctx) {
       // 图片安全检查，暂时不开启
       // const safetyRes = await checkImageSafety(ctx, imageFileID);
       // if (!safetyRes.pass) {
-        // 返回具体的错误信息（是违规还是太大）
-        // return { status: 403, msg: safetyRes.msg || "图片校验未通过" };
+      // 返回具体的错误信息（是违规还是太大）
+      // return { status: 403, msg: safetyRes.msg || "图片校验未通过" };
       // }
 
       const oldLog = await db
@@ -200,7 +220,29 @@ async function handle(action, event, ctx) {
           .collection("users")
           .where({ _openid: OPENID })
           .update({ data: { water_count: _.inc(CONFIG.CHECKIN_REWARD) } });
-        return { status: 200, msg: "打卡成功" };
+
+        // ✨ 新增彩蛋逻辑：☀️ 早安吻 (5:00 - 8:00 打卡)
+        let egg = null;
+        const currentHour = new Date().getUTCHours() + 8; // 转北京时间小时
+        const hour = currentHour % 24;
+
+        if (hour >= 5 && hour < 8) {
+          egg = await tryTriggerEgg(
+            ctx,
+            "early_bird",
+            50,
+            "早安吻",
+            "一日之计在于晨"
+          );
+          if (egg) {
+            await db
+              .collection("users")
+              .where({ _openid: OPENID })
+              .update({ data: { water_count: _.inc(egg.bonus) } });
+          }
+        }
+
+        return { status: 200, msg: "打卡成功", triggerEgg: egg }; // 记得
       }
     }
 

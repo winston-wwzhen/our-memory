@@ -33,7 +33,32 @@ async function handle(action, event, ctx) {
         .update({
           data: { last_decision: { category, result, time: db.serverDate() } },
         });
-      return { status: 200, msg: "已生效" };
+      // ✨ 新增彩蛋逻辑：🎲 命运主宰 (累计20次)
+      // 我们通过统计 logs 表中 type='decision' 的记录数来判断
+      const countRes = await db
+        .collection("logs")
+        .where({ _openid: OPENID, type: "decision" })
+        .count();
+      let egg = null;
+
+      // 注意：这里 count 已经是包含本次的了（因为 addLog 在前）
+      if (countRes.total === 20) {
+        egg = await tryTriggerEgg(
+          ctx,
+          "decision_king",
+          88,
+          "命运主宰",
+          "累计使用20次转盘"
+        );
+        if (egg) {
+          await db
+            .collection("users")
+            .where({ _openid: OPENID })
+            .update({ data: { water_count: _.inc(egg.bonus) } });
+        }
+      }
+
+      return { status: 200, msg: "已生效", triggerEgg: egg };
     }
 
     case "get_partner_decision": {
@@ -97,7 +122,47 @@ async function handle(action, event, ctx) {
       });
 
       await addLog(ctx, "redeem", `兑换${title}`);
-      return { status: 200, msg: "兑换成功" };
+      let egg = null;
+      // ✨ 新增彩蛋逻辑 1: 💰 挥金如土 (单次消费 > 100)
+      if (cost > 100) {
+        const eRich = await tryTriggerEgg(
+          ctx,
+          "rich_spender",
+          188,
+          "挥金如土",
+          "兑换了昂贵的特权券"
+        );
+        if (eRich) {
+          egg = eRich;
+          await addWater(eRich.bonus);
+        }
+      }
+
+      // ✨ 新增彩蛋逻辑 2: 🕊️ 和平鸽 (兑换和好卡/原谅卡)
+      // 检查 templateId 是否包含 forgive 或 peace 相关字眼，或者直接检查 ID
+      if (templateId === "forgive") {
+        const ePeace = await tryTriggerEgg(
+          ctx,
+          "peace_dove",
+          500,
+          "和平鸽",
+          "退一步海阔天空"
+        );
+        if (ePeace) {
+          egg = ePeace;
+          await addWater(ePeace.bonus);
+        }
+      }
+
+      // 辅助函数：加水 (定义在函数内部即可)
+      async function addWater(bonus) {
+        await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .update({ data: { water_count: _.inc(bonus) } });
+      }
+
+      return { status: 200, msg: "兑换成功", triggerEgg: egg };
     }
 
     case "get_my_coupons": {

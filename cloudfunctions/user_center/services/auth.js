@@ -104,6 +104,34 @@ async function handle(action, event, ctx) {
         if (partnerRes.data.length > 0) partnerInfo = partnerRes.data[0];
       }
 
+      // ✨ 新增彩蛋逻辑：♾️ 长长久久 (关联 99 天)
+      // 使用纪念日 anniversaryDate 来计算，如果没有纪念日，暂时无法精确计算
+      let triggerEgg = null; 
+      if (currentUser.anniversaryDate) {
+        const start = new Date(currentUser.anniversaryDate).getTime();
+        const now = new Date().getTime();
+        const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+
+        if (days >= 99) {
+          // 这里调用 tryTriggerEgg 需要引入
+          const { tryTriggerEgg } = require("../utils/eggs");
+          const egg = await tryTriggerEgg(
+            ctx,
+            "long_love",
+            520,
+            "长长久久",
+            "相爱天数达到99天"
+          );
+          if (egg) {
+            await db
+              .collection("users")
+              .doc(currentUser._id)
+              .update({ data: { water_count: _.inc(egg.bonus) } });
+            // 可以选择将彩蛋信息放入返回体，让前端弹窗（需修改前端支持 login 接口弹窗）
+            // 或者仅静默发放奖励
+          }
+        }
+      }
       return {
         status: 200,
         user: currentUser,
@@ -116,6 +144,7 @@ async function handle(action, event, ctx) {
         dailyFreeLimit: currentLimit,
         adCount: stats.ad_count || 0,
         dailyAdLimit: CONFIG.DAILY_AD_LIMIT,
+        triggerEgg: triggerEgg,
       };
     }
 

@@ -34,6 +34,10 @@ Page({
 
     // 🆕 临时存储邀请码
     inviteCode: null,
+
+    // 🥚 彩蛋
+    showEggModal: false,
+    eggData: null,
   },
 
   onLoad: function (options) {
@@ -199,7 +203,15 @@ Page({
             loginBonus,
             vipExpireDate,
             registerDays,
+            triggerEgg,
           } = res.result;
+
+          // 🥚 触发彩蛋：长长久久
+          // 注意：需要在 auth.js 的 login 接口返回 triggerEgg
+          if (triggerEgg) {
+            this.setData({ showEggModal: true, eggData: triggerEgg });
+            wx.vibrateLong();
+          }
 
           if (loginBonus && loginBonus > 0) {
             wx.showToast({
@@ -441,5 +453,10 @@ Page({
         confirmColor: "#9e9e9e",
       });
     }
+  },
+
+  // ... (其他原有函数保持不变) ...
+  closeEggModal: function () {
+    this.setData({ showEggModal: false });
   },
 });

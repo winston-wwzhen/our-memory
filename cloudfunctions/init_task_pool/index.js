@@ -302,16 +302,6 @@ const TASKS = [
 // 2. 彩蛋配置 (保持不变)
 const EGG_CONFIGS = [
   {
-    _id: "first_blood",
-    title: "初露锋芒",
-    desc: "开启纪念册的第一天，故事开始啦！",
-    icon: "🌱",
-    type: "collection",
-    bonus: 50,
-    is_hidden: false,
-    repeatable: false,
-  },
-  {
     _id: "gardener",
     title: "辛勤园丁",
     desc: "成功培育并收获了第一朵玫瑰 🌹",

@@ -55,6 +55,60 @@ async function handle(action, event, ctx) {
         egg = lucky;
       }
 
+      // ✨ 新增彩蛋逻辑 1: 💙 蓝色忧郁 (使用蓝色便签)
+      if (color === "blue") {
+        const eBlue = await tryTriggerEgg(
+          ctx,
+          "blue_melancholy",
+          20,
+          "蓝色忧郁",
+          "发布了一张蓝色便签"
+        );
+        if (eBlue) {
+          egg = eBlue;
+          rw += eBlue.bonus;
+          msg = "💙 捕捉到淡淡忧伤";
+        }
+      }
+
+      // ✨ 新增彩蛋逻辑 2: 🦉 夜猫子 (0-4点发帖)
+      const hour = (new Date().getUTCHours() + 8) % 24;
+      if (hour >= 0 && hour < 4) {
+        const eNight = await tryTriggerEgg(
+          ctx,
+          "night_owl",
+          66,
+          "夜猫子",
+          "深夜还没睡"
+        );
+        if (eNight) {
+          egg = eNight;
+          rw += eNight.bonus;
+          msg = "🦉 夜深了，早点休息";
+        }
+      }
+
+      // ✨ 新增彩蛋逻辑 3: 💬 话痨 (累计发布10条)
+      // 需要查询该用户总留言数
+      const countRes = await db
+        .collection("messages")
+        .where({ _openid: OPENID })
+        .count();
+      if (countRes.total === 10) {
+        const eTalk = await tryTriggerEgg(
+          ctx,
+          "talkative",
+          100,
+          "话痨",
+          "累计发布10条留言"
+        );
+        if (eTalk) {
+          egg = eTalk;
+          rw += eTalk.bonus;
+          msg = "🎉 达成话痨成就！";
+        }
+      }
+
       await db
         .collection("users")
         .doc(me._id)

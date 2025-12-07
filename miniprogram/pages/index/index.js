@@ -1,7 +1,7 @@
 // miniprogram/pages/index/index.js
 const app = getApp();
 
-// 🎨 本地兜底风格配置 (防止无网或首次加载白屏)
+// 🎨 本地兜底风格配置
 const DEFAULT_STYLES = [
   {
     id: "125",
@@ -78,17 +78,12 @@ Page({
     loadingText: "甜蜜生成中❤...",
     todayDateStr: "",
     currentTask: null,
-
     pendingSave: false,
     tempFileID: "",
     remainingCount: 0,
-
     hasCheckedInToday: false,
-
-    // 🎨 风格配置：初始化使用兜底配置
     styleList: DEFAULT_STYLES,
     currentStyleIndex: 0,
-
     dailyQuote: {},
     quotes: [
       { text: "斯人若彩虹，遇上方知有。", author: "Flipped" },
@@ -103,14 +98,17 @@ Page({
       { text: "我想和你一起，虚度短的沉默，长的无意义。", author: "李元胜" },
       { text: "这世界很烦，但你要很可爱。", author: "佚名" },
     ],
-
     isVip: false,
     adCount: 0,
     dailyAdLimit: 1,
     showAdModal: false,
     adCountdown: 3,
+    isSaved: false,
+    aiEvaluation: null, // 存储 AI 评分
 
-    isSaved: false
+    // 🥚 彩蛋相关
+    showEggModal: false,
+    eggData: null,
   },
 
   onShow: function () {
@@ -125,7 +123,6 @@ Page({
       loading: false,
       isSaved: false,
     });
-
     this.fetchDailyMission();
     this.pickDailyQuote();
     this.checkUserStatus(() => {
@@ -136,8 +133,6 @@ Page({
   onLoad: function () {
     this.fetchDailyMission();
     this.pickDailyQuote();
-
-    // 🟢 优化点：优先读取本地缓存的风格配置，避免每次都用默认的
     const cachedStyles = wx.getStorageSync("STYLE_LIST");
     if (cachedStyles && cachedStyles.length > 0) {
       this.setData({ styleList: cachedStyles });
@@ -161,7 +156,7 @@ Page({
             remaining,
             adCount,
             dailyAdLimit,
-            styleList, // 🟢 优化点：后端返回最新的风格配置
+            styleList,
           } = res.result;
 
           if (loginBonus && loginBonus > 0) {
@@ -170,13 +165,10 @@ Page({
               icon: "none",
             });
           }
-
-          // 🟢 优化点：更新风格列表并缓存
           if (styleList && styleList.length > 0) {
             this.setData({ styleList });
             wx.setStorageSync("STYLE_LIST", styleList);
           }
-
           this.setData({
             remainingCount: remaining,
             isVip: isVip,
@@ -184,15 +176,13 @@ Page({
             dailyAdLimit: dailyAdLimit || 1,
           });
         }
-        if (callback && typeof callback === "function") callback();
+        if (callback) callback();
       },
       fail: (err) => {
         console.error("Check status failed", err);
-        if (callback && typeof callback === "function") callback();
+        if (callback) callback();
       },
     });
-
-    // 获取最新回忆状态
     this.checkTodayCheckIn();
   },
 
@@ -204,16 +194,11 @@ Page({
         if (res.result.status === 200 && res.result.data.length > 0) {
           const latestLog = res.result.data[0];
           const now = new Date();
-          const y = now.getFullYear();
-          const m = String(now.getMonth() + 1).padStart(2, "0");
-          const d = String(now.getDate()).padStart(2, "0");
-          const todayStandard = `${y}-${m}-${d}`;
-
+          const todayStandard = `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+          ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
           if (latestLog.originalDate === todayStandard) {
-            this.setData({
-              hasCheckedInToday: true,
-              // 如果今日已打卡，保留上次的状态或不强制重置
-            });
+            this.setData({ hasCheckedInToday: true });
           } else {
             this.setData({
               hasCheckedInToday: false,
@@ -230,16 +215,13 @@ Page({
 
   pickDailyQuote: function () {
     const q = this.data.quotes;
-    const idx = Math.floor(Math.random() * q.length);
-    this.setData({ dailyQuote: q[idx] });
+    this.setData({ dailyQuote: q[Math.floor(Math.random() * q.length)] });
   },
 
   fetchDailyMission: function () {
-    // wx.showLoading({ title: "加载中..." }); // 可选：去掉loading以免打扰用户
     wx.cloud.callFunction({
       name: "get_daily_mission",
       success: (res) => {
-        // wx.hideLoading();
         if (res.result.status === 200) {
           this.setData({
             currentTask: res.result.task,
@@ -247,19 +229,14 @@ Page({
           });
         }
       },
-      fail: (err) => {
-        // wx.hideLoading();
-        console.error(err);
-      },
     });
   },
 
-  // 显示 VIP 权益
   showVipInfo: function () {
     wx.showModal({
       title: "💎 内测 VIP 权益",
       content:
-        "感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会\n\n快去体验不同风格吧！",
+        "感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会",
       showCancel: false,
       confirmText: "太棒了",
       confirmColor: "#ff6b81",
@@ -277,7 +254,6 @@ Page({
       });
       return;
     }
-
     if (this.data.hasCheckedInToday && this.data.remainingCount > 0) {
       wx.showModal({
         title: "今日已打卡",
@@ -290,12 +266,10 @@ Page({
       });
       return;
     }
-
     if (this.data.remainingCount > 0) {
       this.startCameraFlow();
       return;
     }
-
     if (this.data.adCount >= this.data.dailyAdLimit) {
       wx.showModal({
         title: "今日额度已耗尽",
@@ -304,14 +278,11 @@ Page({
         confirmColor: "#ff6b81",
         showCancel: false,
         success: (res) => {
-          if (res.confirm) {
-            wx.switchTab({ url: "/pages/playground/index" });
-          }
+          if (res.confirm) wx.switchTab({ url: "/pages/playground/index" });
         },
       });
       return;
     }
-
     wx.showModal({
       title: "今日次数已用完",
       content: "完成一个浪漫小挑战，立即解锁 1 次 AI 绘图机会？",
@@ -319,19 +290,13 @@ Page({
       confirmColor: "#ff6b81",
       cancelText: "不需要",
       success: (res) => {
-        if (res.confirm) {
-          this.mockWatchAd();
-        }
+        if (res.confirm) this.mockWatchAd();
       },
     });
   },
 
   mockWatchAd: function () {
-    this.setData({
-      showAdModal: true,
-      adCountdown: 3,
-    });
-
+    this.setData({ showAdModal: true, adCountdown: 3 });
     const timer = setInterval(() => {
       let next = this.data.adCountdown - 1;
       if (next <= 0) {
@@ -353,9 +318,7 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: "已解锁 +1", icon: "success" });
-          this.checkUserStatus(() => {
-            this.startCameraFlow();
-          });
+          this.checkUserStatus(() => this.startCameraFlow());
         } else {
           wx.showToast({ title: res.result.msg || "获取失败", icon: "none" });
         }
@@ -367,7 +330,6 @@ Page({
     });
   },
 
-  // 🟢 重点优化：集成图片压缩逻辑
   startCameraFlow: function () {
     const that = this;
     wx.chooseMedia({
@@ -375,13 +337,10 @@ Page({
       mediaType: ["image"],
       sourceType: ["camera", "album"],
       camera: "front",
-      sizeType: ["compressed"], // 1. 优先使用系统压缩
+      sizeType: ["compressed"],
       success(res) {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-
         wx.showLoading({ title: "处理中..." });
-
-        // 2. 强制二次压缩 (质量60足够AI识别，极大提升上传速度)
         wx.compressImage({
           src: tempFilePath,
           quality: 60,
@@ -389,9 +348,7 @@ Page({
             wx.hideLoading();
             that.uploadAndProcess(compressRes.tempFilePath);
           },
-          fail: (err) => {
-            // 如果某些机型压缩失败，降级使用原图
-            console.error("压缩失败，使用原图", err);
+          fail: () => {
             wx.hideLoading();
             that.uploadAndProcess(tempFilePath);
           },
@@ -406,7 +363,6 @@ Page({
       loading: true,
       loadingText: "正在上传...",
     });
-
     const cloudPath = `temp_uploads/${Date.now()}-${Math.floor(
       Math.random() * 1000
     )}.jpg`;
@@ -417,14 +373,13 @@ Page({
         this.callCloudBrain(res.fileID);
       },
       fail: (err) => {
-        console.error("【上传报错】详细信息:", err)
+        console.error("上传报错:", err);
         this.setData({ loading: false, displayImage: "" });
         wx.showToast({ title: "上传失败", icon: "none" });
       },
     });
   },
 
-  // 🟢 重点优化：真实感倒计时体验
   callCloudBrain: function (fileID) {
     const that = this;
     const taskTitle = this.data.currentTask
@@ -434,10 +389,8 @@ Page({
     const styleId = currentStyle.id;
 
     if (!this.data.isVip) {
-      // 普通用户：动态倒计时
       let seconds = 5;
       this.setData({ loadingText: `排队生成中...(${seconds}s)` });
-
       const timer = setInterval(() => {
         seconds--;
         if (seconds <= 0) {
@@ -449,7 +402,6 @@ Page({
         }
       }, 1000);
     } else {
-      // VIP 用户：无需等待
       this.setData({ loadingText: "VIP极速生成中✨..." });
       that.doCloudCall(fileID, taskTitle, styleId);
     }
@@ -469,6 +421,7 @@ Page({
           evaluation,
           requireAd,
           redirectFun,
+          triggerEgg,
         } = res.result;
 
         if (status === 200) {
@@ -481,9 +434,14 @@ Page({
             aiEvaluation: evaluation,
           });
           wx.vibrateShort();
+
+          // 🥚 触发彩蛋：天选之子
+          if (triggerEgg) {
+            that.setData({ showEggModal: true, eggData: triggerEgg });
+            wx.vibrateLong();
+          }
         } else if (status === 403) {
           that.setData({ loading: false, displayImage: "" });
-
           if (redirectFun) {
             wx.showModal({
               title: "次数彻底用尽",
@@ -511,7 +469,7 @@ Page({
           wx.showToast({ title: msg || "AI 走神了", icon: "none" });
         }
       },
-      fail: (err) => {
+      fail: () => {
         that.setData({ loading: false, displayImage: "" });
         wx.showToast({ title: "连接中断", icon: "none" });
       },
@@ -539,19 +497,23 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           wx.showToast({ title: res.result.msg, icon: "none", duration: 2500 });
-          this.setData({
-            // pendingSave: false,
-            // displayImage: "",
-            hasCheckedInToday: true,
-            isSaved: true,
-          });
+          this.setData({ hasCheckedInToday: true, isSaved: true });
           this.pickDailyQuote();
           this.checkUserStatus();
+
+          // 🥚 触发彩蛋：早安吻
+          if (res.result.triggerEgg) {
+            this.setData({
+              showEggModal: true,
+              eggData: res.result.triggerEgg,
+            });
+            wx.vibrateLong();
+          }
         } else {
           wx.showToast({ title: "保存失败", icon: "none" });
         }
       },
-      fail: (err) => {
+      fail: () => {
         wx.hideLoading();
         wx.showToast({ title: "保存出错", icon: "none" });
       },
@@ -580,7 +542,7 @@ Page({
             wx.hideLoading();
             wx.showToast({ title: "已保存", icon: "success" });
           },
-          fail: (err) => {
+          fail: () => {
             wx.hideLoading();
             wx.showToast({ title: "保存失败或无权限", icon: "none" });
           },
@@ -600,5 +562,9 @@ Page({
         current: this.data.displayImage,
       });
     }
+  },
+
+  closeEggModal: function () {
+    this.setData({ showEggModal: false });
   },
 });

@@ -76,4 +76,35 @@
     </view>
   </view>
 
+  <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
+  <view class="god-rays"></view>
+  <view class="confetti-container">
+    <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+    <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+    <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+    <view class="confetti c10"></view>
+  </view>
+  <view class="egg-card bounce-in">
+    <view class="card-ribbon">LUCKY TIME</view>
+    <view class="icon-stage">
+      <view class="halo-ring"></view>
+      <text class="egg-icon">{{eggData.icon}}</text>
+      <view class="shine-star s-left">✨</view>
+      <view class="shine-star s-right">✨</view>
+    </view>
+    <view class="egg-title">{{eggData.title}}</view>
+    <view class="egg-desc">{{eggData.desc}}</view>
+    <view class="egg-reward-box">
+      <text class="reward-label">获得奖励</text>
+      <view class="reward-val-row">
+        <text class="val-num">+{{eggData.bonus}}</text>
+        <text class="val-unit">g 爱意 💧</text>
+      </view>
+    </view>
+    <button class="btn-get-egg" bindtap="closeEggModal">
+      <text>开心收下 ❤️</text>
+    </button>
+  </view>
+</view>
+
 </view>

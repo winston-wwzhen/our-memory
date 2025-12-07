@@ -333,7 +333,49 @@ exports.main = async (event, context) => {
   });
 
   const evaluation = generateEvaluation(taskTitle);
+  let triggerEgg = null;
 
+  // ✨ 新增彩蛋逻辑：✨ 天选之子 (评分 > 99)
+  if (evaluation.score >= 99) {
+    try {
+      // 检查是否已经获得过
+      const eggId = "lucky_star";
+      const eggRes = await db
+        .collection("user_eggs")
+        .where({ _openid: openid, egg_id: eggId })
+        .count();
+
+      if (eggRes.total === 0) {
+        // 写入彩蛋记录
+        await db.collection("user_eggs").add({
+          data: {
+            _openid: openid,
+            egg_id: eggId,
+            count: 1,
+            unlocked_at: db.serverDate(),
+            is_read: false,
+          },
+        });
+
+        // 发放奖励 (需要加到 users 表)
+        await db
+          .collection("users")
+          .where({ _openid: openid })
+          .update({
+            data: { water_count: _.inc(200) }, // 假设奖励 200 水滴
+          });
+
+        triggerEgg = {
+          title: "天选之子",
+          icon: "✨",
+          desc: "获得了一张评分99+的完美照片",
+          bonus: 200,
+        };
+      }
+    } catch (e) {
+      console.error("彩蛋触发失败", e);
+    }
+  }
   return {
     status: 200,
     result: uploadRes.fileID,

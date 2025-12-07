@@ -118,6 +118,15 @@ Page({
           this.setData({ page: 0, isEnd: false, myCoupons: [] });
           this.fetchData();
           this.setData({ currentTab: 1 });
+
+          // 🥚 触发彩蛋：挥金如土 / 和平鸽
+          if (res.result.triggerEgg) {
+            this.setData({
+              showEggModal: true,
+              eggData: res.result.triggerEgg,
+            });
+            wx.vibrateLong();
+          }
         } else {
           wx.showModal({
             title: "提示",
@@ -183,5 +192,9 @@ Page({
         wx.showToast({ title: "网络错误", icon: "none" });
       },
     });
+  },
+
+  closeEggModal: function () {
+    this.setData({ showEggModal: false });
   },
 });
