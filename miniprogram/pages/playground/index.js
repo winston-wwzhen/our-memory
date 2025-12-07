@@ -20,7 +20,7 @@ Page({
     messageHint: false,
     quizHint: false,
 
-    // 彩蛋相关
+    // 🥚 彩蛋
     showEggModal: false,
     eggData: null,
   },
@@ -43,6 +43,25 @@ Page({
     }
   },
 
+  // 🟢 修复：添加下拉刷新监听函数
+  onPullDownRefresh: function () {
+    // 1. 刷新用户状态（积分等）
+    this.updateUserStatus();
+
+    // 2. 刷新提示红点
+    if (app.globalData.userInfo && app.globalData.userInfo.partner_id) {
+      this.checkCapsuleRedDot();
+      this.checkMessageHint();
+      this.checkQuizHint();
+    }
+
+    // 3. 刷新花园数据（核心数据），并在回调中停止下拉动画
+    this.fetchGardenData(() => {
+      wx.stopPullDownRefresh();
+      wx.showToast({ title: "刷新成功", icon: "none" });
+    });
+  },
+
   // 🟢 核心修改：基于“盖章状态”判断提示
   checkMessageHint: function () {
     wx.cloud.callFunction({
@@ -60,7 +79,6 @@ Page({
             const latest = partnerMsgs[0];
 
             // 3. 只有当“未盖章(isLiked false)”时，才显示提示
-            // 这样如果用户看了但没点赞，提示会一直存在，直到点赞为止
             if (!latest.isLiked) {
               this.setData({ messageHint: true });
             } else {
@@ -74,14 +92,8 @@ Page({
     });
   },
 
-  // 📌 爱的留言板 (移除旧的时间缓存逻辑)
   navToBoard: function () {
     if (!this.checkPartner()) return;
-
-    // 注意：这里不手动消除 messageHint 了
-    // 因为如果用户进去没盖章就退出来，我们希望提示还在
-    // 提示状态完全交给 onShow 里的 checkMessageHint 根据数据真实状态来决定
-
     wx.navigateTo({ url: "/pages/message_board/index" });
   },
 
@@ -108,10 +120,6 @@ Page({
         if (res.result.status === 200) {
           const round = res.result.currentRound;
           if (round) {
-            // 逻辑：如果当前有进行中的轮次
-            // 并且 我的进度 < 总题数 (说明我还没做完)
-            // 并且 (我的进度 < 对方进度 OR 对方已经做完了等待结算)
-            // 简单来说：只要我还没做完，且轮次已开启，就应该提示我去推图
             if (round.my_progress < round.total) {
               this.setData({ quizHint: true });
             } else {
@@ -127,12 +135,10 @@ Page({
 
   navToCapsule: function () {
     if (!this.checkPartner()) return;
-    // 胶囊的红点点击即消，因为进去就能开启
     this.setData({ capsuleRedDot: false });
     wx.navigateTo({ url: "/pages/capsule/index" });
   },
 
-  // === 以下保持原有逻辑不变 ===
   updateUserStatus: function () {
     wx.cloud.callFunction({
       name: "user_center",
@@ -144,6 +150,7 @@ Page({
       },
     });
   },
+
   checkPartner: function () {
     const user = app.globalData.userInfo;
     if (!user || !user.partner_id) {
@@ -164,6 +171,7 @@ Page({
     }
     return true;
   },
+
   fetchGardenData: function (callback) {
     wx.cloud.callFunction({
       name: "user_center",
@@ -198,6 +206,7 @@ Page({
       },
     });
   },
+
   formatTimeAgo: function (dateStr) {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -208,6 +217,7 @@ Page({
     if (diff < 86400) return Math.floor(diff / 3600) + "小时前";
     return Math.floor(diff / 86400) + "天前";
   },
+
   onWater: function () {
     if (!this.checkPartner()) return;
     if (this.data.waterCount < 10) {
@@ -233,10 +243,12 @@ Page({
       },
     });
   },
+
   toggleLogModal: function () {
     if (!this.checkPartner()) return;
     this.setData({ showLogModal: !this.data.showLogModal });
   },
+
   onHarvest: function () {
     if (!this.checkPartner()) return;
     wx.showModal({
@@ -249,6 +261,7 @@ Page({
       },
     });
   },
+
   doHarvest: function () {
     this.setData({ loading: true });
     wx.showLoading({ title: "收获中..." });
@@ -286,10 +299,6 @@ Page({
     });
   },
 
-  closeEggModal: function () {
-    this.setData({ showEggModal: false });
-  },
-
   navToDecision: function () {
     if (!this.checkPartner()) return;
     wx.navigateTo({ url: "/pages/decision/index" });
@@ -310,5 +319,9 @@ Page({
   onTodo: function () {
     if (!this.checkPartner()) return;
     wx.showToast({ title: "功能开发中...", icon: "none" });
+  },
+
+  closeEggModal: function () {
+    this.setData({ showEggModal: false });
   },
 });

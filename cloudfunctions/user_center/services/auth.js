@@ -1,3 +1,4 @@
+// cloudfunctions/user_center/services/auth.js
 const { getTodayStr, getRandomName } = require("../utils/common");
 const { getSudoUsers } = require("../utils/config");
 const { addLog } = require("../utils/logger");
@@ -7,6 +8,20 @@ async function handle(action, event, ctx) {
   const { OPENID, db, _, CONFIG } = ctx;
   const SUDO_USERS = await getSudoUsers(db);
   const todayStr = getTodayStr();
+
+  // 辅助函数：检查是否处于解绑冷静期
+  const checkCooldown = (user) => {
+    if (
+      user.unbind_cooldown_until &&
+      new Date(user.unbind_cooldown_until) > new Date()
+    ) {
+      const date = new Date(user.unbind_cooldown_until);
+      return `解绑冷静期中，${
+        date.getMonth() + 1
+      }月${date.getDate()}日后方可绑定`;
+    }
+    return null;
+  };
 
   switch (action) {
     case "login": {
@@ -48,10 +63,6 @@ async function handle(action, event, ctx) {
             ) || 1;
         }
       } else {
-        // 🟢 移除 VIP 试用赠送逻辑，改为在绑定时赠送
-        // const vipExpire = new Date();
-        // vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
-
         const newUser = {
           _openid: OPENID,
           nickName: userInfo?.nickName || getRandomName(),
@@ -62,7 +73,6 @@ async function handle(action, event, ctx) {
           rose_balance: 0,
           last_login_date: todayStr,
           createdAt: db.serverDate(),
-          // vip_expire_date: vipExpire, // 移除此字段初始化
           daily_usage: { date: todayStr, count: 0, ad_count: 0, msg_count: 0 },
           capsule_limit: CONFIG.DEFAULT_CAPSULE_LIMIT,
         };
@@ -105,15 +115,13 @@ async function handle(action, event, ctx) {
       }
 
       // ✨ 新增彩蛋逻辑：♾️ 长长久久 (关联 99 天)
-      // 使用纪念日 anniversaryDate 来计算，如果没有纪念日，暂时无法精确计算
-      let triggerEgg = null; 
+      let triggerEgg = null;
       if (currentUser.anniversaryDate) {
         const start = new Date(currentUser.anniversaryDate).getTime();
         const now = new Date().getTime();
         const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
 
         if (days >= 99) {
-          // 这里调用 tryTriggerEgg 需要引入
           const { tryTriggerEgg } = require("../utils/eggs");
           const egg = await tryTriggerEgg(
             ctx,
@@ -127,11 +135,11 @@ async function handle(action, event, ctx) {
               .collection("users")
               .doc(currentUser._id)
               .update({ data: { water_count: _.inc(egg.bonus) } });
-            // 可以选择将彩蛋信息放入返回体，让前端弹窗（需修改前端支持 login 接口弹窗）
-            // 或者仅静默发放奖励
+            triggerEgg = egg;
           }
         }
       }
+
       return {
         status: 200,
         user: currentUser,
@@ -144,24 +152,36 @@ async function handle(action, event, ctx) {
         dailyFreeLimit: currentLimit,
         adCount: stats.ad_count || 0,
         dailyAdLimit: CONFIG.DAILY_AD_LIMIT,
-        triggerEgg: triggerEgg,
+        triggerEgg,
       };
     }
 
     case "request_bind": {
-      // partnerCode 在此处为接收邀请的用户的 OpenID
       const { partnerCode } = event;
       if (!partnerCode || partnerCode === OPENID)
         return { status: 400, msg: "编号无效" };
+
+      // 🟢 检查自己是否在冷静期
+      const meRes = await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .get();
+      if (meRes.data.length > 0) {
+        const cooldownMsg = checkCooldown(meRes.data[0]);
+        if (cooldownMsg) return { status: 403, msg: cooldownMsg };
+      }
+
       const pr = await db
         .collection("users")
         .where({ _openid: partnerCode })
         .get();
       if (pr.data.length === 0) return { status: 404 };
-      // 检查接收方是否已绑定
       if (pr.data[0].partner_id) return { status: 403, msg: "对方已绑定伴侣" };
 
-      // 在接收方记录上设置邀请人（OPENID）
+      // 🟢 检查对方是否在冷静期
+      const pCooldownMsg = checkCooldown(pr.data[0]);
+      if (pCooldownMsg) return { status: 403, msg: "对方处于解绑冷静期" };
+
       await db
         .collection("users")
         .where({ _openid: partnerCode })
@@ -170,10 +190,9 @@ async function handle(action, event, ctx) {
     }
 
     case "respond_bind": {
-      const { decision, partnerCode } = event; // partnerCode 是邀请人（Inviter）的 OpenID
+      const { decision, partnerCode } = event;
       if (!partnerCode) return { status: 400 };
 
-      // 1. 拒绝 (Recipient: OPENID)
       if (decision === "reject") {
         await db
           .collection("users")
@@ -182,22 +201,34 @@ async function handle(action, event, ctx) {
         return { status: 200, msg: "已拒绝" };
       }
 
-      // 2. 接受 (Recipient: OPENID)
       if (decision === "accept") {
-        // 准备 VIP 赠送数据
+        // 🟢 双重检查冷静期 (防止请求发送后进入冷静期)
+        const meRes = await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .get();
+        const pRes = await db
+          .collection("users")
+          .where({ _openid: partnerCode })
+          .get();
+
+        if (meRes.data.length > 0) {
+          const msg = checkCooldown(meRes.data[0]);
+          if (msg) return { status: 403, msg: msg };
+        }
+        if (pRes.data.length === 0) return { status: 404, msg: "对方不存在" };
+        const pMsg = checkCooldown(pRes.data[0]);
+        if (pMsg) return { status: 403, msg: "对方处于解绑冷静期" };
+
         const vipExpire = new Date();
         vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
         const vipUpdate = {
           vip_expire_date: vipExpire,
         };
 
-        // 🔒 第一步：原子更新接受方（自己），确保自己当前未绑定
         const resA = await db
           .collection("users")
-          .where({
-            _openid: OPENID,
-            partner_id: null, // 👈 核心修复：必须是单身才能绑定
-          })
+          .where({ _openid: OPENID, partner_id: null })
           .update({
             data: {
               partner_id: partnerCode,
@@ -206,18 +237,13 @@ async function handle(action, event, ctx) {
             },
           });
 
-        // 如果更新数为 0，说明 where 条件不满足（即已经绑定了别人）
         if (resA.stats.updated === 0) {
           return { status: 403, msg: "操作失败：你当前已绑定伴侣" };
         }
 
-        // 🔒 第二步：原子更新邀请方（对方），确保对方当前未绑定
         const resB = await db
           .collection("users")
-          .where({
-            _openid: partnerCode,
-            partner_id: null, // 👈 核心修复：对方也必须是单身
-          })
+          .where({ _openid: partnerCode, partner_id: null })
           .update({
             data: {
               partner_id: OPENID,
@@ -227,9 +253,7 @@ async function handle(action, event, ctx) {
             },
           });
 
-        // 🚨 异常回滚处理：如果对方在这一瞬间绑定了别人
         if (resB.stats.updated === 0) {
-          // 回滚自己的状态：解绑
           await db
             .collection("users")
             .where({ _openid: OPENID })
@@ -282,7 +306,6 @@ async function handle(action, event, ctx) {
     }
 
     case "unbind": {
-      // if (!SUDO_USERS.includes(OPENID)) return { status: 403, msg: "暂未开放" };
       const myRes = await db
         .collection("users")
         .where({ _openid: OPENID })
@@ -290,20 +313,49 @@ async function handle(action, event, ctx) {
       if (myRes.data.length === 0) return { status: 404 };
       const me = myRes.data[0];
       const pid = me.partner_id;
-      await db
-        .collection("users")
-        .where({ _openid: OPENID })
-        .update({ data: { partner_id: null } });
-      if (pid)
-        await db
-          .collection("users")
-          .where({ _openid: pid })
-          .update({ data: { partner_id: null } });
+
+      // 🟢 1. 计算 7 天后的冷却时间
+      const cooldownDate = new Date();
+      cooldownDate.setDate(cooldownDate.getDate() + 7);
+
+      // 🟢 2. 准备更新数据：清除 partner_id，设置冷却期
+      let updateDataMe = {
+        partner_id: null,
+        unbind_cooldown_until: cooldownDate,
+      };
+      let updateDataPartner = {
+        partner_id: null,
+        unbind_cooldown_until: cooldownDate,
+      };
+
+      // 🟢 3. 检查并清除 VIP (如果处于试用期，即有过期时间且未过期)
+      // 注意：这里简单判定只要有过期时间就清除。如果是手动充值的 VIP，这里也会被清除。
+      // 如果要保留手动充值的，需要额外字段区分。鉴于需求是“解绑后VIP失效”，这里统一清除。
+      const now = new Date();
+      if (me.vip_expire_date && new Date(me.vip_expire_date) > now) {
+        updateDataMe.vip_expire_date = null;
+      }
+
+      await db.collection("users").doc(me._id).update({ data: updateDataMe });
+
+      if (pid) {
+        const pRes = await db.collection("users").where({ _openid: pid }).get();
+        if (pRes.data.length > 0) {
+          const p = pRes.data[0];
+          if (p.vip_expire_date && new Date(p.vip_expire_date) > now) {
+            updateDataPartner.vip_expire_date = null;
+          }
+          await db
+            .collection("users")
+            .doc(p._id)
+            .update({ data: updateDataPartner });
+        }
+      }
+
       await addLog(ctx, "unbind", "解除关联");
       return { status: 200, msg: "已解除" };
     }
 
-    // 清除绑定通知标志
     case "clear_bind_notification": {
       await db
         .collection("users")
@@ -330,6 +382,42 @@ async function handle(action, event, ctx) {
         });
       await addLog(ctx, "update_status", `状态:${statusIcon}`);
       return { status: 200, msg: "已同步" };
+    }
+
+    // 管理员充值逻辑 (保留)
+    case "admin_grant_vip": {
+      if (!SUDO_USERS.includes(OPENID)) {
+        return { status: 403, msg: "无权操作" };
+      }
+      const { targetOpenId, days } = event;
+      if (!targetOpenId || !days) {
+        return { status: 400, msg: "参数缺失" };
+      }
+      const targetUserRes = await db
+        .collection("users")
+        .where({ _openid: targetOpenId })
+        .get();
+      if (targetUserRes.data.length === 0) {
+        return { status: 404, msg: "未找到该用户 ID" };
+      }
+      const targetUser = targetUserRes.data[0];
+      let newExpire = new Date();
+      if (
+        targetUser.vip_expire_date &&
+        new Date(targetUser.vip_expire_date) > new Date()
+      ) {
+        newExpire = new Date(targetUser.vip_expire_date);
+      }
+      newExpire.setDate(newExpire.getDate() + parseInt(days));
+      await db
+        .collection("users")
+        .doc(targetUser._id)
+        .update({
+          data: { vip_expire_date: newExpire },
+        });
+      const dateStr = newExpire.toISOString().split("T")[0];
+      await addLog(ctx, "admin_vip", `管理员充值 ${days} 天`);
+      return { status: 200, msg: `充值成功！有效期至: ${dateStr}` };
     }
   }
 }

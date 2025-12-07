@@ -1,11 +1,12 @@
+// cloudfunctions/user_center/index.js
 const cloud = require("wx-server-sdk");
+const { getBizConfig } = require("./utils/config");
 
-// 初始化云环境
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 引入业务模块
+// 引入各个服务模块
 const authService = require("./services/auth");
 const gardenService = require("./services/garden");
 const messageService = require("./services/message");
@@ -13,83 +14,77 @@ const capsuleService = require("./services/capsule");
 const quizService = require("./services/quiz");
 const playgroundService = require("./services/playground");
 
-// 引入配置工具
-const { getBizConfig } = require("./utils/config");
-
 exports.main = async (event, context) => {
   const { action } = event;
   const wxContext = cloud.getWXContext();
+  const OPENID = wxContext.OPENID;
 
-  // 获取全局配置
-  const CONFIG = await getBizConfig(db);
-
-  // 统一上下文对象，透传给所有 Service
+  // 统一上下文
   const ctx = {
-    cloud,
+    OPENID,
+    APPID: wxContext.APPID,
+    UNIONID: wxContext.UNIONID,
     db,
     _,
-    wxContext,
-    OPENID: wxContext.OPENID,
-    CONFIG,
+    cloud,
+    CONFIG: await getBizConfig(db),
   };
 
-  console.log(`⚡️ [Router] Action: ${action} | User: ${ctx.OPENID}`);
+  console.log(`[UserCenter] Action: ${action}, User: ${OPENID}`);
 
-  switch (true) {
-    // 👤 用户与授权相关
-    case [
-      "login",
-      "request_bind",
-      "respond_bind",
-      "direct_accept_bind",
-      "unbind",
-      "update_profile",
-      "update_anniversary",
-      "update_status",
-    ].includes(action):
+  // 路由分发
+  switch (action) {
+    // === Auth (用户/绑定) ===
+    case "login":
+    case "request_bind":
+    case "respond_bind":
+    case "update_profile":
+    case "update_anniversary":
+    case "unbind":
+    case "clear_bind_notification":
+    case "update_status":
+    case "admin_grant_vip":
       return await authService.handle(action, event, ctx);
 
-    // 🌹 花园与每日打卡相关
-    case [
-      "get_garden",
-      "water_flower",
-      "harvest_garden",
-      "check_in",
-      "watch_ad_reward",
-    ].includes(action):
+    // === Garden (花园/打卡) ===
+    case "get_garden":
+    case "water_flower":
+    case "harvest_garden":
+    case "check_in":
+    case "watch_ad_reward":
       return await gardenService.handle(action, event, ctx);
 
-    // 📝 留言板相关
-    case [
-      "post_message",
-      "delete_message",
-      "like_message",
-      "get_messages",
-    ].includes(action):
+    // === Message (留言板) ===
+    case "post_message":
+    case "delete_message":
+    case "like_message":
+    case "get_messages":
       return await messageService.handle(action, event, ctx);
 
-    // 💊 时光胶囊相关
-    case ["bury_capsule", "get_capsules", "open_capsule"].includes(action):
+    // === Capsule (时光胶囊) ===
+    case "bury_capsule":
+    case "get_capsules":
+    case "open_capsule":
       return await capsuleService.handle(action, event, ctx);
 
-    // 🧩 默契问答相关
-    case action.startsWith("get_quiz_") ||
-      action.includes("round") ||
-      action === "start_new_round":
+    // === Quiz (默契问答) ===
+    case "get_quiz_home":
+    case "start_new_round":
+    case "get_round_detail":
+    case "submit_round_answer":
       return await quizService.handle(action, event, ctx);
 
-    // 🎡 游乐园其他 (决定、优惠券、清单)
-    case [
-      "make_decision",
-      "get_partner_decision",
-      "redeem_coupon",
-      "get_my_coupons",
-      "get_love_list_status",
-      "toggle_love_list_item",
-    ].includes(action):
+    // === Playground (特权/决定/清单) ===
+    case "make_decision":
+    case "get_partner_decision":
+    case "redeem_coupon":
+    case "get_my_coupons":
+    case "use_coupon": // 🟢 关键修复：补上了这个 case
+    case "get_love_list_status":
+    case "toggle_love_list_item":
       return await playgroundService.handle(action, event, ctx);
 
     default:
-      return { status: 404, msg: `未知的 Action: ${action}` };
+      return { status: 400, msg: `未知的action: ${action}` };
   }
 };

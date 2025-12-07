@@ -1,12 +1,12 @@
 /* miniprogram/pages/message_board/index.wxss */
 page {
   background-color: #fcf8e3;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh; 
+  padding-bottom: 40rpx; /* 底部留白 */
 }
 
 .board-container {
-  height: 100%;
+  /* height: 100%; */
   display: flex;
   flex-direction: column;
 }
@@ -73,7 +73,7 @@ page {
 
 /* === 2. 中部软木板区域 === */
 .cork-board {
-  flex: 1;
+  /* flex: 1; */
   background-image: radial-gradient(#d7ccc8 2px, transparent 2px);
   background-size: 20px 20px;
   background-color: #fcf8e3;

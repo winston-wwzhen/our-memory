@@ -3,7 +3,6 @@ page {
   background: #fdfbf7; 
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   height: 100vh;
-  overflow: hidden;
 }
 
 .mine-container { 

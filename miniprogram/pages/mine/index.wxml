@@ -138,9 +138,8 @@
       <view class="oath-subtitle">Time to say goodbye?</view>
       <view class="oath-divider">❦</view>
       <view class="oath-warning unbind-style">
-        <text class="warning-title">冷静期提示</text>
-        <text 
- class="warning-desc">解除关联后，所有的共同回忆将不再可见。\n相遇不易，真的要断开连接吗？</text>
+        <text class="warning-title">⚠️ 高能预警</text>
+        <text class="warning-desc">1. 解绑后，<text style="color: #d32f2f; font-weight: bold;">7日内</text> 无法再次绑定伴侣。\n2. 若处于试用期，解绑后双方VIP权益 <text style="color: #d32f2f; font-weight: bold;">立即失效</text>。\n\n相遇不易，真的要断开连接吗？</text>
       </view>
       <button class="btn-oath-confirm {{!canUnbind ? 'disabled' : 'danger'}}" bindtap="confirmUnbind">
         <text wx:if="{{!canUnbind}}">请冷静 {{unbindCount}}s</text>

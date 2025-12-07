@@ -33,7 +33,7 @@
     </view>
   </view>
 
-  <scroll-view scroll-y class="cork-board">
+  <view scroll-y class="cork-board">
     <view class="notes-grid">
       <view class="empty-tip" wx:if="{{messages.length === 0}}">
         <text wx:if="{{isToday}}">墙上空空的，写下第一张便签吧~ 📝</text>
@@ -64,7 +64,7 @@
       </block>
     </view>
     <view style="height: 150rpx;"></view>
-  </scroll-view>
+  </view>
 
   <view class="fab-btn" bindtap="openInput">
     <text>+</text>
