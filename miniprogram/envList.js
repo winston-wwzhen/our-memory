@@ -6,7 +6,7 @@ const envList = {
   // 🛠️ 开发/测试环境 (Development)
   // 用于开发调试，数据可以随便造
   dev: {
-    envId: "cloud1-0g4462vv9d9954a5", // 目前你正在用的这个作为开发环境
+    envId: "", // 目前你正在用的这个作为开发环境
     name: "开发环境",
   },
 

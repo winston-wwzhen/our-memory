@@ -213,14 +213,7 @@ page {
   align-items: center;
 }
 
-.user-tag {
-  font-size: 22rpx;
-  font-weight: 700;
-  padding: 6rpx 16rpx;
-  border-radius: 24rpx;
-  letter-spacing: 1rpx;
-  margin-right: 12rpx;
-}
+/* 🗑️ [已删除] user-tag 样式 */
 
 .mine-card .user-tag {
   background: linear-gradient(to right, #5d4037, #795548);
@@ -230,13 +223,43 @@ page {
 
 .partner-card {
   background: #fffdfd;
-  border: 2rpx solid rgba(255, 228, 232, 0.8); 
+  border: 2rpx solid rgba(255, 228, 232, 0.8);
 }
 
 .partner-card .user-tag {
   background: linear-gradient(to right, #ff6b81, #ff8fa3);
   color: #fff;
   box-shadow: 0 4rpx 8rpx rgba(255, 107, 129, 0.2);
+}
+
+/* 🟢 [优化] 时期标签样式，更可爱 */
+.era-tag {
+  font-size: 22rpx; /* 恢复为 22rpx */
+  font-weight: 700;
+  padding: 6rpx 16rpx;
+  border-radius: 24rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1; 
+  letter-spacing: 1rpx;
+  margin-left: 0; /* 标题栏现在只有这一个标签，不需要左边距了 */
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 二人世界 - 甜蜜粉色系 */
+.era-couple {
+  background: linear-gradient(135deg, #ff9a9e 0%, #ff6b81 100%);
+  color: #ffffff;
+  border: 2rpx solid rgba(255, 255, 255, 0.6); 
+  box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.25);
+}
+
+/* 单身时光 - 复古暖灰系 */
+.era-single {
+  background: #f0f2f5; 
+  color: #90a4ae; 
+  border: 1rpx solid #e0e0e0;
 }
 
 .card-date {
@@ -248,16 +271,13 @@ page {
 
 /* 🟢 [优化] 绑定事件卡片，融入整体温馨风格 */
 .bind-event-card {
-  /* 改为暖色调渐变，如蜜桃粉 */
   background: linear-gradient(135deg, #fff6f0, #ffe0e6);
   border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
   display: flex;
   align-items: center;
-  /* 使用深粉色文字 */
   color: #d81b60;
-  /* 增加柔和的投影和虚线边框 */
   box-shadow: 0 4rpx 12rpx rgba(255, 183, 178, 0.2);
   border: 2rpx dashed #ffcdd2;
 }
@@ -265,8 +285,7 @@ page {
 .bind-icon {
   font-size: 36rpx;
   margin-right: 16rpx;
-  /* 给图标也加一点动效 */
-  animation: bounce 2s infinite ease-in-out; 
+  animation: bounce 2s infinite ease-in-out;
 }
 
 .bind-text {
@@ -275,7 +294,7 @@ page {
   letter-spacing: 1rpx;
 }
 
-/* Swiper 样式 (保持不变) */
+/* Swiper 样式 */
 .photo-swiper {
   width: 100%;
   height: 440rpx;
@@ -374,10 +393,11 @@ page {
   font-weight: 500;
 }
 
-/* Rules Modal (保持不变) */
+/* Rules Modal */
 .rules-modal-mask {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6); z-index: 999;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
   display: flex; justify-content: center; align-items: center;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.3s ease;
@@ -454,4 +474,33 @@ page {
 @keyframes popUp { 
   from { transform: scale(0.9); opacity: 0; } 
   to { transform: scale(1); opacity: 1; } 
+}
+
+/* === 🟢 [新增] 照片归属人标签 === */
+.photo-owner-badge {
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  z-index: 10;
+  font-size: 20rpx;
+  font-weight: 800;
+  padding: 6rpx 14rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
+  letter-spacing: 1rpx;
+  line-height: 1;
+}
+
+/* 自己的照片样式 (深棕色) */
+.photo-owner-badge.mine {
+  background: rgba(93, 64, 55, 0.9);
+  color: #fff;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+}
+
+/* 伴侣的照片样式 (粉色) */
+.photo-owner-badge.partner {
+  background: rgba(255, 107, 129, 0.9);
+  color: #fff;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
 }
