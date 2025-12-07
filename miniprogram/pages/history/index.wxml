@@ -3,7 +3,7 @@
     <text class="title">我们的时光轴</text>
     <text class="subtitle">收集每一个心动瞬间</text>
     
-    <view class="surprise-banner" bindtap="{{!hasPartner ? 'navToMine' : ''}}">
+    <view class="surprise-banner" bindtap="onBannerTap">
       <view class="gift-box">
         <text class="gift-icon">🎁</text>
       </view>
@@ -16,14 +16,13 @@
 
         <block wx:else>
             <view class="gift-title">
-              已珍藏 <text class="days-highlight">{{totalDays}}</text> 个心动瞬间
+              已积攒 <text class="days-highlight">{{totalDays}}</text> 份心动能量 ⚡ <text class="rule-icon">❓</text>
             </view>
-            
             <view class="gift-desc" wx:if="{{totalDays < 30}}">
-              再记录 <text class="days-left">{{30 - totalDays}}</text> 个心动瞬间，解锁【动态时光影集】✨
+              还差 <text class="days-left">{{30 - totalDays}}</text> 格能量，解锁【S级神秘惊喜】🎁
             </view>
             <view class="gift-desc" wx:else>
-              🎉 恭喜达成30天成就！神秘惊喜准备中...
+              🎉 能量已充满！S级神秘惊喜生成中... 🪄
             </view>
         </block>
       </view>
@@ -38,27 +37,98 @@
     <block wx:for="{{memories}}" wx:key="_id">
       <view class="timeline-item">
         <view class="time-node">
-          <view class="dot"></view>
+          <view class="dot {{item.isPostBind ? 'couple-dot' : 'single-dot'}}"></view>
           <view class="line"></view>
         </view>
         
         <view class="memory-card {{item.isMine ? 'mine-card' : 'partner-card'}}">
           <view class="card-header">
-            <text class="user-tag">{{item.isMine ? 'ME' : 'TA'}}</text>
+            <view class="header-left">
+              <text class="user-tag">{{item.isMine ? 'ME' : 'TA'}}</text>
+              <text class="era-tag {{item.isPostBind ? 'era-couple' : 'era-single'}}">
+                {{item.isPostBind ? '二人世界' : '单身时光'}}
+              </text>
+            </view>
             <view class="card-date">{{item.originalDate}}</view>
           </view>
+
+          <view class="bind-event-card" wx:if="{{item.isBindDay}}">
+            <text class="bind-icon">🔗</text>
+            <text class="bind-text">这一天，我们正式开启了共同的回忆！</text>
+          </view>
           
-          <image 
-            src="{{item.imageFileID}}" 
-            mode="aspectFill" 
-            class="card-img" 
-            bindtap="previewImage" 
-            data-src="{{item.imageFileID}}"
-          ></image>
+          <swiper 
+            wx:if="{{item.photos.length > 0}}"
+            class="photo-swiper" 
+            indicator-dots="{{item.photos.length > 1}}" 
+            indicator-active-color="#ff6b81"
+            circular
+          >
+            <block wx:for="{{item.photos}}" wx:for-item="photo" wx:key="_id">
+              <swiper-item>
+                <view class="photo-wrapper">
+                  <image 
+                    src="{{photo.imageFileID}}" 
+                    mode="aspectFill" 
+                    class="card-img" 
+                    bindtap="previewImage" 
+                    data-src="{{photo.imageFileID}}"
+                  ></image>
+                  
+                  <view class="score-badge" wx:if="{{photo.evaluation}}">
+                    <text class="score-num">{{photo.evaluation.score}}</text>
+                    <text class="score-unit">分</text>
+                  </view>
+
+                  <view class="card-tag">{{photo.style || 'Sweet Moment'}}</view>
+                </view>
+
+                <view class="ai-comment-box" wx:if="{{photo.evaluation}}">
+                  <text class="ai-prefix">🤖 AI:</text> {{photo.evaluation.comment}}
+                </view>
+              </swiper-item>
+            </block>
+          </swiper>
           
-          <view class="card-tag">{{item.style || 'Sweet Moment'}}</view>
         </view>
       </view>
     </block>
+  </view>
+
+  <view class="rules-modal-mask" wx:if="{{showRulesModal}}" bindtap="closeRulesModal">
+    <view class="rules-modal-content" catchtap="true">
+      <view class="rules-header">⚡ 能量积攒规则</view>
+      <view class="rules-body">
+        <view class="rule-item">
+          <text class="rule-icon-emoji">👫</text>
+          <view class="rule-text">
+            <text class="rule-title">双人专属</text>
+            <text class="rule-desc">只有在绑定伴侣后，打卡才会产生有效能量。</text>
+          </view>
+        </view>
+        <view class="rule-item">
+          <text class="rule-icon-emoji">📅</text>
+          <view class="rule-text">
+            <text class="rule-title">每日一份</text>
+            <text class="rule-desc">每天完成一次拍照打卡，能量+1（同一天多次打卡不重复计算）。</text>
+          </view>
+        </view>
+        <view class="rule-item">
+          <text class="rule-icon-emoji">🚫</text>
+          <view class="rule-text">
+            <text class="rule-title">不追溯过往</text>
+            <text class="rule-desc">绑定前的个人打卡只作为回忆，不计入双人能量槽。</text>
+          </view>
+        </view>
+        <view class="rule-item">
+          <text class="rule-icon-emoji">🔒</text>
+          <view class="rule-text">
+            <text class="rule-title">珍惜关系</text>
+            <text class="rule-desc">中途解绑可能导致能量清空哦！</text>
+          </view>
+        </view>
+      </view>
+      <button class="btn-know" bindtap="closeRulesModal">我明白了</button>
+    </view>
   </view>
 </view>

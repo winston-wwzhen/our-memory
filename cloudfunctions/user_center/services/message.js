@@ -23,6 +23,8 @@ async function handle(action, event, ctx) {
         return { status: 403, msg: "次数用尽" };
 
       const rot = Math.floor(Math.random() * 10) - 5;
+
+      // 1. 写入留言
       await db.collection("messages").add({
         data: {
           _openid: OPENID,
@@ -37,24 +39,70 @@ async function handle(action, event, ctx) {
       });
       await addLog(ctx, "post_message", `便签:${content}`, { color });
 
-      let rw = 5,
-        msg = "已贴上墙",
-        egg = null;
-      const lucky = await tryTriggerEgg(
-        ctx,
-        "lucky_goddess",
-        20,
-        "幸运女神",
-        "偶遇幸运女神",
-        true,
-        0.1
-      );
-      if (lucky) {
-        rw += lucky.bonus;
-        msg = "✨ 幸运女神降临！";
-        egg = lucky;
+      let rw = 5;
+      let msg = "已贴上墙";
+      let egg = null;
+
+      // === 🥚 彩蛋检测开始 ===
+
+      // 1. 💙 蓝色忧郁：发送蓝色便签
+      if (color === "blue") {
+        const eBlue = await tryTriggerEgg(
+          ctx,
+          "blue_melancholy",
+          20,
+          "蓝色忧郁",
+          "贴了一张蓝色的便签",
+          false // 不可重复
+        );
+        if (eBlue) {
+          egg = eBlue; // 优先展示这个
+          rw += eBlue.bonus;
+        }
       }
 
+      // 2. 💬 话痨：累计 10 条留言
+      // 统计总数 (包含刚才发的一条)
+      const countRes = await db
+        .collection("messages")
+        .where({ _openid: OPENID })
+        .count();
+      if (countRes.total === 10) {
+        const eTalk = await tryTriggerEgg(
+          ctx,
+          "talkative",
+          100,
+          "话痨",
+          "累计发布了10条留言",
+          false
+        );
+        if (eTalk) {
+          egg = eTalk; // 如果同时触发，这个覆盖前者展示，但奖励叠加
+          rw += eTalk.bonus;
+        }
+      }
+
+      // 3. 🧚‍♀️ 幸运女神 (原有逻辑)
+      if (!egg) {
+        // 如果前面没触发必得彩蛋，再尝试概率彩蛋
+        const lucky = await tryTriggerEgg(
+          ctx,
+          "lucky_goddess",
+          20,
+          "幸运女神",
+          "偶遇幸运女神",
+          true,
+          0.1
+        );
+        if (lucky) {
+          rw += lucky.bonus;
+          msg = "✨ 幸运女神降临！";
+          egg = lucky;
+        }
+      }
+      // === 彩蛋检测结束 ===
+
+      // 更新用户奖励
       await db
         .collection("users")
         .doc(me._id)
@@ -69,9 +117,11 @@ async function handle(action, event, ctx) {
             },
           },
         });
+
       return { status: 200, msg, triggerEgg: egg };
     }
 
+    // ... (其他 delete_message, like_message, get_messages 保持不变) ...
     case "delete_message": {
       const { id } = event;
       try {
@@ -119,7 +169,7 @@ async function handle(action, event, ctx) {
       const msgs = await db
         .collection("messages")
         .where({ _openid: _.in(q), dateStr: targetDate })
-        .orderBy("createdAt", "desc") // 🟢 修改点：asc -> desc (倒序)
+        .orderBy("createdAt", "desc")
         .get();
 
       const nameMap = { [OPENID]: me.nickName || "我" };

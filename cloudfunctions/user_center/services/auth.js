@@ -3,13 +3,14 @@ const { getTodayStr, getRandomName } = require("../utils/common");
 const { getSudoUsers } = require("../utils/config");
 const { addLog } = require("../utils/logger");
 const { checkTextSafety, checkImageSafety } = require("../utils/safety");
+const { tryTriggerEgg } = require("../utils/eggs"); // 🟢 [引入] 确保引入彩蛋工具
 
 async function handle(action, event, ctx) {
   const { OPENID, db, _, CONFIG } = ctx;
   const SUDO_USERS = await getSudoUsers(db);
   const todayStr = getTodayStr();
 
-  // 辅助函数：检查是否处于解绑冷静期
+  // ... (checkCooldown 函数保持不变) ...
   const checkCooldown = (user) => {
     if (
       user.unbind_cooldown_until &&
@@ -63,6 +64,7 @@ async function handle(action, event, ctx) {
             ) || 1;
         }
       } else {
+        // ... (注册逻辑保持不变) ...
         const newUser = {
           _openid: OPENID,
           nickName: userInfo?.nickName || getRandomName(),
@@ -114,21 +116,44 @@ async function handle(action, event, ctx) {
         if (partnerRes.data.length > 0) partnerInfo = partnerRes.data[0];
       }
 
-      // ✨ 新增彩蛋逻辑：♾️ 长长久久 (关联 99 天)
       let triggerEgg = null;
+
+      // 1. ♾️ 长长久久 (原有逻辑)
       if (currentUser.anniversaryDate) {
         const start = new Date(currentUser.anniversaryDate).getTime();
         const now = new Date().getTime();
         const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
 
         if (days >= 99) {
-          const { tryTriggerEgg } = require("../utils/eggs");
           const egg = await tryTriggerEgg(
             ctx,
             "long_love",
             520,
             "长长久久",
             "相爱天数达到99天"
+          );
+          if (egg) {
+            await db
+              .collection("users")
+              .doc(currentUser._id)
+              .update({ data: { water_count: _.inc(egg.bonus) } });
+            triggerEgg = egg;
+          }
+        }
+      }
+
+      // 2. 🦉 🟢 [新增] 夜猫子 (0点-4点登录)
+      if (!triggerEgg) {
+        // 避免同时弹两个窗
+        const currentHour = new Date().getUTCHours() + 8; // 北京时间
+        const h = currentHour % 24;
+        if (h >= 0 && h < 4) {
+          const egg = await tryTriggerEgg(
+            ctx,
+            "night_owl",
+            66,
+            "夜猫子",
+            "深夜还没睡，是在想TA吗？"
           );
           if (egg) {
             await db
@@ -156,12 +181,12 @@ async function handle(action, event, ctx) {
       };
     }
 
+    // ... (request_bind, respond_bind 等其他逻辑保持不变) ...
     case "request_bind": {
       const { partnerCode } = event;
       if (!partnerCode || partnerCode === OPENID)
         return { status: 400, msg: "编号无效" };
 
-      // 🟢 检查自己是否在冷静期
       const meRes = await db
         .collection("users")
         .where({ _openid: OPENID })
@@ -178,7 +203,6 @@ async function handle(action, event, ctx) {
       if (pr.data.length === 0) return { status: 404 };
       if (pr.data[0].partner_id) return { status: 403, msg: "对方已绑定伴侣" };
 
-      // 🟢 检查对方是否在冷静期
       const pCooldownMsg = checkCooldown(pr.data[0]);
       if (pCooldownMsg) return { status: 403, msg: "对方处于解绑冷静期" };
 
@@ -202,7 +226,6 @@ async function handle(action, event, ctx) {
       }
 
       if (decision === "accept") {
-        // 🟢 双重检查冷静期 (防止请求发送后进入冷静期)
         const meRes = await db
           .collection("users")
           .where({ _openid: OPENID })
@@ -314,11 +337,9 @@ async function handle(action, event, ctx) {
       const me = myRes.data[0];
       const pid = me.partner_id;
 
-      // 🟢 1. 计算 7 天后的冷却时间
       const cooldownDate = new Date();
       cooldownDate.setDate(cooldownDate.getDate() + 7);
 
-      // 🟢 2. 准备更新数据：清除 partner_id，设置冷却期
       let updateDataMe = {
         partner_id: null,
         unbind_cooldown_until: cooldownDate,
@@ -328,9 +349,6 @@ async function handle(action, event, ctx) {
         unbind_cooldown_until: cooldownDate,
       };
 
-      // 🟢 3. 检查并清除 VIP (如果处于试用期，即有过期时间且未过期)
-      // 注意：这里简单判定只要有过期时间就清除。如果是手动充值的 VIP，这里也会被清除。
-      // 如果要保留手动充值的，需要额外字段区分。鉴于需求是“解绑后VIP失效”，这里统一清除。
       const now = new Date();
       if (me.vip_expire_date && new Date(me.vip_expire_date) > now) {
         updateDataMe.vip_expire_date = null;
@@ -384,7 +402,6 @@ async function handle(action, event, ctx) {
       return { status: 200, msg: "已同步" };
     }
 
-    // 管理员充值逻辑 (保留)
     case "admin_grant_vip": {
       if (!SUDO_USERS.includes(OPENID)) {
         return { status: 403, msg: "无权操作" };

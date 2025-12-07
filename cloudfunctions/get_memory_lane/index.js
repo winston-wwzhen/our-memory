@@ -13,7 +13,7 @@ exports.main = async (event, context) => {
   const { page = 0, pageSize = 20 } = event;
 
   try {
-    // 1. 获取用户信息，确定查询范围 (我 + 伴侣)
+    // 1. 获取用户信息
     const userRes = await db
       .collection("users")
       .where({ _openid: myOpenID })
@@ -32,37 +32,100 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 2. 确定统计的“起始时间” (解决解绑后重置问题)
-    let bindStartTime = new Date(0); // 默认从远古时期开始
+    // 2. 确定“当前绑定时间”
+    let bindStartTime = new Date(0);
+    let bindDateStr = "";
+
     if (hasPartner) {
-      // 查询最近一次“绑定成功”的日志时间
       const bindLogRes = await db
         .collection("logs")
         .where({
           type: "bind",
-          // 绑定日志可能是由我发的，也可能是对方发的
           _openid: _.in(targetIDs),
         })
-        .orderBy("createdAt", "desc") // 倒序，取最近的一次
+        .orderBy("createdAt", "desc")
         .limit(1)
         .get();
 
       if (bindLogRes.data.length > 0) {
         bindStartTime = bindLogRes.data[0].createdAt;
-        console.log("Found bind time:", bindStartTime);
+        // 将 UTC 时间转换为北京时间日期字符串 YYYY-MM-DD
+        const beijingTime = new Date(bindStartTime.getTime() + 8 * 3600000);
+        bindDateStr = beijingTime.toISOString().split("T")[0];
       }
     }
 
-    // 3. 构造基础查询条件 (用于列表展示)
-    // 列表依然展示所有的历史（包含绑定前的），或者你可以选择也只展示绑定后的
-    // 这里保持原有逻辑：展示所有记录，但Banner统计只算绑定后的
-    const listQuery = {
-      _openid: _.in(targetIDs),
-      type: "daily_check_in",
-    };
+    // 3. 🟢 [核心修改] 聚合查询：同时获取打卡和绑定记录
+    const listRes = await db
+      .collection("logs")
+      .aggregate()
+      .match({
+        _openid: _.in(targetIDs),
+        // 同时查询打卡和绑定事件
+        type: _.in(["daily_check_in", "bind"]),
+      })
+      .sort({ createdAt: -1 })
+      .group({
+        _id: "$originalDate",
+        date: { $first: "$originalDate" },
+        photos: {
+          $push: {
+            _id: "$_id",
+            imageFileID: "$imageFileID",
+            style: "$style",
+            evaluation: "$evaluation",
+            createdAt: "$createdAt",
+            ownerId: "$_openid",
+            type: "$type", // 🟢 记录类型
+            content: "$content",
+          },
+        },
+      })
+      .sort({ date: -1 })
+      .skip(page * pageSize)
+      .limit(pageSize)
+      .end();
 
-    // 4. 【核心修复】使用聚合查询统计“有效打卡天数”
-    // 规则：绑定时间之后 + 按 originalDate 去重
+    // 处理数据
+    const processedData = listRes.list.map((dayItem) => {
+      // 检查这一天是否有绑定事件
+      const bindEvent = dayItem.photos.find((p) => p.type === "bind");
+      const isBindDay = !!bindEvent;
+
+      // 筛选出真正的照片（过滤掉绑定日志）
+      const realPhotos = dayItem.photos.filter(
+        (p) => p.type === "daily_check_in"
+      );
+
+      // 确定当天的归属权（优先取照片发布者，如果没有照片则取绑定事件发布者）
+      let mainOwner = myOpenID;
+      if (realPhotos.length > 0) {
+        mainOwner = realPhotos[0].ownerId;
+      } else if (bindEvent) {
+        mainOwner = bindEvent.ownerId;
+      }
+
+      // 判断是否为“当前绑定关系”之后的记录
+      // 简单字符串比较：如果记录日期 >= 绑定日期，则视为 PostBind
+      let isPostBind = false;
+      if (hasPartner && bindDateStr) {
+        isPostBind = dayItem.date >= bindDateStr;
+      }
+
+      return {
+        _id: dayItem._id,
+        originalDate: dayItem.date,
+        isMine: mainOwner === myOpenID,
+        isBindDay: isBindDay, // 🟢 标记绑定日
+        isPostBind: isPostBind, // 🟢 标记是否为二人世界时期
+        photos: realPhotos.map((p) => ({
+          ...p,
+          isMine: p.ownerId === myOpenID,
+        })),
+      };
+    });
+
+    // 4. 统计有效打卡天数 (逻辑不变)
     let validDays = 0;
     if (hasPartner) {
       const countRes = await db
@@ -71,12 +134,10 @@ exports.main = async (event, context) => {
         .match({
           _openid: _.in(targetIDs),
           type: "daily_check_in",
-          createdAt: _.gt(bindStartTime), // 必须是绑定之后产生的
+          createdAt: _.gt(bindStartTime),
         })
-        .group({
-          _id: "$originalDate", // 按日期字符串分组 (实现去重: 2人同1天打卡只算1天)
-        })
-        .count("total") // 统计分组数
+        .group({ _id: "$originalDate" })
+        .count("total")
         .end();
 
       if (countRes.list.length > 0) {
@@ -84,28 +145,10 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 5. 分页查询列表数据 (按需返回)
-    // 如果你想让列表也只显示绑定后的，可以在 listQuery 加 createdAt: _.gt(bindStartTime)
-    // 但通常保留历史记录比较温情，这里只过滤统计数用于解锁奖励
-    const listRes = await db
-      .collection("logs")
-      .where(listQuery)
-      .orderBy("createdAt", "desc")
-      .skip(page * pageSize)
-      .limit(pageSize)
-      .get();
-
-    const processedData = listRes.data.map((log) => {
-      return {
-        ...log,
-        isMine: log._openid === myOpenID,
-      };
-    });
-
     return {
       status: 200,
       data: processedData,
-      totalDays: validDays, // 🟢 返回去重、限时后的真实天数
+      totalDays: validDays,
       hasMore: processedData.length === pageSize,
       hasPartner: hasPartner,
     };

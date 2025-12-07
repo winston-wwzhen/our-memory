@@ -1,6 +1,7 @@
 const { getTodayStr } = require("../utils/common");
 const { addLog } = require("../utils/logger");
 const { checkImageSafety } = require("../utils/safety");
+const { tryTriggerEgg } = require("../utils/eggs"); // 确保引用了彩蛋工具
 
 async function handle(action, event, ctx) {
   const { OPENID, db, _, CONFIG } = ctx;
@@ -149,10 +150,10 @@ async function handle(action, event, ctx) {
             .where({ _openid: _.in(owners) })
             .update({ data: { rose_balance: _.inc(1) } });
         await addLog(ctx, "harvest", `收获第${garden.harvest_total + 1}朵玫瑰`);
-        // ✨ 新增彩蛋逻辑：🌹 辛勤园丁 (第一次收获)
+
+        // 触发彩蛋：辛勤园丁
         let egg = null;
         if (garden.harvest_total === 0) {
-          // 注意：这里判断的是收获前的数量
           egg = await tryTriggerEgg(
             ctx,
             "gardener",
@@ -161,68 +162,66 @@ async function handle(action, event, ctx) {
             "收获了第一朵玫瑰"
           );
           if (egg) {
-            // 奖励直接加到 water_count
+            // 🟢 [修复点] 原代码使用了未定义的 me._id，改为使用 where({ _openid: OPENID })
             await db
               .collection("users")
-              .doc(me._id)
+              .where({ _openid: OPENID })
               .update({ data: { water_count: _.inc(egg.bonus) } });
           }
         }
 
-        return { status: 200, msg: "收获成功", triggerEgg: egg }; // 记得返回 triggerEgg
+        return { status: 200, msg: "收获成功", triggerEgg: egg };
       }
       return { status: 404 };
     }
 
     case "check_in": {
-      const { imageFileID, style } = event;
+      const { imageFileID, style, evaluation } = event; // 🟢 [修改] 接收 evaluation
       if (!imageFileID) return { status: 400 };
-      // 图片安全检查，暂时不开启
-      // const safetyRes = await checkImageSafety(ctx, imageFileID);
-      // if (!safetyRes.pass) {
-      // 返回具体的错误信息（是违规还是太大）
-      // return { status: 403, msg: safetyRes.msg || "图片校验未通过" };
-      // }
 
-      const oldLog = await db
+      // 图片安全检查
+      // const safetyRes = await checkImageSafety(ctx, imageFileID);
+      // if (!safetyRes.pass) return { status: 403, msg: safetyRes.msg || "图片校验未通过" };
+
+      // 🟢 [修改] 查询今日是否已打过卡（用于判断是否发奖励，而不是为了覆盖）
+      const todayLogsCount = await db
         .collection("logs")
         .where({
           _openid: OPENID,
           originalDate: todayStr,
           type: "daily_check_in",
         })
-        .get();
-      if (oldLog.data.length > 0) {
-        await db
-          .collection("logs")
-          .doc(oldLog.data[0]._id)
-          .update({
-            data: {
-              imageFileID,
-              updatedAt: db.serverDate(),
-              style: style || "Sweet",
-            },
-          });
-        return { status: 200, msg: "更新成功" };
-      } else {
-        await db.collection("logs").add({
-          data: {
-            _openid: OPENID,
-            type: "daily_check_in",
-            content: "打卡",
-            imageFileID,
-            originalDate: todayStr,
-            createdAt: db.serverDate(),
-            style,
-          },
-        });
+        .count();
+
+      const isFirstCheckIn = todayLogsCount.total === 0;
+
+      // 🟢 [修改] 始终新增一条记录，支持一日多图
+      await db.collection("logs").add({
+        data: {
+          _openid: OPENID,
+          type: "daily_check_in",
+          content: "打卡",
+          imageFileID,
+          originalDate: todayStr,
+          createdAt: db.serverDate(),
+          style: style || "Sweet",
+          evaluation: evaluation || null, // 🟢 [新增] 保存评分评论
+        },
+      });
+
+      let msg = "已存入时光轴";
+      let egg = null;
+
+      // 🟢 [修改] 只有今日首次打卡才给奖励和触发早安彩蛋
+      if (isFirstCheckIn) {
         await db
           .collection("users")
           .where({ _openid: OPENID })
           .update({ data: { water_count: _.inc(CONFIG.CHECKIN_REWARD) } });
 
-        // ✨ 新增彩蛋逻辑：☀️ 早安吻 (5:00 - 8:00 打卡)
-        let egg = null;
+        msg = `打卡成功 +${CONFIG.CHECKIN_REWARD}g爱意`;
+
+        // 触发彩蛋：早安吻
         const currentHour = new Date().getUTCHours() + 8; // 转北京时间小时
         const hour = currentHour % 24;
 
@@ -241,9 +240,9 @@ async function handle(action, event, ctx) {
               .update({ data: { water_count: _.inc(egg.bonus) } });
           }
         }
-
-        return { status: 200, msg: "打卡成功", triggerEgg: egg }; // 记得
       }
+
+      return { status: 200, msg: msg, triggerEgg: egg };
     }
 
     case "watch_ad_reward": {

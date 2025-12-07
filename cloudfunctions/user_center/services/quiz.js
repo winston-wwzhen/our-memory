@@ -3,7 +3,7 @@ const { tryTriggerEgg } = require("../utils/eggs");
 
 async function handle(action, event, ctx) {
   const { OPENID, db, _, CONFIG, cloud } = ctx;
-  const app = cloud.getWXContext(); // 有时候需要 APPID
+  const app = cloud.getWXContext();
 
   switch (action) {
     case "get_quiz_home": {
@@ -187,6 +187,7 @@ async function handle(action, event, ctx) {
             });
           await addLog(ctx, "quiz_round", `问答得分:${score}`);
 
+          // ✨ 修复：灵魂伴侣彩蛋触发后，补全奖励发放逻辑
           if (score === 100) {
             triggerEgg = await tryTriggerEgg(
               ctx,
@@ -196,6 +197,14 @@ async function handle(action, event, ctx) {
               "默契问答满分！",
               true
             );
+
+            // 🟢 [修复点] 增加奖励发放
+            if (triggerEgg) {
+              await db
+                .collection("users")
+                .where({ _openid: OPENID })
+                .update({ data: { water_count: _.inc(triggerEgg.bonus) } });
+            }
           }
         }
         isRoundFinished = true;

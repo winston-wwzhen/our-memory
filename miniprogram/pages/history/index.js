@@ -6,7 +6,8 @@ Page({
     isLoading: false,
     isEnd: false,
     totalDays: 0,
-    hasPartner: false, // 🟢 新增：伴侣状态
+    hasPartner: false,
+    showRulesModal: false, // 🟢 [新增] 控制自定义规则弹窗显示
   },
 
   onPullDownRefresh: function () {
@@ -35,9 +36,27 @@ Page({
     }
   },
 
-  // 🟢 新增：跳转去绑定
+  // Banner 点击分发
+  onBannerTap: function () {
+    if (!this.data.hasPartner) {
+      this.navToMine();
+    } else {
+      this.showRules();
+    }
+  },
+
   navToMine: function () {
     wx.switchTab({ url: "/pages/mine/index" });
+  },
+
+  // 🟢 [修改] 打开自定义弹窗
+  showRules: function () {
+    this.setData({ showRulesModal: true });
+  },
+
+  // 🟢 [新增] 关闭自定义弹窗
+  closeRulesModal: function () {
+    this.setData({ showRulesModal: false });
   },
 
   fetchMemories: function (callback) {
@@ -66,7 +85,7 @@ Page({
                 ? newMemories
                 : this.data.memories.concat(newMemories),
             totalDays: res.result.totalDays || 0,
-            hasPartner: res.result.hasPartner, // 🟢 接收状态
+            hasPartner: res.result.hasPartner,
             page: this.data.page + 1,
             isEnd: !hasMore,
             isLoading: false,

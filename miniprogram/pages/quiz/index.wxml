@@ -37,14 +37,14 @@
       <view class="section-header">
           <text class="sec-title">📜 通关记录</text>
       </view>
-      
+     
       <view class="history-list">
           <view class="history-item" wx:for="{{history}}" wx:key="_id" bindtap="onHistoryTap" data-id="{{item._id}}">
               <view class="h-left">
                   <view class="h-round">第 <text class="h-num">{{item.round_seq}}</text> 轮</view>
                   <view class="h-time">{{item.dateStr}}</view>
               </view>
-              
+               
               <view class="h-right">
                   <view class="h-score-box {{item.score >= 80 ? 'high' : ''}}">
                       <text class="val">{{item.score}}</text>
@@ -56,7 +56,7 @@
           
           <view class="no-history" wx:if="{{history.length===0}}">
               <text>暂无历史记录，快去闯关吧！</text>
-          </view>
+         </view>
       </view>
   </view>
 </block>
@@ -129,12 +129,34 @@
   <button class="btn-next-round" bindtap="loadHome">返回列表</button>
 </block>
 
-<view class="egg-modal-mask" wx:if="{{showEggModal}}">
+<view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
+  <view class="god-rays"></view>
+  <view class="confetti-container">
+    <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+    <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+    <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+    <view class="confetti c10"></view>
+  </view>
   <view class="egg-card bounce-in">
-    <text class="egg-icon">{{eggData.icon}}</text>
+    <view class="card-ribbon">LUCKY TIME</view>
+    <view class="icon-stage">
+      <view class="halo-ring"></view>
+      <text class="egg-icon">{{eggData.icon}}</text>
+      <view class="shine-star s-left">✨</view>
+      <view class="shine-star s-right">✨</view>
+    </view>
     <view class="egg-title">{{eggData.title}}</view>
     <view class="egg-desc">{{eggData.desc}}</view>
-    <button class="btn-get-egg" bindtap="closeEggModal">太棒了</button>
+    <view class="egg-reward-box">
+      <text class="reward-label">获得奖励</text>
+      <view class="reward-val-row">
+        <text class="val-num">+{{eggData.bonus}}</text>
+        <text class="val-unit">g 爱意 💧</text>
+      </view>
+    </view>
+    <button class="btn-get-egg" bindtap="closeEggModal">
+      <text>开心收下 ❤️</text>
+    </button>
   </view>
 </view>
 

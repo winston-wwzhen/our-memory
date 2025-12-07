@@ -124,7 +124,7 @@
 
     <view class="action-bar slide-in-up" wx:if="{{pendingSave}}">
       <view class="replace-tip" wx:if="{{hasCheckedInToday && !isSaved}}">
-        ⚠️ 今日已打卡，确认将覆盖原图
+        ✨ 今日已打卡，这张将作为新回忆保存
       </view>
 
       <view class="confirm-actions">

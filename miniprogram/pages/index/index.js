@@ -159,6 +159,7 @@ Page({
             adCount,
             dailyAdLimit,
             styleList,
+            triggerEgg
           } = res.result;
 
           if (loginBonus && loginBonus > 0) {
@@ -178,6 +179,14 @@ Page({
             dailyAdLimit: dailyAdLimit || 1,
             haspartner: !!user.partner_id,
           });
+
+          if (triggerEgg) {
+            this.setData({ 
+              showEggModal: true, 
+              eggData: triggerEgg 
+            });
+            wx.vibrateLong();
+          }
         }
         if (callback) callback();
       },
@@ -252,6 +261,11 @@ Page({
   },
 
   onCapture: function () {
+    // 🟢 Fix: Ensure styleList is defined before access
+    if (!this.data.styleList || this.data.styleList.length === 0) {
+        wx.showToast({ title: "风格加载中...", icon: "none" });
+        return;
+    }
     const currentStyle = this.data.styleList[this.data.currentStyleIndex];
     if (currentStyle.isVip && !this.data.isVip) {
       wx.showModal({
@@ -262,22 +276,13 @@ Page({
       });
       return;
     }
-    if (this.data.hasCheckedInToday && this.data.remainingCount > 0) {
-      wx.showModal({
-        title: "今日已打卡",
-        content: "再次拍摄将覆盖今日的打卡记录，确定要重新拍摄吗？",
-        confirmText: "重拍",
-        confirmColor: "#ff6b81",
-        success: (res) => {
-          if (res.confirm) this.startCameraFlow();
-        },
-      });
-      return;
-    }
+    
+    // 🟢 Logic update: No overwrite warning, just check quota
     if (this.data.remainingCount > 0) {
       this.startCameraFlow();
       return;
     }
+    
     if (this.data.adCount >= this.data.dailyAdLimit) {
       wx.showModal({
         title: "今日额度已耗尽",
@@ -347,6 +352,12 @@ Page({
       camera: "front",
       sizeType: ["compressed"],
       success(res) {
+        // 🟢 Fix: Safety check for tempFiles to prevent crash on Windows
+        if (!res.tempFiles || res.tempFiles.length === 0) {
+            wx.showToast({ title: "未获取到图片", icon: "none" });
+            return;
+        }
+        
         const tempFilePath = res.tempFiles[0].tempFilePath;
         wx.showLoading({ title: "处理中..." });
         wx.compressImage({
@@ -362,6 +373,9 @@ Page({
           },
         });
       },
+      fail(err) {
+          console.log("chooseMedia failed or cancelled", err);
+      }
     });
   },
 
@@ -393,6 +407,12 @@ Page({
     const taskTitle = this.data.currentTask
       ? this.data.currentTask.title
       : "自由发挥";
+    
+    // 🟢 Fix: Ensure styleList access is safe
+    if (!this.data.styleList || this.data.styleList.length === 0) {
+        this.setData({ loading: false });
+        return;
+    }
     const currentStyle = this.data.styleList[this.data.currentStyleIndex];
     const styleId = currentStyle.id;
 
@@ -494,12 +514,15 @@ Page({
     const currentStyleName =
       this.data.styleList[this.data.currentStyleIndex].name;
 
+    const evaluationData = this.data.aiEvaluation || null;
+
     wx.cloud.callFunction({
       name: "user_center",
       data: {
         action: "check_in",
         imageFileID: this.data.tempFileID,
         style: currentStyleName,
+        evaluation: evaluationData,
       },
       success: (res) => {
         wx.hideLoading();
