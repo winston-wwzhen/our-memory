@@ -9,6 +9,15 @@
   </view>
 
   <view class="content-wrapper">
+
+    <view class="vip-promo-banner" wx:if="{{!hasPartner}}" bindtap="navToMine">
+      <view class="promo-icon">🎁</view>
+      <view class="promo-text">
+        <text class="promo-title">内测福利：邀请另一半</text>
+        <text class="promo-desc">双方立享 7 天 VIP 特权 ✨</text>
+      </view>
+      <view class="promo-arrow">Go ></view>
+    </view>
     
     <view class="task-note-container slide-in-down" wx:if="{{currentTask}}">
       <view class="task-note">

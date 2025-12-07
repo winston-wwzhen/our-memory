@@ -51,6 +51,32 @@ page {
 }
 
 /* === 顶部：任务卡片 === */
+
+.vip-promo-banner {
+  background: linear-gradient(90deg, #fff0f5, #e3f2fd);
+  border-radius: 20rpx;
+  padding: 20rpx 30rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  border: 2rpx dashed #ffb7b2;
+  animation: pulse-slow 3s infinite;
+  flex-shrink: 0; /* 防止被挤压 */
+}
+
+.promo-icon { font-size: 40rpx; margin-right: 20rpx; }
+.promo-text { flex: 1; display: flex; flex-direction: column; }
+.promo-title { font-size: 26rpx; font-weight: bold; color: #5d4037; }
+.promo-desc { font-size: 22rpx; color: #ff6b81; margin-top: 4rpx; font-weight: bold; }
+.promo-arrow { font-size: 24rpx; color: #999; font-weight: bold; background: rgba(255,255,255,0.6); padding: 4rpx 12rpx; border-radius: 20rpx; }
+
+@keyframes pulse-slow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
 .task-note-container {
   flex-shrink: 0;
   margin-bottom: 20rpx;

@@ -5,18 +5,16 @@ Page({
     page: 0,
     isLoading: false,
     isEnd: false,
-    totalDays: 0, // 🆕 新增：打卡天数
+    totalDays: 0,
+    hasPartner: false, // 🟢 新增：伴侣状态
   },
 
-  // 1. 添加下拉刷新
   onPullDownRefresh: function () {
-    // 重置状态
     this.setData({
       page: 0,
       isEnd: false,
       memories: [],
     });
-    // 重新加载
     this.fetchMemories(() => {
       wx.stopPullDownRefresh();
     });
@@ -35,6 +33,11 @@ Page({
     if (!this.data.isEnd && !this.data.isLoading) {
       this.fetchMemories();
     }
+  },
+
+  // 🟢 新增：跳转去绑定
+  navToMine: function () {
+    wx.switchTab({ url: "/pages/mine/index" });
   },
 
   fetchMemories: function (callback) {
@@ -62,7 +65,8 @@ Page({
               this.data.page === 0
                 ? newMemories
                 : this.data.memories.concat(newMemories),
-            totalDays: res.result.totalDays || 0, // 👈 接收后端传来的天数
+            totalDays: res.result.totalDays || 0,
+            hasPartner: res.result.hasPartner, // 🟢 接收状态
             page: this.data.page + 1,
             isEnd: !hasMore,
             isLoading: false,

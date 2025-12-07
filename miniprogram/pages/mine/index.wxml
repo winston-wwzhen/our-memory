@@ -70,6 +70,11 @@
       <text class="card-title">邀请另一半</text>
       <text class="card-subtitle">Invite your love</text>
     </view>
+
+    <view class="vip-reward-tip">
+      <text class="highlight">🎁 内测限时福利</text>
+      <text>绑定成功，双方均获 7 天 VIP 体验</text>
+    </view>
     
     <view class="code-section">
       <text class="label" style="text-align: center; margin-bottom: 24rpx; display: block;">点此发送唯一的邀请链接</text>
@@ -104,7 +109,9 @@
 
   <view class="footer-info">
     <text>Designed for Love</text>
- 
+    <view class="user-id-copy" bindtap="copyMyKey" wx:if="{{userData._openid}}">
+      <text>ID: {{userData._openid}} (点击复制)</text>
+    </view>
   </view>
 
   <view class="oath-modal-mask" wx:if="{{showModal}}" bindtap="hideModal">
@@ -116,7 +123,7 @@
       <view class="oath-divider">❦</view>
       <view class="oath-warning">
         <text class="warning-title">温馨提示</text>
-        <text class="warning-desc">纪念册一旦开启，暂不支持解除绑定哦。\n请确认要把这份唯一的邀请，发给认定的 TA 吗？</text>
+        <text class="warning-desc">相遇不易，开启后请用心经营你们的回忆。\n请确认要把这份唯一的邀请，发给认定的 TA 吗？</text>
       </view>
       <button class="btn-oath-confirm" open-type="share">
         <text>🌹 确认，寄出邀请</text>

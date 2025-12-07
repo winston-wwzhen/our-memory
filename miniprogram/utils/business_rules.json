@@ -1,7 +1,7 @@
 {
   "_id": "business_rules",
   "NORMAL_FREE_LIMIT": 1,
-  "VIP_DAILY_LIMIT": 3,
+  "VIP_DAILY_LIMIT": 7,
   "REG_DAY_LIMIT": 10,
   "VIP_TRIAL_DAYS": 3,
   "DAILY_AD_LIMIT": 1,

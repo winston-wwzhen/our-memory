@@ -3,22 +3,29 @@
     <text class="title">我们的时光轴</text>
     <text class="subtitle">收集每一个心动瞬间</text>
     
-    <view class="surprise-banner">
+    <view class="surprise-banner" bindtap="{{!hasPartner ? 'navToMine' : ''}}">
       <view class="gift-box">
         <text class="gift-icon">🎁</text>
       </view>
 
       <view class="gift-content">
-        <view class="gift-title">
-          已珍藏 <text class="days-highlight">{{totalDays}}</text> 个心动瞬间
-        </view>
-        
-        <view class="gift-desc" wx:if="{{totalDays < 30}}">
-          再记录 <text class="days-left">{{30 - totalDays}}</text> 个心动瞬间，解锁【动态时光影集】✨
-        </view>
-        <view class="gift-desc" wx:else>
-          🎉 恭喜达成30天成就！神秘惊喜准备中...
-        </view>
+        <block wx:if="{{!hasPartner}}">
+           <view class="gift-title" style="color: #8d6e63;">暂无特殊奖励</view>
+           <view class="gift-desc">绑定伴侣并完成打卡任务，可获得奖励 ✨</view>
+        </block>
+
+        <block wx:else>
+            <view class="gift-title">
+              已珍藏 <text class="days-highlight">{{totalDays}}</text> 个心动瞬间
+            </view>
+            
+            <view class="gift-desc" wx:if="{{totalDays < 30}}">
+              再记录 <text class="days-left">{{30 - totalDays}}</text> 个心动瞬间，解锁【动态时光影集】✨
+            </view>
+            <view class="gift-desc" wx:else>
+              🎉 恭喜达成30天成就！神秘惊喜准备中...
+            </view>
+        </block>
       </view>
     </view>
   </view>

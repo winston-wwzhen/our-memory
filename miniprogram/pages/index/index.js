@@ -109,6 +109,8 @@ Page({
     // 🥚 彩蛋相关
     showEggModal: false,
     eggData: null,
+
+    haspartner: true,
   },
 
   onShow: function () {
@@ -174,6 +176,7 @@ Page({
             isVip: isVip,
             adCount: adCount || 0,
             dailyAdLimit: dailyAdLimit || 1,
+            haspartner: !!user.partner_id,
           });
         }
         if (callback) callback();
@@ -184,6 +187,11 @@ Page({
       },
     });
     this.checkTodayCheckIn();
+  },
+
+  // 跳转 Mine 页面
+  navToMine: function () {
+    wx.switchTab({ url: "/pages/mine/index" });
   },
 
   checkTodayCheckIn: function () {
@@ -248,7 +256,7 @@ Page({
     if (currentStyle.isVip && !this.data.isVip) {
       wx.showModal({
         title: "VIP 专属风格",
-        content: `【${currentStyle.name}】需要 VIP 身份才能解锁哦，内测新用户可免费体验3天！`,
+        content: `【${currentStyle.name}】需要 VIP 身份才能解锁哦，内测用户绑定伴侣可获得7天VIP身份！`,
         showCancel: false,
         confirmText: "知道了",
       });
