@@ -18,7 +18,7 @@ const TEST_CONFIG = {
 const NORMAL_FREE_LIMIT = 1; // 普通用户
 const VIP_DAILY_LIMIT = 3; // VIP用户
 const REG_DAY_LIMIT = 10; // 首日特权
-const DAILY_AD_LIMIT = 1;
+const DAILY_AD_LIMIT = 3;
 
 // 🎨 风格配置表 (后端做最终校验)
 const STYLE_CONFIG = {
@@ -188,7 +188,8 @@ exports.main = async (event, context) => {
     };
   }
 
-  // 🔴【核心修复区域】：原子化扣费逻辑
+  let deductedType = "none"; // 'daily' or 'extra'
+
   if (!isPermanentVip) {
     // 计算注册天数判断是否首日
     let registerDays = 1;
@@ -211,35 +212,24 @@ exports.main = async (event, context) => {
     const adRewards = isToday ? stats.ad_count || 0 : 0;
     const totalLimit = baseLimit + adRewards;
 
-    if (isToday) {
-      // 🔒 1. 当天：使用 CAS 乐观锁进行原子扣除
-      // 只有当数据库中的 count 确实小于 totalLimit 时，update 才会成功
+    // 获取用户的永久额外额度 (新字段)
+    const extraQuota = user.extra_quota || 0;
+
+    if (isToday && currentUsed < totalDailyLimit) {
+      // 1. 扣除今日额度
       const res = await db
         .collection("users")
         .where({
           _openid: openid,
           "daily_usage.date": todayStr,
-          "daily_usage.count": _.lt(totalLimit), // 核心条件
+          "daily_usage.count": _.lt(totalDailyLimit),
         })
         .update({
           data: { "daily_usage.count": _.inc(1) },
         });
-
-      // 如果更新条数为 0，说明额度已满或被并发抢占
-      if (res.stats.updated === 0) {
-        const canWatchAd = adRewards < DAILY_AD_LIMIT;
-        return {
-          status: 403,
-          msg: canWatchAd
-            ? `次数用尽！看个广告复活吧~`
-            : `今日次数已耗尽 (${totalLimit}/${totalLimit})，去Fun乐园玩耍吧~`,
-          requireAd: canWatchAd,
-          redirectFun: !canWatchAd,
-        };
-      }
-    } else {
-      // 📅 2. 跨天：直接重置
-      // 跨天第一笔请求，直接覆盖为 1（已扣除本次）
+      if (res.stats.updated > 0) deductedType = "daily";
+    } else if (!isToday) {
+      // 跨天重置并扣除 1 次
       await db
         .collection("users")
         .where({ _openid: openid })
@@ -253,14 +243,47 @@ exports.main = async (event, context) => {
             },
           },
         });
+      deductedType = "daily";
     }
 
-    // 计算剩余次数用于展示（非严格实时，仅供参考）
-    remainingAttempts = Math.max(0, totalLimit - (currentUsed + 1));
+    // 2. 如果今日额度扣除失败（已满），尝试扣除永久额度
+    if (deductedType === "none" && extraQuota > 0) {
+      const res = await db
+        .collection("users")
+        .where({
+          _openid: openid,
+          extra_quota: _.gt(0),
+        })
+        .update({
+          data: { extra_quota: _.inc(-1) },
+        });
+      if (res.stats.updated > 0) deductedType = "extra";
+    }
+
+    // 3. 如果都没扣成功，拦截
+    if (deductedType === "none") {
+      const canWatchAd = adRewards < DAILY_AD_LIMIT;
+      return {
+        status: 403,
+        msg: canWatchAd
+          ? `今日次数用尽！看个广告复活吧~`
+          : `次数耗尽！邀请好友可获得更多额度哦~`,
+        requireAd: canWatchAd,
+        redirectFun: !canWatchAd,
+      };
+    }
+
+    // 计算剩余展示 (仅供参考)
+    if (deductedType === "daily") {
+      remainingAttempts =
+        Math.max(0, totalDailyLimit - (currentUsed + 1)) +
+        (user.extra_quota || 0);
+    } else {
+      remainingAttempts = (user.extra_quota || 0) - 1;
+    }
   } else {
     remainingAttempts = 999;
   }
-  // 🔴【核心修复区域结束】
 
   let finalBuffer = null;
 
@@ -312,18 +335,23 @@ exports.main = async (event, context) => {
     console.error("⚠️ AI Failed:", aiError);
     // ⚠️ AI 生成失败回滚额度
     if (!isPermanentVip) {
-      await db
-        .collection("users")
-        .where({ _openid: openid })
-        .update({
-          data: { "daily_usage.count": _.inc(-1) },
-        });
+      if (deductedType === "daily") {
+        await db
+          .collection("users")
+          .where({ _openid: openid })
+          .update({
+            data: { "daily_usage.count": _.inc(-1) },
+          });
+      } else if (deductedType === "extra") {
+        await db
+          .collection("users")
+          .where({ _openid: openid })
+          .update({
+            data: { extra_quota: _.inc(1) },
+          });
+      }
     }
-    return {
-      status: 500,
-      msg: "AI 绘图失败，请换张图片重试",
-      error: aiError.message,
-    };
+    return { status: 500, msg: "AI 绘图失败，请重试", error: aiError.message };
   }
 
   const fileName = `tencent_${openid}_${Date.now()}.jpg`;
@@ -382,5 +410,6 @@ exports.main = async (event, context) => {
     msg: "✨ 变身成功 ✨",
     remaining: remainingAttempts,
     evaluation: evaluation,
+    deductedType,
   };
 };

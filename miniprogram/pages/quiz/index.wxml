@@ -1,3 +1,34 @@
+<wxs module="logic">
+  // 获取对方答案的索引（用于文字显示）
+  var getPartnerAnswerIdx = function(isUserA, ansA, ansB, index) {
+    if (!ansA || !ansB) return -1;
+    return isUserA ? ansB[index] : ansA[index];
+  }
+
+  // 🟢 [新增] 核心修复：判断是否匹配的逻辑
+  var checkIsMatch = function(isPerson, valA, valB) {
+    if (valA == null || valB == null) return false;
+    
+    if (isPerson) {
+      // 身份题逻辑：一方选0(我) 另一方选1(TA) 算匹配
+      if ((valA == 0 && valB == 1) || (valA == 1 && valB == 0)) {
+        return true;
+      }
+      // 如果是扩展选项（如“都不是”），则需索引相同
+      if (valA > 1 && valA == valB) {
+        return true;
+      }
+      return false;
+    } else {
+      // 普通题逻辑：索引相同即匹配
+      return valA === valB;
+    }
+  }
+
+  module.exports.getPartnerAnswerIdx = getPartnerAnswerIdx;
+  module.exports.checkIsMatch = checkIsMatch;
+</wxs>
+
 <view class="quiz-container">
 
 <block wx:if="{{mode === 'home'}}">
@@ -44,7 +75,7 @@
                   <view class="h-round">第 <text class="h-num">{{item.round_seq}}</text> 轮</view>
                   <view class="h-time">{{item.dateStr}}</view>
               </view>
-               
+        
               <view class="h-right">
                   <view class="h-score-box {{item.score >= 80 ? 'high' : ''}}">
                       <text class="val">{{item.score}}</text>
@@ -56,7 +87,7 @@
           
           <view class="no-history" wx:if="{{history.length===0}}">
               <text>暂无历史记录，快去闯关吧！</text>
-         </view>
+          </view>
       </view>
   </view>
 </block>
@@ -106,21 +137,30 @@
       <view class="review-item">
         <view class="r-q">{{index+1}}. {{item.title}}</view>
         <view class="r-ans-row">
+          
           <view class="r-col">
             <text class="label">我选</text>
-            <text class="r-val {{roundResult.answers_a[index] == roundResult.answers_b[index] ? 'match' : ''}}">
+            <text class="r-val {{logic.checkIsMatch(item.is_person, roundResult.answers_a[index], roundResult.answers_b[index]) ? 'match' : ''}}">
               {{item.options[isUserA ? roundResult.answers_a[index] : roundResult.answers_b[index]]}}
             </text>
           </view>
-          <view class="vs-icon {{roundResult.answers_a[index] == roundResult.answers_b[index] ? 'match' : ''}}">
-               {{roundResult.answers_a[index] == roundResult.answers_b[index] ? '♥' : '×'}}
+
+          <view class="vs-icon {{logic.checkIsMatch(item.is_person, roundResult.answers_a[index], roundResult.answers_b[index]) ? 'match' : ''}}">
+               {{logic.checkIsMatch(item.is_person, roundResult.answers_a[index], roundResult.answers_b[index]) ? '♥' : '×'}}
           </view>
+
           <view class="r-col right">
             <text class="label">TA选</text>
-            <text class="r-val {{roundResult.answers_a[index] == roundResult.answers_b[index] ? 'match' : ''}}">
-              {{item.options[isUserA ? roundResult.answers_b[index] : roundResult.answers_a[index]]}}
+            <text class="r-val {{logic.checkIsMatch(item.is_person, roundResult.answers_a[index], roundResult.answers_b[index]) ? 'match' : ''}}">
+              <block wx:if="{{item.is_person}}">
+                {{ logic.getPartnerAnswerIdx(isUserA, roundResult.answers_a, roundResult.answers_b, index) == 0 ? 'TA' : '我' }}
+              </block>
+              <block wx:else>
+                {{item.options[logic.getPartnerAnswerIdx(isUserA, roundResult.answers_a, roundResult.answers_b, index)]}}
+              </block>
             </text>
           </view>
+
         </view>
       </view>
     </block>

@@ -44,7 +44,6 @@
         <view class="memory-card {{item.isMine ? 'mine-card' : 'partner-card'}}">
           <view class="card-header">
             <view class="header-left">
-              <text class="user-tag">{{item.isMine ? 'ME' : 'TA'}}</text>
             </view>
             <view class="card-date">{{item.originalDate}}</view>
           </view>
@@ -64,6 +63,10 @@
             <block wx:for="{{item.photos}}" wx:for-item="photo" wx:key="_id">
               <swiper-item>
                 <view class="photo-wrapper">
+                  <view class="photo-owner-badge {{photo.isMine ? 'mine' : 'partner'}}">
+                    {{photo.isMine ? 'ME' : 'TA'}}
+                  </view>
+
                   <image 
                     src="{{photo.imageFileID}}" 
                     mode="aspectFill" 
