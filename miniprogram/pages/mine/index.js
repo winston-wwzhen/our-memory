@@ -10,20 +10,18 @@ Page({
       nickName: "微信用户",
     },
     partnerData: null,
-    // 🟢 已移除：inputPartnerCode, partnerShortID
     needSave: false,
-    isShowingRequest: false,
     daysCount: 0,
     anniversary: "",
 
-    // VIP 状态数据...
+    // VIP 状态数据
     vipStatus: {
       isVip: false,
       expireDateStr: "",
       privilegeTip: "",
     },
 
-    // === 🆕 弹窗控制中心 ===
+    // === 弹窗控制中心 ===
     showModal: false,
     modalType: "", // 'invite' | 'unbind'
 
@@ -32,20 +30,25 @@ Page({
     canUnbind: false,
     timer: null,
 
-    // 🆕 临时存储邀请码
+    // 临时存储邀请码
     inviteCode: null,
 
     // 🥚 彩蛋
     showEggModal: false,
     eggData: null,
+
+    // 🟢 [新增] 待领取奖励数据 (用于控制领取按钮显示)
+    pendingRewards: null, 
   },
 
   onLoad: function (options) {
-    // 🟢 优化：接收到邀请码，临时存储，等待 checkLogin 确认身份后直接绑定
+    // 🟢 兼容伴侣绑定和新用户邀请的 inviteCode
     if (options && options.inviteCode) {
       this.setData({
         inviteCode: options.inviteCode,
       });
+      // 存储到全局，供 login 使用（如果当前未登录）
+      app.globalData.tempInviteCode = options.inviteCode;
     }
   },
 
@@ -63,7 +66,7 @@ Page({
   // 🟢 核心交互逻辑 (弹窗与分享)
   // ============================================================
 
-  // 1. 打开“发出邀请”誓言弹窗
+  // 1. 打开“发出邀请”誓言弹窗 (邀请另一半)
   showInviteModal: function () {
     wx.vibrateShort({ type: "medium" });
     this.setData({
@@ -116,35 +119,82 @@ Page({
     this.executeUnbind();
   },
 
-  // 🟢 核心：分享逻辑（发送邀请）
+  // 🟢 核心：分享逻辑（区分 邀请伴侣 vs 邀请好友）
   onShareAppMessage: function (res) {
+    const myOpenId = this.data.userData._openid;
+    const myName = this.data.userData.nickName || "我";
+    
+    // 建议使用云存储图片ID，Android兼容性更好
+    const SHARE_IMG = "../../images/default-photo2.png"; 
+
+    // 场景 A：绑定伴侣邀请 (点击了誓言弹窗里的按钮)
     if (res.from === "button" && this.data.modalType === "invite") {
       this.hideModal();
-
-      const myOpenId = this.data.userData._openid;
-      const myName = this.data.userData.nickName || "你的另一半";
-
       return {
         title: `💌 ${myName} 邀请你开启：我们的纪念册`,
-        // 关键：携带 inviteCode 参数，接收方点击后直接触发绑定
         path: `/pages/mine/index?inviteCode=${myOpenId}`,
-        imageUrl: "/images/share-cover.png",
+        imageUrl: SHARE_IMG, 
       };
     }
 
-    // 默认右上角转发逻辑（作为兜底，也携带邀请码）
-    const myKey = this.data.userData._openid;
+    // 场景 B：拉新邀请 (点击了“立即邀请”按钮)
+    if (res.from === "button" && res.target.dataset.type === "referral") {
+      return {
+        title: `🎁 ${myName} 送你VIP和爱意值！快来和我一起记录生活~`,
+        path: `/pages/mine/index?inviteCode=${myOpenId}`,
+        imageUrl: SHARE_IMG, 
+      };
+    }
+
+    // 默认右上角转发逻辑 (兜底)
     return {
       title: "邀请你共同开启我们的纪念册",
-      path: "/pages/mine/index?inviteCode=" + (myKey || ""),
-      imageUrl: "/images/share-cover.png",
+      path: "/pages/mine/index?inviteCode=" + (myOpenId || ""),
+      imageUrl: SHARE_IMG,
     };
   },
 
-  // 🆕 核心新增：直接执行绑定（接收方）
+  // 🟢 [新增] 手动领取奖励
+  onClaimRewards: function() {
+    if (!this.data.pendingRewards) return;
+    
+    wx.showLoading({ title: '领取中...' });
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: { action: "claim_rewards" },
+      success: (res) => {
+        wx.hideLoading();
+        if (res.result.status === 200) {
+          const { water, quota } = res.result.claimed;
+          
+          this.setData({ 
+            pendingRewards: null, // 清空按钮
+            showEggModal: true,   // 复用彩蛋弹窗展示结果
+            eggData: {
+              title: "收益到账",
+              icon: "💰",
+              desc: `成功领取：${water}g 爱意 + ${quota}张 永久额度`,
+              bonus: water // 仅用于展示数字，实际 quota 也已到账
+            }
+          });
+          wx.vibrateLong();
+          
+          // 刷新余额显示
+          this.checkLogin(); 
+        } else {
+          wx.showToast({ title: res.result.msg, icon: "none" });
+        }
+      },
+      fail: () => {
+        wx.hideLoading();
+        wx.showToast({ title: "网络错误", icon: "none" });
+      }
+    });
+  },
+
+  // 🆕 直接执行绑定（接收方）
   directBind: function (partnerCode) {
     if (this.data.userData.partner_id) {
-      wx.hideLoading();
       return;
     }
 
@@ -170,9 +220,7 @@ Page({
         } else {
           wx.showModal({
             title: "连接失败",
-            content:
-              res.result.msg ||
-              "未能成功连接，请确认对方是否已注册且处于未绑定状态。",
+            content: res.result.msg || "未能成功连接，请确认对方是否已注册且处于未绑定状态。",
             showCancel: false,
             confirmColor: "#ff6b81",
           });
@@ -191,11 +239,20 @@ Page({
   // ============================================================
 
   checkLogin: function (callback) {
+    // 如果有临时邀请码，传给后端
+    const inviteCode = this.data.inviteCode || app.globalData.tempInviteCode;
+
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "login" },
+      data: { action: "login", inviteCode: inviteCode },
       success: (res) => {
         if (res.result.status === 200 || res.result.status === 201) {
+          // 清除已使用的邀请码
+          if (inviteCode) {
+             this.setData({ inviteCode: null });
+             app.globalData.tempInviteCode = null;
+          }
+
           let {
             user,
             partner,
@@ -204,10 +261,10 @@ Page({
             vipExpireDate,
             registerDays,
             triggerEgg,
+            pendingRewards // 获取待领取奖励
           } = res.result;
 
-          // 🥚 触发彩蛋：长长久久
-          // 注意：需要在 auth.js 的 login 接口返回 triggerEgg
+          // 🥚 触发彩蛋
           if (triggerEgg) {
             this.setData({ showEggModal: true, eggData: triggerEgg });
             wx.vibrateLong();
@@ -223,36 +280,32 @@ Page({
 
           app.globalData.userInfo = user;
 
-          // 🟢 核心：接收人加载页面时，如果未绑定且有邀请码，直接触发绑定
+          // 核心：接收人加载页面时，如果未绑定且有邀请码，弹窗提示绑定
+          // 注意：如果是新用户注册（login接口已处理拉新逻辑），这里主要处理绑定逻辑
           if (this.data.inviteCode && !user.partner_id) {
             const codeToBind = this.data.inviteCode;
+            // 避免重复弹窗
             this.setData({ inviteCode: null });
 
-            // 🟢 优化：增加弹窗确认
             wx.showModal({
               title: "💌 收到邀请",
-              content: "检测到来自另一半的绑定邀请，确认要建立关联吗？",
+              content: "检测到来自另一半的绑定邀请，确认要建立关联吗？\n(如果只是好友邀请，点击取消即可)",
               confirmText: "确认绑定",
               confirmColor: "#ff6b81",
-              cancelText: "我再想想",
+              cancelText: "只是好友",
               success: (res) => {
                 if (res.confirm) {
                   this.directBind(codeToBind);
-                } else {
-                  wx.showToast({ title: "已取消绑定", icon: "none" });
                 }
               },
             });
-            return;
           }
 
-          // ... (处理 VIP 状态)
+          // 处理 VIP 状态
           let vipDateStr = "";
           if (vipExpireDate) {
             const date = new Date(vipExpireDate);
-            vipDateStr = `${date.getFullYear()}-${
-              date.getMonth() + 1
-            }-${date.getDate()}`;
+            vipDateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
           }
 
           let tipText = "💎 VIP特权：每日享有 3 次拍照机会";
@@ -261,48 +314,21 @@ Page({
           }
 
           this.setData({
+            userData: user,
+            partnerData: partner,
+            anniversary: user.anniversaryDate || "",
+            daysCount: this.calculateDays(user.anniversaryDate),
             vipStatus: {
               isVip: isVip,
               expireDateStr: vipDateStr,
               privilegeTip: tipText,
             },
+            // 🟢 更新待领取奖励状态
+            pendingRewards: (pendingRewards && (pendingRewards.water > 0 || pendingRewards.quota > 0)) ? pendingRewards : null
           });
 
-          // === 头像链接转换 ===
-          const fileList = [];
-          if (user.avatarUrl && user.avatarUrl.startsWith("cloud://")) {
-            fileList.push(user.avatarUrl);
-          }
-          if (
-            partner &&
-            partner.avatarUrl &&
-            partner.avatarUrl.startsWith("cloud://")
-          ) {
-            fileList.push(partner.avatarUrl);
-          }
-
-          if (fileList.length > 0) {
-            wx.cloud.getTempFileURL({
-              fileList: fileList,
-              success: (tempRes) => {
-                tempRes.fileList.forEach((item) => {
-                  if (item.code === "SUCCESS") {
-                    if (user.avatarUrl === item.fileID)
-                      user.avatarUrl = item.tempFileURL;
-                    if (partner && partner.avatarUrl === item.fileID)
-                      partner.avatarUrl = item.tempFileURL;
-                  }
-                });
-                this.updatePageData(user, partner);
-              },
-              fail: (err) => {
-                console.error("头像转换失败", err);
-                this.updatePageData(user, partner);
-              },
-            });
-          } else {
-            this.updatePageData(user, partner);
-          }
+          // 头像转换逻辑
+          this.convertAvatars(user, partner);
         }
         if (callback) callback();
       },
@@ -313,14 +339,41 @@ Page({
     });
   },
 
-  updatePageData: function (user, partner) {
-    this.setData({
-      userData: user,
-      partnerData: partner,
-      anniversary: user.anniversaryDate || "",
-      daysCount: this.calculateDays(user.anniversaryDate),
-      // 🟢 已移除：partnerShortID
-    });
+  convertAvatars: function (user, partner) {
+    const fileList = [];
+    if (user.avatarUrl && user.avatarUrl.startsWith("cloud://")) {
+      fileList.push(user.avatarUrl);
+    }
+    if (
+      partner &&
+      partner.avatarUrl &&
+      partner.avatarUrl.startsWith("cloud://")
+    ) {
+      fileList.push(partner.avatarUrl);
+    }
+
+    if (fileList.length > 0) {
+      wx.cloud.getTempFileURL({
+        fileList: fileList,
+        success: (tempRes) => {
+          let newUser = { ...user };
+          let newPartner = partner ? { ...partner } : null;
+          
+          tempRes.fileList.forEach((item) => {
+            if (item.code === "SUCCESS") {
+              if (newUser.avatarUrl === item.fileID)
+                newUser.avatarUrl = item.tempFileURL;
+              if (newPartner && newPartner.avatarUrl === item.fileID)
+                newPartner.avatarUrl = item.tempFileURL;
+            }
+          });
+          this.setData({ userData: newUser, partnerData: newPartner });
+        },
+        fail: (err) => {
+          console.error("头像转换失败", err);
+        },
+      });
+    }
   },
 
   calculateDays: function (dateStr) {
@@ -377,7 +430,6 @@ Page({
     });
   },
 
-  // 🟢 复制按钮现在仅供调试或备份，不用于主要流程
   copyMyKey: function () {
     if (!this.data.userData._openid) return;
     wx.setClipboardData({
@@ -385,8 +437,6 @@ Page({
       success: () => wx.showToast({ title: "编号已复制", icon: "none" }),
     });
   },
-
-  // 🟢 移除 onInputKey, bindPartner 等函数
 
   onChooseAvatar: function (e) {
     const { avatarUrl } = e.detail;
@@ -455,7 +505,6 @@ Page({
     }
   },
 
-  // ... (其他原有函数保持不变) ...
   closeEggModal: function () {
     this.setData({ showEggModal: false });
   },
