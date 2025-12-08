@@ -17,20 +17,33 @@
       </view>
     </view>
 
-    <view class="avatars-area">
+    <view class="interaction-area">
       
-      <button class="avatar-btn me" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-        <image class="avatar-img" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
-        <view class="camera-badge">📷</view>
-      </button>
+      <view class="user-column">
+        <button class="avatar-btn me" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+          <image class="avatar-img" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="camera-badge">📷</view>
+        </button>
+        <view class="name-edit-box">
+          <input type="nickname" class="name-input" value="{{userData.nickName}}" placeholder="点击设置" bind:change="onInputNickname" />
+          <text class="edit-pen">✎</text>
+        </view>
+      </view>
 
-      <view class="connect-status">
+      <view class="center-column">
         <block wx:if="{{userData.partner_id}}">
-          <view class="heart-beat">❤️</view>
-          <view class="days-box">
-            <text class="days-num">{{daysCount}}</text>
-            <text class="days-txt">Days</text>
-          </view>
+          <picker mode="date" value="{{anniversary}}" bindchange="onDateChange" class="center-picker">
+            <view class="heart-box">
+              <text class="heart-beat">❤️</text>
+            </view>
+            <view class="days-row">
+              <text class="days-num">{{daysCount}}</text>
+              <text class="days-unit">Days</text>
+            </view>
+            <view class="since-date">
+              <text>Since {{anniversary || '设置日期'}}</text>
+            </view>
+          </picker>
         </block>
         <block wx:else>
           <view class="disconnect-line"></view>
@@ -38,36 +51,21 @@
         </block>
       </view>
 
-      <view class="avatar-right-wrap">
+      <view class="user-column">
         <block wx:if="{{userData.partner_id}}">
-          <image class="avatar-img partner" src="{{partnerData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
-          <view class="name-tag">{{partnerData.nickName || 'TA'}}</view>
+          <view class="avatar-wrap">
+            <image class="avatar-img partner" src="{{partnerData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
+          </view>
+          <view class="partner-name">{{partnerData.nickName || 'TA'}}</view>
         </block>
         <block wx:else>
           <button class="invite-btn-circle" bindtap="showInviteModal">
             <text class="plus-icon">+</text>
           </button>
-          <view class="name-tag">邀请TA</view>
+          <view class="partner-name hint">邀请TA</view>
         </block>
       </view>
-    </view>
 
-    <view class="info-edit-area">
-      <view class="nickname-row">
-        <input type="nickname" class="nickname-input" value="{{userData.nickName}}" placeholder="点击设置昵称" bind:change="onInputNickname" />
-        <text class="edit-icon">✎</text>
-      </view>
-      
-      <block wx:if="{{userData.partner_id}}">
-        <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
-          <view class="date-pill">
-            <text>🗓️ 恋爱起始日: {{anniversary || '未设置'}}</text>
-          </view>
-        </picker>
-      </block>
-      <block wx:else>
-        <text class="single-hint" bindtap="showInviteModal">点击右侧“+”号，邀请另一半开启纪念册</text>
-      </block>
     </view>
   </view>
 
@@ -83,7 +81,6 @@
   </view>
 
   <view class="menu-group slide-up-delay">
-    
     <button class="menu-item highlight" open-type="share" data-type="referral">
       <view class="mi-left">
         <view class="mi-icon yellow">🤝</view>
@@ -116,23 +113,14 @@
       </view>
       <text class="mi-arrow">></text>
     </button>
-
-    <view class="menu-item" wx:if="{{needSave}}" bindtap="saveProfile">
-      <view class="mi-left">
-        <view class="mi-icon green">💾</view>
-        <view class="mi-content">
-          <text class="mi-title">保存资料</text>
-          <text class="mi-desc">同步头像与昵称</text>
-        </view>
-      </view>
-      <view class="dot-red"></view>
+    
     </view>
-
-  </view>
 
   <view class="footer-copyright">Designed for Love v1.0.0</view>
 
-  <include src="./components/modals.wxml" /> <view class="oath-modal-mask" wx:if="{{showModal}}" bindtap="hideModal">
+  <include src="./components/modals.wxml" /> 
+  
+  <view class="oath-modal-mask" wx:if="{{showModal}}" bindtap="hideModal">
     <view class="oath-card bounce-in" wx:if="{{modalType === 'invite'}}" catchtap="true">
         <view class="oath-decoration-top">🕊️</view>
         <view class="oath-title">愿得一人心</view>
@@ -164,7 +152,7 @@
         <view class="egg-title">{{eggData.title}}</view>
         <view class="egg-desc">{{eggData.desc}}</view>
         <view class="egg-reward-box">
-            <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
+           <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
         </view>
         <button class="btn-get-egg" bindtap="closeEggModal">开心收下</button>
      </view>

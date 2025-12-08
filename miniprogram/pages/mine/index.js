@@ -239,7 +239,7 @@ Page({
   // ============================================================
 
   checkLogin: function (callback) {
-    // 如果有临时邀请码，传给后端
+    // 1. 获取邀请码（优先从 data 获取，其次从全局变量获取）
     const inviteCode = this.data.inviteCode || app.globalData.tempInviteCode;
 
     wx.cloud.callFunction({
@@ -247,12 +247,7 @@ Page({
       data: { action: "login", inviteCode: inviteCode },
       success: (res) => {
         if (res.result.status === 200 || res.result.status === 201) {
-          // 清除已使用的邀请码
-          if (inviteCode) {
-             this.setData({ inviteCode: null });
-             app.globalData.tempInviteCode = null;
-          }
-
+          
           let {
             user,
             partner,
@@ -261,7 +256,7 @@ Page({
             vipExpireDate,
             registerDays,
             triggerEgg,
-            pendingRewards // 获取待领取奖励
+            pendingRewards
           } = res.result;
 
           // 🥚 触发彩蛋
@@ -280,25 +275,23 @@ Page({
 
           app.globalData.userInfo = user;
 
-          // 核心：接收人加载页面时，如果未绑定且有邀请码，弹窗提示绑定
-          // 注意：如果是新用户注册（login接口已处理拉新逻辑），这里主要处理绑定逻辑
-          if (this.data.inviteCode && !user.partner_id) {
-            const codeToBind = this.data.inviteCode;
-            // 避免重复弹窗
-            this.setData({ inviteCode: null });
-
-            wx.showModal({
-              title: "💌 收到邀请",
-              content: "检测到来自另一半的绑定邀请，确认要建立关联吗？\n(如果只是好友邀请，点击取消即可)",
-              confirmText: "确认绑定",
-              confirmColor: "#ff6b81",
-              cancelText: "只是好友",
-              success: (res) => {
-                if (res.confirm) {
-                  this.directBind(codeToBind);
-                }
-              },
-            });
+          // 🟢 [核心修复] 使用局部变量 inviteCode 判断，而不是已清空的 this.data.inviteCode
+          if (inviteCode && !user.partner_id) {
+            // 避免重复弹窗（如果是自己在邀请自己，通常后端login会处理，但前端防一下也好）
+            if (inviteCode !== user._openid) {
+                wx.showModal({
+                  title: "💌 收到邀请",
+                  content: "检测到来自另一半的绑定邀请，确认要建立关联吗？\n(如果只是好友邀请，点击取消即可)",
+                  confirmText: "确认绑定",
+                  confirmColor: "#ff6b81",
+                  cancelText: "只是好友",
+                  success: (res) => {
+                    if (res.confirm) {
+                      this.directBind(inviteCode); // 使用 inviteCode
+                    }
+                  },
+                });
+            }
           }
 
           // 处理 VIP 状态
@@ -323,12 +316,17 @@ Page({
               expireDateStr: vipDateStr,
               privilegeTip: tipText,
             },
-            // 🟢 更新待领取奖励状态
             pendingRewards: (pendingRewards && (pendingRewards.water > 0 || pendingRewards.quota > 0)) ? pendingRewards : null
           });
 
           // 头像转换逻辑
           this.convertAvatars(user, partner);
+
+          // 🟢 [修复] 逻辑处理完毕后，再清除邀请码，防止污染后续流程
+          if (inviteCode) {
+             this.setData({ inviteCode: null });
+             app.globalData.tempInviteCode = null;
+          }
         }
         if (callback) callback();
       },
