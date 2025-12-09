@@ -13,6 +13,9 @@
           <text>{{vipStatus.isVip ? '尊贵VIP' : '普通会员'}}</text>
         </view>
         <text class="vip-date-txt" wx:if="{{vipStatus.isVip}}">{{vipStatus.expireDateStr}} 到期</text>
+        <view class="redeem-btn-link" bindtap="showRedeemInput">
+           <text>兑换VIP ></text>
+        </view>
       </view>
 
       <view class="id-tag" bindtap="copyMyKey">

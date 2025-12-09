@@ -262,3 +262,20 @@ button.menu-item::after { border: none; }
 .bounce-in {
   animation: bounceIn 0.4s cubic-bezier(0.215, 0.61, 0.355, 1); 
 }
+
+.redeem-btn-link {
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  color: #ff6b81;
+  background: rgba(255, 107, 129, 0.1);
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: bold;
+  display: inline-block;
+  transition: all 0.2s;
+}
+
+.redeem-btn-link:active {
+  background: rgba(255, 107, 129, 0.2);
+  transform: scale(0.95);
+}

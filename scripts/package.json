@@ -1,0 +1,7 @@
+{
+  "name": "vip-code-generator",
+  "version": "1.0.0",
+  "dependencies": {
+    "tcb-admin-node": "^1.0.0"
+  }
+}

@@ -25,7 +25,7 @@ Page({
     filmData: {
       total: 0,
       daily: 0,
-      permanent: 0
+      permanent: 0,
     },
 
     // === 弹窗控制中心 ===
@@ -45,7 +45,7 @@ Page({
     eggData: null,
 
     // 待领取奖励数据
-    pendingRewards: null, 
+    pendingRewards: null,
   },
 
   onLoad: function (options) {
@@ -120,14 +120,14 @@ Page({
   onShareAppMessage: function (res) {
     const myOpenId = this.data.userData._openid;
     const myName = this.data.userData.nickName || "我";
-    const SHARE_IMG = "../../images/default-avatar.png"; 
+    const SHARE_IMG = "../../images/default-avatar.png";
 
     if (res.from === "button" && this.data.modalType === "invite") {
       this.hideModal();
       return {
         title: `💌 ${myName} 邀请你开启：我们的纪念册`,
         path: `/pages/mine/index?inviteCode=${myOpenId}`,
-        imageUrl: SHARE_IMG, 
+        imageUrl: SHARE_IMG,
       };
     }
 
@@ -135,7 +135,7 @@ Page({
       return {
         title: `🎁 ${myName} 送你VIP和爱意值！快来和我一起记录生活~`,
         path: `/pages/mine/index?inviteCode=${myOpenId}`,
-        imageUrl: SHARE_IMG, 
+        imageUrl: SHARE_IMG,
       };
     }
 
@@ -148,14 +148,14 @@ Page({
 
   onShareTimeline: function () {
     return {
-      title: "邀请你共同开启我们的纪念册"
+      title: "邀请你共同开启我们的纪念册",
     };
   },
 
-  onClaimRewards: function() {
+  onClaimRewards: function () {
     if (!this.data.pendingRewards) return;
-    
-    wx.showLoading({ title: '领取中...' });
+
+    wx.showLoading({ title: "领取中..." });
     wx.cloud.callFunction({
       name: "user_center",
       data: { action: "claim_rewards" },
@@ -163,19 +163,19 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           const { water, quota } = res.result.claimed;
-          
-          this.setData({ 
+
+          this.setData({
             pendingRewards: null,
-            showEggModal: true, 
+            showEggModal: true,
             eggData: {
               title: "收益到账",
               icon: "💰",
               desc: `成功领取：${water}g 爱意 + ${quota}张 永久额度`,
-              bonus: water
-            }
+              bonus: water,
+            },
           });
           wx.vibrateLong();
-          this.checkLogin(); 
+          this.checkLogin();
         } else {
           wx.showToast({ title: res.result.msg, icon: "none" });
         }
@@ -183,7 +183,7 @@ Page({
       fail: () => {
         wx.hideLoading();
         wx.showToast({ title: "网络错误", icon: "none" });
-      }
+      },
     });
   },
 
@@ -212,7 +212,9 @@ Page({
         } else {
           wx.showModal({
             title: "连接失败",
-            content: res.result.msg || "未能成功连接，请确认对方是否已注册且处于未绑定状态。",
+            content:
+              res.result.msg ||
+              "未能成功连接，请确认对方是否已注册且处于未绑定状态。",
             showCancel: false,
             confirmColor: "#ff6b81",
           });
@@ -239,8 +241,8 @@ Page({
       success: (res) => {
         if (res.result.status === 200 || res.result.status === 201) {
           if (inviteCode) {
-             this.setData({ inviteCode: null });
-             app.globalData.tempInviteCode = null;
+            this.setData({ inviteCode: null });
+            app.globalData.tempInviteCode = null;
           }
 
           let {
@@ -252,7 +254,7 @@ Page({
             registerDays,
             triggerEgg,
             pendingRewards,
-            remaining // 🟢 获取后端返回的总剩余次数
+            remaining, // 🟢 获取后端返回的总剩余次数
           } = res.result;
 
           if (triggerEgg) {
@@ -261,7 +263,11 @@ Page({
           }
 
           if (loginBonus && loginBonus > 0) {
-            wx.showToast({ title: `每日登录 +${loginBonus}g 爱意`, icon: "none", duration: 3000 });
+            wx.showToast({
+              title: `每日登录 +${loginBonus}g 爱意`,
+              icon: "none",
+              duration: 3000,
+            });
           }
 
           app.globalData.userInfo = user;
@@ -287,7 +293,9 @@ Page({
           if (vipExpireDate) {
             const date = new Date(vipExpireDate);
             // 格式化为 YYYY-MM-DD
-            vipDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            vipDateStr = `${date.getFullYear()}-${String(
+              date.getMonth() + 1
+            ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
           }
 
           let tipText = "💎 VIP特权：每日享有 3 次拍照机会";
@@ -314,9 +322,13 @@ Page({
             filmData: {
               total: totalCount,
               daily: dailyCount,
-              permanent: permanentCount
+              permanent: permanentCount,
             },
-            pendingRewards: (pendingRewards && (pendingRewards.water > 0 || pendingRewards.quota > 0)) ? pendingRewards : null
+            pendingRewards:
+              pendingRewards &&
+              (pendingRewards.water > 0 || pendingRewards.quota > 0)
+                ? pendingRewards
+                : null,
           });
 
           this.convertAvatars(user, partner);
@@ -335,7 +347,11 @@ Page({
     if (user.avatarUrl && user.avatarUrl.startsWith("cloud://")) {
       fileList.push(user.avatarUrl);
     }
-    if (partner && partner.avatarUrl && partner.avatarUrl.startsWith("cloud://")) {
+    if (
+      partner &&
+      partner.avatarUrl &&
+      partner.avatarUrl.startsWith("cloud://")
+    ) {
       fileList.push(partner.avatarUrl);
     }
 
@@ -345,16 +361,20 @@ Page({
         success: (tempRes) => {
           let newUser = { ...user };
           let newPartner = partner ? { ...partner } : null;
-          
+
           tempRes.fileList.forEach((item) => {
             if (item.code === "SUCCESS") {
-              if (newUser.avatarUrl === item.fileID) newUser.avatarUrl = item.tempFileURL;
-              if (newPartner && newPartner.avatarUrl === item.fileID) newPartner.avatarUrl = item.tempFileURL;
+              if (newUser.avatarUrl === item.fileID)
+                newUser.avatarUrl = item.tempFileURL;
+              if (newPartner && newPartner.avatarUrl === item.fileID)
+                newPartner.avatarUrl = item.tempFileURL;
             }
           });
           this.setData({ userData: newUser, partnerData: newPartner });
         },
-        fail: (err) => { console.error("头像转换失败", err); },
+        fail: (err) => {
+          console.error("头像转换失败", err);
+        },
       });
     }
   },
@@ -397,7 +417,11 @@ Page({
           this.setData({ partnerData: null });
           this.checkLogin();
         } else if (res.result.status === 403) {
-          wx.showModal({ title: "提示", content: res.result.msg, showCancel: false });
+          wx.showModal({
+            title: "提示",
+            content: res.result.msg,
+            showCancel: false,
+          });
         } else {
           wx.showToast({ title: "操作失败", icon: "none" });
         }
@@ -474,7 +498,8 @@ Page({
     } else {
       wx.showModal({
         title: "🚀 VIP 筹备中",
-        content: "为了带给你们更好的体验，VIP 会员计划正在紧锣密鼓地筹备中！\n\n后续将解锁更多专属风格、无限畅玩特权，敬请期待~",
+        content:
+          "为了带给你们更好的体验，VIP 会员计划正在紧锣密鼓地筹备中！\n\n后续将解锁更多专属风格、无限畅玩特权，敬请期待~",
         showCancel: false,
         confirmText: "期待",
         confirmColor: "#9e9e9e",
@@ -484,5 +509,61 @@ Page({
 
   closeEggModal: function () {
     this.setData({ showEggModal: false });
+  },
+
+  showRedeemInput: function () {
+    wx.showModal({
+      title: "💎 兑换 VIP",
+      placeholderText: "请输入兑换码",
+      editable: true,
+      confirmText: "兑换",
+      confirmColor: "#ff6b81",
+      success: (res) => {
+        if (res.confirm && res.content) {
+          this.doRedeemCode(res.content);
+        }
+      },
+    });
+  },
+
+  // 🟢 [新增] 执行兑换请求
+  doRedeemCode: function (code) {
+    if (!code || !code.trim()) return;
+
+    wx.showLoading({ title: "兑换中..." });
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: {
+        action: "redeem_vip_code",
+        code: code,
+      },
+      success: (res) => {
+        wx.hideLoading();
+        if (res.result.status === 200) {
+          const days = res.result.days;
+
+          // 使用彩蛋弹窗展示成功信息
+          this.setData({
+            showEggModal: true,
+            eggData: {
+              title: "兑换成功",
+              icon: "💎",
+              desc: `VIP 时长已增加 ${days} 天！`,
+              bonus: 0, // 纯展示文字
+            },
+          });
+          wx.vibrateLong();
+
+          // 刷新用户信息以更新 VIP 状态和到期时间
+          this.checkLogin();
+        } else {
+          wx.showToast({ title: res.result.msg, icon: "none" });
+        }
+      },
+      fail: () => {
+        wx.hideLoading();
+        wx.showToast({ title: "网络错误", icon: "none" });
+      },
+    });
   },
 });
