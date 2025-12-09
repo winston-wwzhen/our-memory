@@ -44,6 +44,8 @@ exports.main = async (event, context) => {
     case "clear_bind_notification":
     case "update_status":
     case "admin_grant_vip":
+    case "redeem_vip_code":
+    case "claim_rewards": // 🟢 [修复] 补上了 claim_rewards 路由
       return await authService.handle(action, event, ctx);
 
     // === Garden (花园/打卡) ===
@@ -79,7 +81,7 @@ exports.main = async (event, context) => {
     case "get_partner_decision":
     case "redeem_coupon":
     case "get_my_coupons":
-    case "use_coupon": // 🟢 关键修复：补上了这个 case
+    case "use_coupon":
     case "get_love_list_status":
     case "toggle_love_list_item":
       return await playgroundService.handle(action, event, ctx);

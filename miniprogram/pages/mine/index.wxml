@@ -7,10 +7,17 @@
 
   <view class="profile-card bounce-in">
     <view class="card-top-bar">
-      <view class="vip-badge {{vipStatus.isVip ? 'is-vip' : ''}}" bindtap="showVipInfo">
-        <text class="icon">👑</text>
-        <text>{{vipStatus.isVip ? '尊贵VIP' : '普通会员'}}</text>
+      <view class="vip-column">
+        <view class="vip-badge {{vipStatus.isVip ? 'is-vip' : ''}}" bindtap="showVipInfo">
+          <text class="icon">👑</text>
+          <text>{{vipStatus.isVip ? '尊贵VIP' : '普通会员'}}</text>
+        </view>
+        <text class="vip-date-txt" wx:if="{{vipStatus.isVip}}">{{vipStatus.expireDateStr}} 到期</text>
+        <view class="redeem-btn-link" bindtap="showRedeemInput">
+           <text>兑换VIP ></text>
+        </view>
       </view>
+
       <view class="id-tag" bindtap="copyMyKey">
         <text>ID: {{userData._openid}}</text>
         <text class="copy-icon">❐</text>
@@ -18,11 +25,16 @@
     </view>
 
     <view class="avatars-area">
-      
-      <button class="avatar-btn me" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-        <image class="avatar-img" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
-        <view class="camera-badge">📷</view>
-      </button>
+      <view class="avatar-left-wrap">
+        <button class="avatar-btn me reset-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+          <image class="avatar-img" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="camera-badge">📷</view>
+        </button>
+        <view class="name-tag-edit">
+           <input type="nickname" class="nickname-input-clean" value="{{userData.nickName}}" placeholder="点击设昵称" bind:change="onInputNickname" />
+           <text class="edit-icon-small">✎</text>
+        </view>
+      </view>
 
       <view class="connect-status">
         <block wx:if="{{userData.partner_id}}">
@@ -44,20 +56,31 @@
           <view class="name-tag">{{partnerData.nickName || 'TA'}}</view>
         </block>
         <block wx:else>
-          <button class="invite-btn-circle" bindtap="showInviteModal">
-            <text class="plus-icon">+</text>
+          <button class="invite-btn-circle reset-btn" bindtap="showInviteModal">
+            <view class="invite-circle">
+               <text class="plus-icon">+</text>
+            </view>
           </button>
           <view class="name-tag">邀请TA</view>
         </block>
       </view>
     </view>
 
-    <view class="info-edit-area">
-      <view class="nickname-row">
-        <input type="nickname" class="nickname-input" value="{{userData.nickName}}" placeholder="点击设置昵称" bind:change="onInputNickname" />
-        <text class="edit-icon">✎</text>
+    <view class="film-stat-box">
+      <view class="film-row">
+        <text class="film-icon">🎞️</text>
+        <text class="film-label">我的胶卷:</text>
+        <text class="film-num">{{filmData.total}}</text>
+        <text class="film-unit">张</text>
       </view>
-      
+      <view class="film-detail-row">
+        <text class="film-detail-tag">今日 {{filmData.daily}}</text>
+        <text class="film-divider">|</text>
+        <text class="film-detail-tag">永久 {{filmData.permanent}}</text>
+      </view>
+    </view>
+
+    <view class="info-edit-area">
       <block wx:if="{{userData.partner_id}}">
         <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
           <view class="date-pill">
@@ -83,7 +106,6 @@
   </view>
 
   <view class="menu-group slide-up-delay">
-    
     <button class="menu-item highlight" open-type="share" data-type="referral">
       <view class="mi-left">
         <view class="mi-icon yellow">🤝</view>
@@ -127,7 +149,6 @@
       </view>
       <view class="dot-red"></view>
     </view>
-
   </view>
 
   <view class="footer-copyright">Designed for Love v1.0.0</view>
@@ -164,7 +185,7 @@
         <view class="egg-title">{{eggData.title}}</view>
         <view class="egg-desc">{{eggData.desc}}</view>
         <view class="egg-reward-box">
-            <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
+         <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
         </view>
         <button class="btn-get-egg" bindtap="closeEggModal">开心收下</button>
      </view>

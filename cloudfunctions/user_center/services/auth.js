@@ -69,11 +69,14 @@ async function handle(action, event, ctx) {
         let inviterId = null;
         // 简单校验：不能邀请自己
         if (inviteCode && inviteCode !== OPENID) {
-           // 校验邀请人是否存在
-           const inviterCheck = await db.collection("users").where({ _openid: inviteCode }).count();
-           if (inviterCheck.total > 0) {
-             inviterId = inviteCode;
-           }
+          // 校验邀请人是否存在
+          const inviterCheck = await db
+            .collection("users")
+            .where({ _openid: inviteCode })
+            .count();
+          if (inviterCheck.total > 0) {
+            inviterId = inviteCode;
+          }
         }
 
         const newUser = {
@@ -84,41 +87,53 @@ async function handle(action, event, ctx) {
           bind_request_from: null,
           // 受邀奖励：初始水滴 +200 (默认50 + 额外150)
           water_count: CONFIG.DAILY_LOGIN_BONUS + (inviterId ? 150 : 0),
-          
+
           rose_balance: 0,
           last_login_date: todayStr,
           createdAt: db.serverDate(),
           daily_usage: { date: todayStr, count: 0, ad_count: 0, msg_count: 0 },
           capsule_limit: CONFIG.DEFAULT_CAPSULE_LIMIT,
-          
+
           // 🟢 新增字段
           extra_quota: 0, // 永久额外生图额度
           unclaimed_rewards: { water: 0, quota: 0 }, // 待领取的奖励箱
           invite_count: 0, // 累计邀请人数
           invited_by: inviterId, // 记录邀请人
-          
+
           // 受邀奖励：赠送 1 天体验 VIP
-          vip_expire_date: inviterId ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null
+          vip_expire_date: inviterId
+            ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+            : null,
         };
 
         const addRes = await db.collection("users").add({ data: newUser });
         currentUser = { ...newUser, _id: addRes._id };
         loginBonus = CONFIG.DAILY_LOGIN_BONUS;
         registerDays = 1;
-        await addLog(ctx, "register", inviterId ? `受邀注册(by ${inviterId})` : "开启了我们的纪念册");
+        await addLog(
+          ctx,
+          "register",
+          inviterId ? `受邀注册(by ${inviterId})` : "开启了我们的纪念册"
+        );
 
         // 🟢 处理邀请人奖励 (异步处理，不阻塞注册)
         if (inviterId) {
           try {
-            await db.collection("users").where({ _openid: inviterId }).update({
-              data: {
-                invite_count: _.inc(1),
-                // 写入待领取奖励：100水滴 + 2次永久额度
-                "unclaimed_rewards.water": _.inc(100),
-                "unclaimed_rewards.quota": _.inc(2)
-              }
+            await db
+              .collection("users")
+              .where({ _openid: inviterId })
+              .update({
+                data: {
+                  invite_count: _.inc(1),
+                  // 写入待领取奖励：100水滴 + 2次永久额度
+                  "unclaimed_rewards.water": _.inc(100),
+                  "unclaimed_rewards.quota": _.inc(2),
+                },
+              });
+            await addLog(ctx, "invite_success", `邀请新用户成功`, {
+              inviter: inviterId,
+              new_user: OPENID,
             });
-            await addLog(ctx, "invite_success", `邀请新用户成功`, { inviter: inviterId, new_user: OPENID });
           } catch (e) {
             console.error("更新邀请人奖励失败", e);
           }
@@ -140,14 +155,20 @@ async function handle(action, event, ctx) {
         : CONFIG.NORMAL_FREE_LIMIT;
 
       const stats = currentUser.daily_usage || {};
-      
+
       // 🟢 [修改] 剩余次数显示：今日剩余 + 永久剩余
-      const dailyRemaining = Math.max(0, currentLimit + (stats.ad_count || 0) - (stats.count || 0));
+      const dailyRemaining = Math.max(
+        0,
+        currentLimit + (stats.ad_count || 0) - (stats.count || 0)
+      );
       const extraRemaining = currentUser.extra_quota || 0;
       const totalRemaining = dailyRemaining + extraRemaining;
 
       // 获取待领取奖励
-      const pendingRewards = currentUser.unclaimed_rewards || { water: 0, quota: 0 };
+      const pendingRewards = currentUser.unclaimed_rewards || {
+        water: 0,
+        quota: 0,
+      };
 
       let partnerInfo = null;
       if (currentUser.partner_id) {
@@ -226,7 +247,10 @@ async function handle(action, event, ctx) {
 
     // === 🟢 [新增] 领取奖励接口 ===
     case "claim_rewards": {
-      const userRes = await db.collection("users").where({ _openid: OPENID }).get();
+      const userRes = await db
+        .collection("users")
+        .where({ _openid: OPENID })
+        .get();
       if (userRes.data.length === 0) return { status: 404 };
       const user = userRes.data[0];
       const rewards = user.unclaimed_rewards || { water: 0, quota: 0 };
@@ -236,15 +260,22 @@ async function handle(action, event, ctx) {
       }
 
       // 原子操作：将待领奖励转移到账户余额，并清空待领
-      await db.collection("users").doc(user._id).update({
-        data: {
-          water_count: _.inc(rewards.water),
-          extra_quota: _.inc(rewards.quota),
-          unclaimed_rewards: { water: 0, quota: 0 } // 重置
-        }
-      });
+      await db
+        .collection("users")
+        .doc(user._id)
+        .update({
+          data: {
+            water_count: _.inc(rewards.water),
+            extra_quota: _.inc(rewards.quota),
+            unclaimed_rewards: { water: 0, quota: 0 }, // 重置
+          },
+        });
 
-      await addLog(ctx, "claim_reward", `领取邀请奖励: 水滴${rewards.water}, 额度${rewards.quota}`);
+      await addLog(
+        ctx,
+        "claim_reward",
+        `领取邀请奖励: 水滴${rewards.water}, 额度${rewards.quota}`
+      );
 
       // 检查里程碑彩蛋 (累计邀请人数 >= 1)
       let egg = null;
@@ -254,11 +285,10 @@ async function handle(action, event, ctx) {
         status: 200,
         msg: "领取成功",
         claimed: rewards,
-        triggerEgg: egg
+        triggerEgg: egg,
       };
     }
 
-    // ... (request_bind, respond_bind 等其他逻辑保持不变) ...
     case "request_bind": {
       const { partnerCode } = event;
       if (!partnerCode || partnerCode === OPENID)
@@ -512,6 +542,126 @@ async function handle(action, event, ctx) {
       const dateStr = newExpire.toISOString().split("T")[0];
       await addLog(ctx, "admin_vip", `管理员充值 ${days} 天`);
       return { status: 200, msg: `充值成功！有效期至: ${dateStr}` };
+    }
+
+    case "redeem_vip_code": {
+      const { code } = event;
+      if (!code) return { status: 400, msg: "请输入兑换码" };
+
+      const cleanCode = code.trim().toUpperCase();
+
+      // 1. 查询兑换码
+      const codeRes = await db
+        .collection("vip_codes")
+        .where({
+          code: cleanCode,
+        })
+        .get();
+
+      if (codeRes.data.length === 0) {
+        return { status: 404, msg: "无效的兑换码" };
+      }
+
+      const vipCode = codeRes.data[0];
+      const now = new Date();
+
+      // === 🟢 核心校验逻辑开始 ===
+
+      // 2. 检查全局开关
+      if (vipCode.is_active === false) {
+        return { status: 403, msg: "该兑换码已暂停使用" };
+      }
+
+      // 3. 检查有效期 (如果有设置)
+      if (vipCode.valid_from && now < new Date(vipCode.valid_from)) {
+        return { status: 403, msg: "活动尚未开始，敬请期待" };
+      }
+      if (vipCode.valid_until && now > new Date(vipCode.valid_until)) {
+        return { status: 403, msg: "来晚了，兑换码已过期" };
+      }
+
+      // 4. 检查用户是否重复领取
+      // (兼容旧数据：如果没有 used_users 字段，默认为空数组)
+      const usedUsers = vipCode.used_users || [];
+      if (usedUsers.includes(OPENID)) {
+        return { status: 403, msg: "您已领取过该福利，请勿重复兑换" };
+      }
+
+      // 5. 检查剩余数量 (防止超卖)
+      // usage_limit: -1 为无限量；否则需检查 used_count < usage_limit
+      // (兼容旧数据：如果没设置 limit，默认视为 -1; 没设置 used_count，视为 0)
+      const limit =
+        vipCode.usage_limit !== undefined ? vipCode.usage_limit : -1;
+      const currentCount = vipCode.used_count || 0;
+
+      if (limit !== -1 && currentCount >= limit) {
+        return { status: 403, msg: "手慢了，福利已被抢光" };
+      }
+
+      // 6. 执行原子更新 (乐观锁)
+      // 如果 limit 不是无限，需在查询条件中再次确认数量，确保高并发下的安全
+      const updateCondition = { _id: vipCode._id };
+      if (limit !== -1) {
+        updateCondition.used_count = _.lt(limit);
+      }
+
+      try {
+        const updateRes = await db
+          .collection("vip_codes")
+          .where(updateCondition)
+          .update({
+            data: {
+              used_count: _.inc(1), // 次数 +1
+              used_users: _.addToSet(OPENID), // 记录用户ID (去重)
+              updated_at: db.serverDate(),
+            },
+          });
+
+        if (updateRes.stats.updated === 0) {
+          // 更新失败通常意味着刚才瞬间被抢光了
+          return { status: 403, msg: "手慢了，福利已被抢光" };
+        }
+
+        // 7. 码状态更新成功后，给用户充值 VIP
+        const userRes = await db
+          .collection("users")
+          .where({ _openid: OPENID })
+          .get();
+        if (userRes.data.length === 0)
+          return { status: 404, msg: "用户数据异常" };
+
+        const user = userRes.data[0];
+        let newExpire = new Date();
+
+        // 续费逻辑：如果当前已是VIP且未过期，从原过期时间顺延
+        if (user.vip_expire_date && new Date(user.vip_expire_date) > now) {
+          newExpire = new Date(user.vip_expire_date);
+        }
+        newExpire.setDate(newExpire.getDate() + vipCode.days);
+
+        await db
+          .collection("users")
+          .doc(user._id)
+          .update({
+            data: { vip_expire_date: newExpire },
+          });
+
+        await addLog(
+          ctx,
+          "redeem_vip",
+          `兑换 ${cleanCode}, 获得 ${vipCode.days} 天`
+        );
+
+        return {
+          status: 200,
+          msg: "兑换成功",
+          days: vipCode.days,
+          expireDate: newExpire,
+        };
+      } catch (err) {
+        console.error(err);
+        return { status: 500, msg: "系统繁忙，请稍后重试" };
+      }
     }
   }
 }

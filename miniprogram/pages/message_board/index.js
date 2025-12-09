@@ -88,6 +88,12 @@ Page({
     };
   },
 
+  onShareTimeline: function () {
+    return {
+      title: "快来我们的留言板看看吧~"
+    };
+  },
+
   fetchMessages: function (cb) {
     // 避免 onShow 闪烁，不强制 setData isLoading
     wx.cloud.callFunction({
