@@ -237,4 +237,17 @@ Page({
   closeEggModal: function () {
     this.setData({ showEggModal: false });
   },
+
+  onShareAppMessage: function () {
+    return {
+      title: "默契大挑战！看看我们有多合拍 💖",
+      path: "/pages/quiz/index"
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "默契大挑战！看看我们有多合拍 💖"
+    };
+  },
 });

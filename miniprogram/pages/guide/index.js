@@ -104,6 +104,19 @@ Page({
     });
   },
 
+  onShareAppMessage: function () {
+    return {
+      title: "恋爱生存指南 📖",
+      path: "/pages/guide/index"
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "恋爱生存指南 📖"
+    };
+  },
+  
   navToCoupon: function () {
     wx.navigateTo({ url: "/pages/coupons/index" });
   },

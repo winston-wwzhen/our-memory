@@ -117,6 +117,20 @@ Page({
     this.checkUserStatus();
   },
 
+  onShareAppMessage: function () {
+    return {
+      title: "Our Memory - 我们的专属纪念册",
+      path: "/pages/index/index",
+      imageUrl: "/images/share-cover.png",
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "Our Memory - 我们的专属纪念册",
+    };
+  },
+
   onPullDownRefresh: function () {
     this.setData({
       displayImage: "",
@@ -159,7 +173,7 @@ Page({
             adCount,
             dailyAdLimit,
             styleList,
-            triggerEgg
+            triggerEgg,
           } = res.result;
 
           if (loginBonus && loginBonus > 0) {
@@ -181,9 +195,9 @@ Page({
           });
 
           if (triggerEgg) {
-            this.setData({ 
-              showEggModal: true, 
-              eggData: triggerEgg 
+            this.setData({
+              showEggModal: true,
+              eggData: triggerEgg,
             });
             wx.vibrateLong();
           }
@@ -253,7 +267,7 @@ Page({
     wx.showModal({
       title: "💎 内测 VIP 权益",
       content:
-        "感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会",
+        "感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 张新人胶卷\n🚀 会员礼：VIP 期间每日享有 3 张每日胶卷",
       showCancel: false,
       confirmText: "太棒了",
       confirmColor: "#ff6b81",
@@ -261,10 +275,9 @@ Page({
   },
 
   onCapture: function () {
-    // 🟢 Fix: Ensure styleList is defined before access
     if (!this.data.styleList || this.data.styleList.length === 0) {
-        wx.showToast({ title: "风格加载中...", icon: "none" });
-        return;
+      wx.showToast({ title: "风格加载中...", icon: "none" });
+      return;
     }
     const currentStyle = this.data.styleList[this.data.currentStyleIndex];
     if (currentStyle.isVip && !this.data.isVip) {
@@ -276,16 +289,15 @@ Page({
       });
       return;
     }
-    
-    // 🟢 Logic update: No overwrite warning, just check quota
+
     if (this.data.remainingCount > 0) {
       this.startCameraFlow();
       return;
     }
-    
+
     if (this.data.adCount >= this.data.dailyAdLimit) {
       wx.showModal({
-        title: "今日额度已耗尽",
+        title: "今日胶卷已耗尽",
         content: "去 [Fun乐园] 探索更多情侣互动玩法吧！",
         confirmText: "去玩耍",
         confirmColor: "#ff6b81",
@@ -297,8 +309,8 @@ Page({
       return;
     }
     wx.showModal({
-      title: "今日次数已用完",
-      content: "完成一个浪漫小挑战，立即解锁 1 次 AI 绘图机会？",
+      title: "今日胶卷已用完",
+      content: "完成一个浪漫小挑战，立即解锁 1 张临时胶卷？",
       confirmText: "解锁",
       confirmColor: "#ff6b81",
       cancelText: "不需要",
@@ -330,7 +342,7 @@ Page({
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          wx.showToast({ title: "已解锁 +1", icon: "success" });
+          wx.showToast({ title: "胶卷 +1", icon: "success" });
           this.checkUserStatus(() => this.startCameraFlow());
         } else {
           wx.showToast({ title: res.result.msg || "获取失败", icon: "none" });
@@ -352,12 +364,11 @@ Page({
       camera: "front",
       sizeType: ["compressed"],
       success(res) {
-        // 🟢 Fix: Safety check for tempFiles to prevent crash on Windows
         if (!res.tempFiles || res.tempFiles.length === 0) {
-            wx.showToast({ title: "未获取到图片", icon: "none" });
-            return;
+          wx.showToast({ title: "未获取到图片", icon: "none" });
+          return;
         }
-        
+
         const tempFilePath = res.tempFiles[0].tempFilePath;
         wx.showLoading({ title: "处理中..." });
         wx.compressImage({
@@ -374,8 +385,8 @@ Page({
         });
       },
       fail(err) {
-          console.log("chooseMedia failed or cancelled", err);
-      }
+        console.log("chooseMedia failed or cancelled", err);
+      },
     });
   },
 
@@ -407,11 +418,10 @@ Page({
     const taskTitle = this.data.currentTask
       ? this.data.currentTask.title
       : "自由发挥";
-    
-    // 🟢 Fix: Ensure styleList access is safe
+
     if (!this.data.styleList || this.data.styleList.length === 0) {
-        this.setData({ loading: false });
-        return;
+      this.setData({ loading: false });
+      return;
     }
     const currentStyle = this.data.styleList[this.data.currentStyleIndex];
     const styleId = currentStyle.id;
@@ -472,7 +482,7 @@ Page({
           that.setData({ loading: false, displayImage: "" });
           if (redirectFun) {
             wx.showModal({
-              title: "次数彻底用尽",
+              title: "胶卷彻底用尽",
               content: "今日AI算力已耗尽，去花园玩玩吧~",
               confirmText: "去花园",
               showCancel: false,
@@ -482,8 +492,8 @@ Page({
             });
           } else if (requireAd) {
             wx.showModal({
-              title: "次数不足",
-              content: "请求被拦截，请先解锁次数。",
+              title: "胶卷不足",
+              content: "请求被拦截，请先补充胶卷。",
               confirmText: "去解锁",
               success: (r) => {
                 if (r.confirm) that.mockWatchAd();

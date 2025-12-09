@@ -109,4 +109,17 @@ Page({
       current: src,
     });
   },
+
+  onShareAppMessage: function () {
+    return {
+      title: "我们的回忆足迹 👣",
+      path: "/pages/history/index"
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "我们的回忆足迹 👣"
+    };
+  },
 });

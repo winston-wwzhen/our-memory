@@ -205,4 +205,12 @@ Page({
   closeEggModal: function () {
     this.setData({ showEggModal: false });
   },
+  onShareTimeline: function () {
+    // 朋友圈只能显示标题，无法动态变化图片
+    return {
+      title: this.data.finalResult 
+        ? `✨ 命运指引我们去：${this.data.finalResult}` 
+        : "🔮 快来开启我们的命运抉择！"
+    };
+  },
 });

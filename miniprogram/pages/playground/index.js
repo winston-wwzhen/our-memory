@@ -324,4 +324,17 @@ Page({
   closeEggModal: function () {
     this.setData({ showEggModal: false });
   },
+
+  onShareAppMessage: function () {
+    return {
+      title: "欢迎来到恋爱游乐园 🎡",
+      path: "/pages/playground/index"
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "欢迎来到恋爱游乐园 🎡"
+    };
+  },
 });

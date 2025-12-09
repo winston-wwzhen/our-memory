@@ -174,4 +174,17 @@ Page({
     const url = this.data.selectedCapsule.imageFileID;
     if (url) wx.previewImage({ urls: [url] });
   },
+
+  onShareAppMessage: function () {
+    return {
+      title: "埋藏我们的时光胶囊 💊",
+      path: "/pages/capsule/index"
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "埋藏我们的时光胶囊 💊"
+    };
+  },
 });

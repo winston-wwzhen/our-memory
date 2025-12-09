@@ -187,4 +187,17 @@ Page({
     this.setData({ showEggModal: false });
     wx.navigateBack();
   },
+
+  onShareAppMessage: function () {
+    return {
+      title: "封印一段时光...",
+      path: "/pages/capsule_create/index"
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "封印一段时光..."
+    };
+  },
 });

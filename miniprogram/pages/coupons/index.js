@@ -197,4 +197,17 @@ Page({
   closeEggModal: function () {
     this.setData({ showEggModal: false });
   },
+
+  onShareAppMessage: function () {
+    return {
+      title: "爱的兑换券 🎫",
+      path: "/pages/coupons/index"
+    };
+  },
+
+  onShareTimeline: function () {
+    return {
+      title: "爱的兑换券 🎫"
+    };
+  },
 });
