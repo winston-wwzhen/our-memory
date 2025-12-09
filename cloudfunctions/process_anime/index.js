@@ -3,6 +3,7 @@ const cloud = require("wx-server-sdk");
 const tencentcloud = require("tencentcloud-sdk-nodejs");
 const AiartClient = tencentcloud.aiart.v20221229.Client;
 const config = require("./config");
+const Jimp = require("jimp"); // 引入图像处理库
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -153,6 +154,51 @@ async function checkImageSafety(fileID) {
   }
 }
 
+// 🖼️ 添加水印功能函数
+async function addWatermark(originalBuffer, cloudInstance) {
+  try {
+    // 1. 读取原图
+    const image = await Jimp.read(originalBuffer);
+
+    // 2. 动态获取小程序码 (跳转到首页)
+    // 也可以将二维码先上传到云存储，然后通过 cloud.downloadFile 下载来提高性能
+    console.log("开始添加水印")
+    const wxacodeResult = await cloudInstance.openapi.wxacode.getUnlimited({
+      scene: "source=ai_share",
+      page: "pages/index/index", // 扫码进入首页
+      width: 280,
+      check_path: false, // 开发/调试阶段建议设为 false
+    });
+
+    if (wxacodeResult.errCode) {
+      console.error("小程序码生成失败", wxacodeResult);
+      return originalBuffer; // 失败则返回原图
+    }
+
+    const qrImage = await Jimp.read(wxacodeResult.buffer);
+
+    // 3. 计算尺寸：让二维码宽度占原图宽度的 18%
+    const targetQrWidth = image.bitmap.width * 0.10;
+    qrImage.resize(targetQrWidth, Jimp.AUTO);
+
+    // 4. 计算位置：右下角，留有 20px 边距
+    const margin_x = 8;
+    const margin_y = 5
+    const x = image.bitmap.width - qrImage.bitmap.width - margin_x;
+    const y = image.bitmap.height - qrImage.bitmap.height - margin_y;
+
+    // 5. 合成图片 (透明度 90%)
+    qrImage.opacity(0.7);
+    image.composite(qrImage, x, y);
+
+    // 6. 导出 Buffer (JPEG 格式)
+    return await image.getBufferAsync(Jimp.MIME_JPEG);
+  } catch (err) {
+    console.error("水印添加失败:", err);
+    return originalBuffer; // 发生错误返回原图，保证主流程不中断
+  }
+}
+
 exports.main = async (event, context) => {
   const { imageFileID, taskTitle, styleId = "201" } = event;
   const wxContext = cloud.getWXContext();
@@ -190,8 +236,10 @@ exports.main = async (event, context) => {
 
   let deductedType = "none"; // 'daily' or 'extra'
 
-  if (!isPermanentVip) {
-    // 计算注册天数判断是否首日
+  // 计算总的每日限额，用于下面的判断
+  let baseLimit = NORMAL_FREE_LIMIT;
+  if (isVip) {
+    // 重新计算注册天数，保持逻辑一致
     let registerDays = 1;
     if (user.createdAt) {
       const created = new Date(user.createdAt);
@@ -199,20 +247,15 @@ exports.main = async (event, context) => {
       const diffTime = Math.abs(now - created);
       registerDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     }
+    baseLimit = registerDays <= 1 ? REG_DAY_LIMIT : VIP_DAILY_LIMIT;
+  }
+  const stats = user.daily_usage || { date: "", count: 0, ad_count: 0 };
+  const isToday = stats.date === todayStr;
+  const adRewards = isToday ? stats.ad_count || 0 : 0;
+  const totalDailyLimit = baseLimit + adRewards;
 
-    // 确定今日基础限额
-    let baseLimit = NORMAL_FREE_LIMIT; // 默认为 1
-    if (isVip) {
-      baseLimit = registerDays <= 1 ? REG_DAY_LIMIT : VIP_DAILY_LIMIT;
-    }
-
-    const stats = user.daily_usage || { date: "", count: 0, ad_count: 0 };
-    const isToday = stats.date === todayStr;
+  if (!isPermanentVip) {
     const currentUsed = isToday ? stats.count || 0 : 0;
-    const adRewards = isToday ? stats.ad_count || 0 : 0;
-    const totalLimit = baseLimit + adRewards;
-
-    // 获取用户的永久额外额度 (新字段)
     const extraQuota = user.extra_quota || 0;
 
     if (isToday && currentUsed < totalDailyLimit) {
@@ -276,7 +319,7 @@ exports.main = async (event, context) => {
     // 计算剩余展示 (仅供参考)
     if (deductedType === "daily") {
       remainingAttempts =
-        Math.max(0, totalDailyLimit - (currentUsed + 1)) +
+        Math.max(0, totalDailyLimit - ((isToday ? stats.count : 0) + 1)) +
         (user.extra_quota || 0);
     } else {
       remainingAttempts = (user.extra_quota || 0) - 1;
@@ -297,10 +340,17 @@ exports.main = async (event, context) => {
     if (!isImgSafe) {
       // ⚠️ 校验失败回滚额度
       if (!isPermanentVip) {
-        await db
-          .collection("users")
-          .where({ _openid: openid })
-          .update({ data: { "daily_usage.count": _.inc(-1) } });
+        if (deductedType === "daily") {
+          await db
+            .collection("users")
+            .where({ _openid: openid })
+            .update({ data: { "daily_usage.count": _.inc(-1) } });
+        } else if (deductedType === "extra") {
+          await db
+            .collection("users")
+            .where({ _openid: openid })
+            .update({ data: { extra_quota: _.inc(1) } });
+        }
       }
       return { status: 403, msg: "图片包含敏感内容，请更换一张" };
     }
@@ -330,6 +380,12 @@ exports.main = async (event, context) => {
       if (!result.ResultImage) throw new Error("腾讯云未返回图片数据");
 
       finalBuffer = Buffer.from(result.ResultImage, "base64");
+    }
+
+    // ✨✨✨ 新增：添加水印 ✨✨✨
+    if (finalBuffer) {
+      console.log("正在为图片添加水印...");
+      finalBuffer = await addWatermark(finalBuffer, cloud);
     }
   } catch (aiError) {
     console.error("⚠️ AI Failed:", aiError);
@@ -411,5 +467,6 @@ exports.main = async (event, context) => {
     remaining: remainingAttempts,
     evaluation: evaluation,
     deductedType,
+    triggerEgg, // 记得返回彩蛋数据
   };
 };

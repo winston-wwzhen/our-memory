@@ -1,7 +1,8 @@
 {
   "permissions": {
     "openapi": [
-      "security.imgSecCheck"
+      "security.imgSecCheck",
+      "wxacode.getUnlimited"
     ]
   },
   "envVariables": {},

@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.13.2",
+    "jimp": "^0.22.12",
     "tencentcloud-sdk-nodejs": "^4.1.149",
     "wx-server-sdk": "^3.0.1"
   }
