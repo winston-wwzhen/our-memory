@@ -111,7 +111,7 @@
         <view class="mi-icon yellow">🤝</view>
         <view class="mi-content">
           <text class="mi-title">邀请好友得福利</text>
-          <text class="mi-desc">送好友VIP，你得永久额度</text>
+          <text class="mi-desc">送好友VIP，你得胶卷和爱意奖励</text>
         </view>
       </view>
       <view class="mi-tag">去邀请</view>
@@ -121,8 +121,8 @@
       <view class="mi-left">
         <view class="mi-icon pink">🔗</view>
         <view class="mi-content">
-          <text class="mi-title">{{userData.partner_id ? '解除关联' : '绑定另一半'}}</text>
-          <text class="mi-desc">{{userData.partner_id ? '断开连接 (慎用)' : '解锁双人功能'}}</text>
+          <text class="mi-title">{{userData.partner_id ? '解除伴侣关联' : '绑定另一半'}}</text>
+          <text class="mi-desc">{{userData.partner_id ? '断开爱的连接 (慎用)' : '解锁双人功能'}}</text>
         </view>
       </view>
       <text class="mi-arrow">></text>
