@@ -10,7 +10,6 @@ Page({
       nickName: "微信用户",
     },
     partnerData: null,
-    needSave: false,
     daysCount: 0,
     anniversary: "",
 
@@ -229,7 +228,7 @@ Page({
   },
 
   // ============================================================
-  // 🟢 业务逻辑 (Updated)
+  // 🟢 业务逻辑
   // ============================================================
 
   checkLogin: function (callback) {
@@ -318,7 +317,6 @@ Page({
               expireDateStr: vipDateStr,
               privilegeTip: tipText,
             },
-            // 🟢 设置胶卷数据
             filmData: {
               total: totalCount,
               daily: dailyCount,
@@ -441,30 +439,47 @@ Page({
     });
   },
 
+  // 🟢 [修改] 选择头像后立即保存
   onChooseAvatar: function (e) {
     const { avatarUrl } = e.detail;
-    this.setData({ "userData.avatarUrl": avatarUrl, needSave: true });
+    this.setData({ "userData.avatarUrl": avatarUrl });
+    this.saveProfile(); // 自动触发保存
   },
 
-  onInputNickname: function (e) {
+  // 🟢 [修改] 输入时仅更新数据
+  onNicknameInput: function (e) {
     const nickName = e.detail.value;
-    this.setData({ "userData.nickName": nickName, needSave: true });
+    this.setData({ "userData.nickName": nickName });
   },
 
+  // 🟢 [修改] 失去焦点（输入完成）时自动保存
+  onNicknameBlur: function (e) {
+    const nickName = e.detail.value;
+    // 确保数据是最新的
+    this.setData({ "userData.nickName": nickName });
+    this.saveProfile();
+  },
+
+  // 🟢 [修改] 保存逻辑（通用）
   saveProfile: async function () {
     const { avatarUrl, nickName } = this.data.userData;
     if (!avatarUrl || !nickName) return;
 
-    wx.showLoading({ title: "同步云端..." });
+    // 显示loading 防止用户误操作，也作为反馈
+    wx.showLoading({ title: "保存中...", mask: true });
+
     try {
       let finalAvatarUrl = avatarUrl;
+      // 检查是否为临时文件，如果是则上传
       if (avatarUrl.includes("tmp") || avatarUrl.includes("wxfile")) {
+        const openid = this.data.userData._openid || "user";
         const uploadRes = await wx.cloud.uploadFile({
-          cloudPath: `avatars/${this.data.userData._openid}_${Date.now()}.jpg`,
+          cloudPath: `avatars/${openid}_${Date.now()}.jpg`,
           filePath: avatarUrl,
         });
         finalAvatarUrl = uploadRes.fileID;
       }
+
       const res = await wx.cloud.callFunction({
         name: "user_center",
         data: {
@@ -476,13 +491,14 @@ Page({
 
       if (res.result.status === 200) {
         wx.hideLoading();
-        wx.showToast({ title: "保存成功", icon: "success" });
-        this.setData({ needSave: false });
+        // 给一个轻微的成功提示
+        wx.showToast({ title: "已更新", icon: "success", duration: 1000 });
         this.checkLogin();
       }
     } catch (err) {
       wx.hideLoading();
       wx.showToast({ title: "保存失败", icon: "none" });
+      console.error(err);
     }
   },
 
@@ -526,7 +542,6 @@ Page({
     });
   },
 
-  // 🟢 [新增] 执行兑换请求
   doRedeemCode: function (code) {
     if (!code || !code.trim()) return;
 
@@ -541,20 +556,16 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           const days = res.result.days;
-
-          // 使用彩蛋弹窗展示成功信息
           this.setData({
             showEggModal: true,
             eggData: {
               title: "兑换成功",
               icon: "💎",
               desc: `VIP 时长已增加 ${days} 天！`,
-              bonus: 0, // 纯展示文字
+              bonus: 0,
             },
           });
           wx.vibrateLong();
-
-          // 刷新用户信息以更新 VIP 状态和到期时间
           this.checkLogin();
         } else {
           wx.showToast({ title: res.result.msg, icon: "none" });
