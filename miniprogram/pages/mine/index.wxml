@@ -25,15 +25,17 @@
     </view>
 
     <view class="avatars-area">
+  
       <view class="avatar-left-wrap">
         <button class="avatar-btn me reset-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
           <image class="avatar-img" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
           <view class="camera-badge">📷</view>
         </button>
         <view class="name-tag-edit">
-           <input type="nickname" class="nickname-input-clean" value="{{userData.nickName}}" placeholder="点击设昵称" bind:change="onInputNickname" />
+           <input type="nickname" class="nickname-input-clean" value="{{userData.nickName}}" placeholder="点击设昵称" bindinput="onNicknameInput" bindblur="onNicknameBlur" />
            <text class="edit-icon-small">✎</text>
         </view>
+  
       </view>
 
       <view class="connect-status">
@@ -45,6 +47,7 @@
           </view>
         </block>
         <block wx:else>
+     
           <view class="disconnect-line"></view>
           <text class="disconnect-txt">等待连接</text>
         </block>
@@ -61,6 +64,7 @@
                <text class="plus-icon">+</text>
             </view>
           </button>
+     
           <view class="name-tag">邀请TA</view>
         </block>
       </view>
@@ -75,7 +79,8 @@
       </view>
       <view class="film-detail-row">
         <text class="film-detail-tag">今日 {{filmData.daily}}</text>
-        <text class="film-divider">|</text>
+     
+    <text class="film-divider">|</text>
         <text class="film-detail-tag">永久 {{filmData.permanent}}</text>
       </view>
     </view>
@@ -115,6 +120,7 @@
         </view>
       </view>
       <view class="mi-tag">去邀请</view>
+ 
     </button>
 
     <view class="menu-item" bindtap="{{userData.partner_id ? 'onUnbind' : 'showInviteModal'}}">
@@ -130,7 +136,8 @@
 
     <button class="menu-item" open-type="contact">
       <view class="mi-left">
-        <view class="mi-icon blue">🎧</view>
+   
+      <view class="mi-icon blue">🎧</view>
         <view class="mi-content">
           <text class="mi-title">联系客服</text>
           <text class="mi-desc">反馈问题或建议</text>
@@ -138,17 +145,6 @@
       </view>
       <text class="mi-arrow">></text>
     </button>
-
-    <view class="menu-item" wx:if="{{needSave}}" bindtap="saveProfile">
-      <view class="mi-left">
-        <view class="mi-icon green">💾</view>
-        <view class="mi-content">
-          <text class="mi-title">保存资料</text>
-          <text class="mi-desc">同步头像与昵称</text>
-        </view>
-      </view>
-      <view class="dot-red"></view>
-    </view>
   </view>
 
   <view class="footer-copyright">Designed for Love v1.0.0</view>
@@ -158,7 +154,8 @@
         <view class="oath-decoration-top">🕊️</view>
         <view class="oath-title">愿得一人心</view>
         <view class="oath-subtitle">邀请 TA 开启共同回忆</view>
-        <view class="oath-warning">
+  
+       <view class="oath-warning">
           <text class="warning-desc">相遇不易，开启后请用心经营你们的回忆。</text>
         </view>
         <button class="btn-oath-confirm" open-type="share">🌹 发送邀请</button>
@@ -169,7 +166,8 @@
         <view class="oath-title">遗憾的决定</view>
         <view class="oath-warning unbind-style">
           <text class="warning-title">⚠️ 高能预警</text>
-          <text class="warning-desc">解绑后双方VIP立即失效，且7天内无法再次绑定。</text>
+    
+       <text class="warning-desc">解绑后双方VIP立即失效，且7天内无法再次绑定。</text>
         </view>
         <button class="btn-oath-confirm danger" bindtap="confirmUnbind">
             {{!canUnbind ? '冷静 ' + unbindCount + 's' : '💔 确认解绑'}}
@@ -185,7 +183,8 @@
         <view class="egg-title">{{eggData.title}}</view>
         <view class="egg-desc">{{eggData.desc}}</view>
         <view class="egg-reward-box">
-         <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
+         
+ <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
         </view>
         <button class="btn-get-egg" bindtap="closeEggModal">开心收下</button>
      </view>
