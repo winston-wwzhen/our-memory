@@ -95,7 +95,7 @@ async function handle(action, event, ctx) {
           capsule_limit: CONFIG.DEFAULT_CAPSULE_LIMIT,
 
           // 🟢 新增字段
-          extra_quota: 0, // 永久额外生图额度
+          extra_quota: 5, // 永久额外生图额度
           unclaimed_rewards: { water: 0, quota: 0 }, // 待领取的奖励箱
           invite_count: 0, // 累计邀请人数
           invited_by: inviterId, // 记录邀请人
@@ -149,9 +149,7 @@ async function handle(action, event, ctx) {
       let currentLimit = isPermanentVip
         ? 9999
         : isVip
-        ? registerDays <= 1
-          ? CONFIG.REG_DAY_LIMIT
-          : CONFIG.VIP_DAILY_LIMIT
+        ? CONFIG.VIP_DAILY_LIMIT
         : CONFIG.NORMAL_FREE_LIMIT;
 
       const stats = currentUser.daily_usage || {};
@@ -350,12 +348,6 @@ async function handle(action, event, ctx) {
         const pMsg = checkCooldown(pRes.data[0]);
         if (pMsg) return { status: 403, msg: "对方处于解绑冷静期" };
 
-        const vipExpire = new Date();
-        vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
-        const vipUpdate = {
-          vip_expire_date: vipExpire,
-        };
-
         const resA = await db
           .collection("users")
           .where({ _openid: OPENID, partner_id: null })
@@ -363,7 +355,6 @@ async function handle(action, event, ctx) {
             data: {
               partner_id: partnerCode,
               bind_request_from: null,
-              ...vipUpdate,
             },
           });
 
@@ -379,7 +370,6 @@ async function handle(action, event, ctx) {
               partner_id: OPENID,
               bind_request_from: null,
               bind_notification: true,
-              ...vipUpdate,
             },
           });
 
@@ -631,32 +621,48 @@ async function handle(action, event, ctx) {
           return { status: 404, msg: "用户数据异常" };
 
         const user = userRes.data[0];
+
+        const updateData = { warter_count: _.inc(300) }; // 兑换奖励：300水滴
         let newExpire = new Date();
 
-        // 续费逻辑：如果当前已是VIP且未过期，从原过期时间顺延
-        if (user.vip_expire_date && new Date(user.vip_expire_date) > now) {
-          newExpire = new Date(user.vip_expire_date);
+        // A. 处理 VIP 天数 (如果有)
+        if (vipCode.days && vipCode.days > 0) {
+          newExpire = new Date();
+          // 续费逻辑：如果当前已是VIP且未过期，从原过期时间顺延
+          if (
+            user.vip_expire_date &&
+            new Date(user.vip_expire_date) > new Date()
+          ) {
+            newExpire = new Date(user.vip_expire_date);
+          }
+          newExpire.setDate(newExpire.getDate() + vipCode.days);
+          updateData.vip_expire_date = newExpire;
         }
-        newExpire.setDate(newExpire.getDate() + vipCode.days);
 
-        await db
-          .collection("users")
-          .doc(user._id)
-          .update({
-            data: { vip_expire_date: newExpire },
-          });
+        // B. 处理 永久胶卷 (如果有)
+        if (vipCode.quota && vipCode.quota > 0) {
+          updateData.extra_quota = _.inc(vipCode.quota);
+        }
 
-        await addLog(
-          ctx,
-          "redeem_vip",
-          `兑换 ${cleanCode}, 获得 ${vipCode.days} 天`
-        );
+        await db.collection("users").doc(user._id).update({
+          data: updateData,
+        });
+
+        // 生成日志文案
+        const logMsg =
+          `兑换 ${cleanCode}: ` +
+          (vipCode.days ? `VIP+${vipCode.days}天 ` : "") +
+          (vipCode.quota ? `胶卷+${vipCode.quota}张` : "");
+
+        await addLog(ctx, "redeem_vip", logMsg);
 
         return {
           status: 200,
           msg: "兑换成功",
           days: vipCode.days,
           expireDate: newExpire,
+          quota: vipCode.quota || 0,
+          bounds: 300,
         };
       } catch (err) {
         console.error(err);

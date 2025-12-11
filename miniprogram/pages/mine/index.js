@@ -50,7 +50,7 @@ Page({
   },
 
   onLoad: function (options) {
-    console.log('>>> Mine Page onLoad 触发了');
+    console.log(">>> Mine Page onLoad 触发了");
     this.fetchSystemConfig();
     if (options && options.inviteCode) {
       this.setData({
@@ -75,24 +75,27 @@ Page({
   // ============================================================
 
   fetchSystemConfig() {
-    wx.cloud.callFunction({
-      name: 'user_center',
-      data: {
-        action: 'get_system_config'
-      }
-    }).then(res => {
-      if (res.result && res.result.success) {
-        const configOpen = res.result.data.showVipExchange;
-        
-        this.setData({
-          // 逻辑：只有当【云端开关开启】且【非iOS端(可选)】时才显示
-          // 如果你的策略是完全依赖云端开关，直接用 configOpen 即可
-          showVipExchange: configOpen 
-        });
-      }
-    }).catch(err => {
-      console.error('获取配置失败，默认隐藏VIP入口', err);
-    });
+    wx.cloud
+      .callFunction({
+        name: "user_center",
+        data: {
+          action: "get_system_config",
+        },
+      })
+      .then((res) => {
+        if (res.result && res.result.success) {
+          const configOpen = res.result.data.showVipExchange;
+
+          this.setData({
+            // 逻辑：只有当【云端开关开启】且【非iOS端(可选)】时才显示
+            // 如果你的策略是完全依赖云端开关，直接用 configOpen 即可
+            showVipExchange: configOpen,
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("获取配置失败，默认隐藏VIP入口", err);
+      });
   },
 
   showInviteModal: function () {
@@ -323,10 +326,6 @@ Page({
           }
 
           let tipText = "💎 VIP特权：每日享有 3 次拍照机会";
-          if (registerDays <= 1) {
-            tipText = "✨ 首日特权：今日获赠 10 次拍照机会";
-          }
-
           // 🟢 计算胶卷/额度详情
           const permanentCount = user.extra_quota || 0;
           const totalCount = remaining || 0;
@@ -530,8 +529,8 @@ Page({
   showVipInfo: function () {
     if (this.data.vipStatus.isVip) {
       wx.showModal({
-        title: "💎 内测 VIP 尊享权益",
-        content: `有效期至：${this.data.vipStatus.expireDateStr}\n\n感谢成为首批内测体验官！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会`,
+        title: "💎 VIP 尊享权益",
+        content: `有效期至：${this.data.vipStatus.expireDateStr}\n\n您正在享受 VIP 特权：\n🚀 每日享有 3 次免费生图机会\n✨ 解锁全部 AI 艺术风格`,
         showCancel: false,
         confirmText: "太棒了",
         confirmColor: "#ff6b81",
@@ -580,14 +579,20 @@ Page({
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          const days = res.result.days;
+          const { days, quota, bounds } = res.result;
+
+          // 构建提示文案
+          let descStr = "";
+          if (days > 0) descStr += `VIP +${days} 天\n`;
+          if (quota > 0) descStr += `永久胶卷 +${quota} 张`;
+
           this.setData({
             showEggModal: true,
             eggData: {
               title: "兑换成功",
               icon: "💎",
-              desc: `VIP 时长已增加 ${days} 天！`,
-              bonus: 0,
+              desc: descStr || "权益已到账",
+              bonus: bounds,
             },
           });
           wx.vibrateLong();

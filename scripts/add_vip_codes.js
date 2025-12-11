@@ -5,6 +5,7 @@ try {
 } catch (e) {}
 
 tcb.init({
+  // ✅ 你的环境 ID
   env: config.envId || "test1-3gxkuc1c2093c1a8",
   secretId: config.secretId,
   secretKey: config.secretKey,
@@ -14,34 +15,36 @@ const db = tcb.database();
 const _ = db.command;
 
 // ==========================================
-// 🛠️ 配置区：修改这里来生成不同的码
+// 🛠️ 配置区
 // ==========================================
 
 const CONFIG = {
   // 模式: 'BATCH' (批量随机) 或 'SINGLE' (单个指定)
   mode: "BATCH",
 
-  // --- 通用配置 ---
-  days: 7, // VIP天数
-  remark: "2025情人节活动", // 备注
-  validDays: 30, // 有效期(天)，30天后过期。如果不限时填 null
+  // --- 🎁 权益配置 ---
+  days: 30, // VIP 天数
+  quota: 10, // 永久胶卷数量
+
+  // --- ⚙️ 通用属性 ---
+  remark: "圣诞福利",
+  validDays: 30, // 30天后过期
 
   // --- 模式 A: BATCH (批量随机码) ---
-  batchCount: 3, // 生成数量
-  prefix: "VIP-", // 前缀
-  codeLength: 8, // 随机部分长度
-  usageLimit: 1, // 每个码可用次数 (1代表一次性码)
+  batchCount: 5, // 生成数量
+  prefix: "LOVE-", // 前缀
+  codeLength: 8, // 随机长度
+  usageLimit: 50, // 限制次数
 
-  // --- 模式 B: SINGLE (单个活动码) ---
-  singleCode: "LOVE2025", // 指定的码
-  singleLimit: -1, // -1 代表无限次使用 (适合公用码)
+  // --- 模式 B: SINGLE (单个通用码) ---
+  singleCode: "WELCOME2025",
+  singleLimit: 1000,
 };
 
 // ==========================================
 
-// 生成随机字符串
 function generateRandomString(len) {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 去掉了容易混淆的 I,1,O,0
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let result = "";
   for (let i = 0; i < len; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -50,7 +53,9 @@ function generateRandomString(len) {
 }
 
 async function main() {
-  console.log(`🚀 开始生成兑换码... 模式: ${CONFIG.mode}`);
+  console.log(`🚀 开始生成兑换码...`);
+  console.log(`环境: ${tcb.config.env}`);
+  console.log(`权益: VIP ${CONFIG.days}天 + 胶卷 ${CONFIG.quota}张`);
 
   const codesToAdd = [];
   const now = new Date();
@@ -64,7 +69,8 @@ async function main() {
 
   // 基础数据模板
   const baseData = {
-    days: CONFIG.days,
+    days: CONFIG.days || 0,
+    quota: CONFIG.quota || 0,
     remark: CONFIG.remark,
     is_active: true,
     used_count: 0,
@@ -76,17 +82,18 @@ async function main() {
   };
 
   if (CONFIG.mode === "SINGLE") {
-    // === 生成单个指定码 ===
     codesToAdd.push({
       ...baseData,
-      code: CONFIG.singleCode,
+      code: CONFIG.singleCode.trim().toUpperCase(),
       usage_limit: CONFIG.singleLimit,
     });
   } else {
-    // === 批量生成随机码 ===
     const generatedSet = new Set();
+    let attempts = 0;
+    const maxAttempts = CONFIG.batchCount * 10;
 
-    while (codesToAdd.length < CONFIG.batchCount) {
+    while (codesToAdd.length < CONFIG.batchCount && attempts < maxAttempts) {
+      attempts++;
       const randStr = generateRandomString(CONFIG.codeLength);
       const fullCode = (CONFIG.prefix + randStr).toUpperCase();
 
@@ -101,17 +108,37 @@ async function main() {
     }
   }
 
-  // 写入数据库
-  console.log(`📋 准备写入 ${codesToAdd.length} 个兑换码...`);
+  console.log(`📋 准备逐条写入 ${codesToAdd.length} 个兑换码...`);
 
-  // 批量写入 (云开发限制每次最多 1000 条，这里简单处理)
-  try {
-    const res = await db.collection("vip_codes").add(codesToAdd);
-    console.log(`✅ 成功添加 ${res.ids.length} 个兑换码！`);
-    console.log(`示例: ${codesToAdd[0].code} (${codesToAdd[0].days}天VIP)`);
-  } catch (err) {
-    console.error("❌ 写入失败:", err);
+  if (codesToAdd.length === 0) {
+    console.log("⚠️ 没有生成任何码。");
+    return;
   }
+
+  // 🟢 [核心修改] 改为循环逐条插入，确保每条都是独立文档
+  let successCount = 0;
+  for (const item of codesToAdd) {
+    try {
+      // 这里的 .add(item) 会创建一条独立的记录
+      await db.collection("vip_codes").add(item);
+      console.log(
+        `   ✅ [${successCount + 1}/${codesToAdd.length}] 写入成功: ${
+          item.code
+        }`
+      );
+      successCount++;
+    } catch (err) {
+      console.error(`   ❌ 写入失败 (${item.code}):`, err.message);
+    }
+  }
+
+  console.log(`----------------------------------------`);
+  console.log(`🎉 全部完成！成功生成 ${successCount} 个独立兑换码。`);
+  if (codesToAdd.length > 0) {
+    console.log(`示例码: ${codesToAdd[0].code}`);
+    console.log(`(现在可以直接去小程序使用了)`);
+  }
+  console.log(`----------------------------------------`);
 }
 
 main();

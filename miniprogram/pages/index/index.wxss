@@ -51,21 +51,6 @@ page {
 }
 
 /* === 顶部：任务卡片 === */
-
-.vip-promo-banner {
-  background: linear-gradient(90deg, #fff0f5, #e3f2fd);
-  border-radius: 20rpx;
-  padding: 20rpx 30rpx;
-  display: flex;
-  align-items: center;
-  margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
-  border: 2rpx dashed #ffb7b2;
-  animation: pulse-slow 3s infinite;
-  flex-shrink: 0;
-  /* 防止被挤压 */
-}
-
 .promo-icon { font-size: 40rpx; margin-right: 20rpx; }
 .promo-text { flex: 1; display: flex; flex-direction: column; }
 .promo-title { font-size: 26rpx;

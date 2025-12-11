@@ -116,7 +116,7 @@
         <view class="mi-icon yellow">🤝</view>
         <view class="mi-content">
           <text class="mi-title">邀请好友得福利</text>
-          <text class="mi-desc">送好友VIP，你得胶卷和爱意奖励</text>
+          <text class="mi-desc">送好友，获得胶卷和爱意奖励</text>
         </view>
       </view>
       <view class="mi-tag">去邀请</view>

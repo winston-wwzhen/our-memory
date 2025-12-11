@@ -270,11 +270,10 @@ Page({
 
   showVipInfo: function () {
     wx.showModal({
-      title: "💎 内测 VIP 权益",
-      content:
-        "感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 张新人胶卷\n🚀 会员礼：VIP 期间每日享有 3 张每日胶卷",
+      title: "💎 VIP 权益", // ✅ [修改] 去掉“内测”
+      content: "VIP 用户每日享有 3 张每日胶卷，并可解锁所有专属滤镜风格。", // ✅ [修改] 去掉“内测”、“新人礼”等描述
       showCancel: false,
-      confirmText: "太棒了",
+      confirmText: "知道了",
       confirmColor: "#ff6b81",
     });
   },
@@ -288,7 +287,7 @@ Page({
     if (currentStyle.isVip && !this.data.isVip) {
       wx.showModal({
         title: "VIP 专属风格",
-        content: `【${currentStyle.name}】需要 VIP 身份才能解锁哦，内测用户绑定伴侣可获得7天VIP身份！`,
+        content: `【${currentStyle.name}】是 VIP 专属风格，请先获取 VIP 身份哦。`,
         showCancel: false,
         confirmText: "知道了",
       });
@@ -375,11 +374,11 @@ Page({
         }
 
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        
+
         // ✨ 修改：不直接上传，而是进入确认引导流程
         that.setData({
           previewTempPath: tempFilePath,
-          showGuideModal: true
+          showGuideModal: true,
         });
       },
       fail(err) {
@@ -389,7 +388,7 @@ Page({
   },
 
   // 确认使用照片，开始压缩和上传
-  onConfirmPhoto: function() {
+  onConfirmPhoto: function () {
     const tempFilePath = this.data.previewTempPath;
     if (!tempFilePath) return;
 
@@ -397,7 +396,7 @@ Page({
     const that = this;
 
     wx.showLoading({ title: "处理中..." });
-    
+
     wx.compressImage({
       src: tempFilePath,
       quality: 60,
@@ -414,10 +413,10 @@ Page({
   },
 
   // 重拍：关闭弹窗并重新调起相机
-  onRetakePhoto: function() {
-    this.setData({ 
+  onRetakePhoto: function () {
+    this.setData({
       showGuideModal: false,
-      previewTempPath: "" 
+      previewTempPath: "",
     });
     // 稍微延迟一下，体验更好
     setTimeout(() => {
@@ -426,10 +425,10 @@ Page({
   },
 
   // 取消预览
-  onCancelPreview: function() {
-    this.setData({ 
+  onCancelPreview: function () {
+    this.setData({
       showGuideModal: false,
-      previewTempPath: "" 
+      previewTempPath: "",
     });
   },
 

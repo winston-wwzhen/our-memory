@@ -9,15 +9,6 @@
   </view>
 
   <view class="content-wrapper">
-
-    <view class="vip-promo-banner" wx:if="{{!hasPartner}}" bindtap="navToMine">
-      <view class="promo-icon">🎁</view>
-      <view class="promo-text">
-        <text class="promo-title">内测福利：邀请另一半</text>
-        <text class="promo-desc">双方立享 7 天 VIP 特权 ✨</text>
-      </view>
-      <view class="promo-arrow">Go ></view>
-    </view>
     
     <view class="task-note-container slide-in-down" wx:if="{{currentTask}}">
       <view class="task-note">
@@ -96,8 +87,7 @@
               <view class="vip-crown" wx:if="{{isVip}}">👑</view>
             </view>
 
-            <text class="empty-hint" wx:if="{{isVip}}">VIP 尊享极速生成 ✨</text>
-            <text class="empty-hint" wx:else>点这里，定格此刻 ✨</text>
+            <text class="empty-hint" >✨ 定格美好时刻 ✨</text>
             
             <text class="quota-hint {{isVip ? 'vip-quota' : ''}}">剩余胶卷：{{remainingCount}} 张</text>
           </view>
