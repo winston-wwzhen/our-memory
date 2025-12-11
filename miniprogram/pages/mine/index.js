@@ -45,9 +45,13 @@ Page({
 
     // 待领取奖励数据
     pendingRewards: null,
+
+    showVipExchange: false,
   },
 
   onLoad: function (options) {
+    console.log('>>> Mine Page onLoad 触发了');
+    this.fetchSystemConfig();
     if (options && options.inviteCode) {
       this.setData({
         inviteCode: options.inviteCode,
@@ -69,6 +73,27 @@ Page({
   // ============================================================
   // 交互逻辑
   // ============================================================
+
+  fetchSystemConfig() {
+    wx.cloud.callFunction({
+      name: 'user_center',
+      data: {
+        action: 'get_system_config'
+      }
+    }).then(res => {
+      if (res.result && res.result.success) {
+        const configOpen = res.result.data.showVipExchange;
+        
+        this.setData({
+          // 逻辑：只有当【云端开关开启】且【非iOS端(可选)】时才显示
+          // 如果你的策略是完全依赖云端开关，直接用 configOpen 即可
+          showVipExchange: configOpen 
+        });
+      }
+    }).catch(err => {
+      console.error('获取配置失败，默认隐藏VIP入口', err);
+    });
+  },
 
   showInviteModal: function () {
     wx.vibrateShort({ type: "medium" });
