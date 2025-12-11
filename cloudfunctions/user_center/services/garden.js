@@ -151,15 +151,15 @@ async function handle(action, event, ctx) {
             .update({ data: { rose_balance: _.inc(1) } });
         await addLog(ctx, "harvest", `收获第${garden.harvest_total + 1}朵玫瑰`);
 
-        // 触发彩蛋：辛勤园丁
+        // 触发彩蛋：辛勤铲屎官
         let egg = null;
         if (garden.harvest_total === 0) {
           egg = await tryTriggerEgg(
             ctx,
             "gardener",
             150,
-            "辛勤园丁",
-            "收获了第一朵玫瑰"
+            "爱心泛滥",
+            "获得了爱的玫瑰"
           );
           if (egg) {
             // 🟢 [修复点] 原代码使用了未定义的 me._id，改为使用 where({ _openid: OPENID })

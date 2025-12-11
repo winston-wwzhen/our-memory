@@ -2,88 +2,80 @@
   
   <view class="garden-card paper-texture">
     <view class="card-header">
-      <text class="card-title">🌹 爱情结晶·玫瑰</text>
+      <text class="card-title">🐶 我们的萌宠·旺财</text>
       <view class="harvest-badge" wx:if="{{harvestCount > 0}}">
-        <text>🏆 已收获: {{harvestCount}}朵</text>
+        <text>🎒 旅行: {{harvestCount}}次</text>
       </view>
       <view class="water-badge" wx:else>
-        <text>💧 爱意: {{waterCount}}g</text>
+        <text>🍖 储备: {{waterCount}}g</text>
       </view>
     </view>
 
     <view class="water-info-sub" wx:if="{{harvestCount > 0}}">
-        <text>💧 当前爱意: {{waterCount}}g</text>
+        <text>🍖 当前储备: {{waterCount}}g</text>
     </view>
 
     <view class="log-bubble" bindtap="toggleLogModal">
       <text class="bubble-icon">📝</text>
-      <text class="bubble-txt">呵护记录</text>
+      <text class="bubble-txt">成长日记</text>
     </view>
 
     <view class="plant-stage">
-      <image wx:if="{{level === 1}}" src="../../images/flower_stage_1.png" mode="aspectFit" class="flower-img bounce-anim"></image>
-      <image wx:elif="{{level === 2}}" src="../../images/flower_stage_2.png" mode="aspectFit" class="flower-img bounce-anim"></image>
-      <image wx:else src="../../images/flower_stage_3.png" mode="aspectFit" class="flower-img {{level >= 4 ? 'glow-anim' : 'bounce-anim'}}"></image>
+      <image wx:if="{{level === 1}}" src="../../images/pet_idle.png" mode="aspectFit" class="pet-img bounce-anim"></image>
+      <image wx:elif="{{level === 2}}" src="../../images/pet_eating.png" mode="aspectFit" class="pet-img bounce-anim"></image>
+      <image wx:elif="{{level === 3}}" src="../../images/pet_return.png" mode="aspectFit" class="pet-img bounce-anim"></image>
+      <image wx:else src="../../images/pet_travel_note.png" mode="aspectFit" class="pet-img float-anim"></image>
     </view>
 
     <view class="progress-box">
       <view class="progress-bar">
         <view class="progress-inner" style="width: {{progress}};"></view>
       </view>
-      <text class="level-text" wx:if="{{level < 4}}">Lv.{{level}} 培育进度 ({{growth}}/{{maxGrowth}})</text>
-      <text class="level-text max-level" wx:else>🌟 玫瑰已盛开，快去收获吧！ 🌟</text>
+      <text class="level-text" wx:if="{{level < 4}}">Lv.{{level}} 能量值 ({{growth}}/{{maxGrowth}})</text>
+      <text class="level-text max-level" wx:else>✈️ 宝贝出门旅行啦，快去看看带回了什么！</text>
     </view>
 
-    <button class="btn-harvest" bindtap="onHarvest" wx:if="{{level >= 4}}">
-      <text>🏆 收获这朵玫瑰</text>
+    <button class="btn-harvest" bindtap="onWelcomeHome" wx:if="{{level >= 4}}">
+      <text>🎁 迎接宝贝回家</text>
     </button>
 
-    <button class="btn-water" bindtap="onWater" disabled="{{loading}}" wx:else>
-      <text>注入爱意 (10g)</text>
+    <button class="btn-water" bindtap="onFeed" disabled="{{loading}}" wx:else>
+      <text>投喂罐头 (消耗10g)</text>
     </button>
     
-    <view class="tip-text" wx:if="{{level < 4}}">📸 每日合照打卡，收集爱的养分 (+50g)</view>
-    <view class="tip-text" wx:else>收获后将开启新的一轮种植 🌱</view>
+    <view class="tip-text" wx:if="{{level < 4}}">📸 每日合照打卡，赚取口粮 (+50g)</view>
+    <view class="tip-text" wx:else>每次旅行归来，都会带回一朵玫瑰哦 🌹</view>
   </view>
 
   <view class="grid-menu">
-
     <view class="grid-item paper-texture" bindtap="navToQuiz">
       <view class="grid-icon">🧩</view>
       <text class="grid-title">默契大闯关</text>
       <text class="grid-desc">挑战灵魂契合度</text>
-      
       <view class="notification-quiz" wx:if="{{quizHint}}">❓</view>
     </view>
-
     <view class="grid-item paper-texture" bindtap="navToBoard">
       <view class="grid-icon">📌</view>
       <text class="grid-title">爱的留言板</text>
       <text class="grid-desc">日常碎碎念</text>
-      
       <view class="notification-pin" wx:if="{{messageHint}}">📌</view>
     </view>
-
     <view class="grid-item paper-texture" bindtap="navToCapsule">
       <view class="grid-icon">💊</view>
       <text class="grid-title">时光胶囊</text>
       <text class="grid-desc">寄给未来</text>
-      
       <view class="notification-heart" wx:if="{{capsuleRedDot}}">❤</view>
     </view>
-
     <view class="grid-item paper-texture" bindtap="navToGuide">
       <view class="grid-icon">📖</view>
       <text class="grid-title">恋爱宝典</text>
       <text class="grid-desc">生存与惊喜</text>
     </view>
-
     <view class="grid-item paper-texture" bindtap="navToDecision">
       <view class="grid-icon">🎲</view>
       <text class="grid-title">命运的决定</text>
       <text class="grid-desc">治愈选择困难</text>
     </view>
-
     <view class="grid-item paper-texture" bindtap="navToCoupons">
       <view class="grid-icon">🎁</view>
       <text class="grid-title">特权工坊</text>
@@ -91,16 +83,15 @@
     </view>
   </view>
   
-
   <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
     <view class="log-modal-container" catchtap="return"> 
       <view class="log-modal-header">
-        <text>📜 呵护日记</text>
+        <text>📜 喂养日记</text>
         <view class="close-icon" bindtap="toggleLogModal">×</view>
       </view>
       <scroll-view scroll-y class="log-scroll-view">
         <view class="empty-log" wx:if="{{logs.length === 0}}">
-          <text>暂无记录，快去浇水吧~</text>
+          <text>暂无记录，快去喂食吧~</text>
         </view>
         <block wx:else>
           <view class="modal-log-item" wx:for="{{logs}}" wx:key="index">
@@ -118,35 +109,36 @@
     </view>
   </view>
 
-<view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
-  <view class="god-rays"></view>
-  <view class="confetti-container">
-    <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
-    <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
-    <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
-    <view class="confetti c10"></view>
-  </view>
-  <view class="egg-card bounce-in">
-    <view class="card-ribbon">LUCKY TIME</view>
-    <view class="icon-stage">
-      <view class="halo-ring"></view>
-      <text class="egg-icon">{{eggData.icon}}</text>
-      <view class="shine-star s-left">✨</view>
-      <view class="shine-star s-right">✨</view>
+  <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
+    <view class="god-rays"></view>
+    <view class="confetti-container">
+      <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+      <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+      <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+      <view class="confetti c10"></view>
     </view>
-    <view class="egg-title">{{eggData.title}}</view>
-    <view class="egg-desc">{{eggData.desc}}</view>
-    <view class="egg-reward-box">
-      <text class="reward-label">获得奖励</text>
-      <view class="reward-val-row">
-        <text class="val-num">+{{eggData.bonus}}</text>
-        <text class="val-unit">g 爱意 💧</text>
+    <view class="egg-card bounce-in">
+      <view class="card-ribbon">LUCKY TIME</view>
+      <view class="icon-stage">
+        <view class="halo-ring"></view>
+        <text class="egg-icon">{{eggData.icon}}</text>
+        <view class="shine-star s-left">✨</view>
+        <view class="shine-star s-right">✨</view>
       </view>
+      <view class="egg-title">{{eggData.title}}</view>
+      <view class="egg-desc">{{eggData.desc}}</view>
+      
+      <view class="egg-reward-box">
+        <text class="reward-label">获得奖励</text>
+        <view class="reward-val-row">
+          <text class="val-num">+{{eggData.bonus}}</text>
+          <text class="val-unit">g 爱意 💧</text>
+        </view>
+      </view>
+      <button class="btn-get-egg" bindtap="closeEggModal">
+        <text>开心收下 ❤️</text>
+      </button>
     </view>
-    <button class="btn-get-egg" bindtap="closeEggModal">
-      <text>开心收下 ❤️</text>
-    </button>
   </view>
-</view>
 
 </view>

@@ -303,8 +303,8 @@ const TASKS = [
 const EGG_CONFIGS = [
   {
     _id: "gardener",
-    title: "辛勤园丁",
-    desc: "成功培育并收获了第一朵玫瑰 🌹",
+    title: "辛勤铲屎官",
+    desc: "收获爱的玫瑰 🌹",
     icon: "🌹",
     type: "collection",
     bonus: 150,
