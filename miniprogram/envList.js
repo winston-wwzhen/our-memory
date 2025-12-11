@@ -13,13 +13,13 @@ const envList = {
   // 🚀 生产/正式环境 (Production)
   // 用于线上发布，存放真实用户数据
   prod: {
-    envId: "cloud1-0g4462vv9d9954a5", 
+    envId: "cloud1-0g4462vv9d9954a5",
     name: "正式环境",
   },
 };
 
 // 场景：想在开发者工具里调试正式环境的数据时，可填 'prod'
-const forceEnv = "prod";
+const forceEnv = "";
 
 module.exports = {
   envList,

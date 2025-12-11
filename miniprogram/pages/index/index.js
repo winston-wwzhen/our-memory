@@ -111,6 +111,10 @@ Page({
     eggData: null,
 
     haspartner: true,
+
+    // 📸 拍照引导相关
+    showGuideModal: false,
+    previewTempPath: "",
   },
 
   onShow: function () {
@@ -138,6 +142,7 @@ Page({
       aiEvaluation: null,
       loading: false,
       isSaved: false,
+      showGuideModal: false,
     });
     this.fetchDailyMission();
     this.pickDailyQuote();
@@ -370,23 +375,61 @@ Page({
         }
 
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        wx.showLoading({ title: "处理中..." });
-        wx.compressImage({
-          src: tempFilePath,
-          quality: 60,
-          success: (compressRes) => {
-            wx.hideLoading();
-            that.uploadAndProcess(compressRes.tempFilePath);
-          },
-          fail: () => {
-            wx.hideLoading();
-            that.uploadAndProcess(tempFilePath);
-          },
+        
+        // ✨ 修改：不直接上传，而是进入确认引导流程
+        that.setData({
+          previewTempPath: tempFilePath,
+          showGuideModal: true
         });
       },
       fail(err) {
         console.log("chooseMedia failed or cancelled", err);
       },
+    });
+  },
+
+  // 确认使用照片，开始压缩和上传
+  onConfirmPhoto: function() {
+    const tempFilePath = this.data.previewTempPath;
+    if (!tempFilePath) return;
+
+    this.setData({ showGuideModal: false });
+    const that = this;
+
+    wx.showLoading({ title: "处理中..." });
+    
+    wx.compressImage({
+      src: tempFilePath,
+      quality: 60,
+      success: (compressRes) => {
+        wx.hideLoading();
+        that.uploadAndProcess(compressRes.tempFilePath);
+      },
+      fail: () => {
+        wx.hideLoading();
+        // 压缩失败则使用原图
+        that.uploadAndProcess(tempFilePath);
+      },
+    });
+  },
+
+  // 重拍：关闭弹窗并重新调起相机
+  onRetakePhoto: function() {
+    this.setData({ 
+      showGuideModal: false,
+      previewTempPath: "" 
+    });
+    // 稍微延迟一下，体验更好
+    setTimeout(() => {
+      this.startCameraFlow();
+    }, 200);
+  },
+
+  // 取消预览
+  onCancelPreview: function() {
+    this.setData({ 
+      showGuideModal: false,
+      previewTempPath: "" 
     });
   },
 

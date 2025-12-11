@@ -62,17 +62,21 @@ page {
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
   border: 2rpx dashed #ffb7b2;
   animation: pulse-slow 3s infinite;
-  flex-shrink: 0; /* 防止被挤压 */
+  flex-shrink: 0;
+  /* 防止被挤压 */
 }
 
 .promo-icon { font-size: 40rpx; margin-right: 20rpx; }
 .promo-text { flex: 1; display: flex; flex-direction: column; }
-.promo-title { font-size: 26rpx; font-weight: bold; color: #5d4037; }
+.promo-title { font-size: 26rpx;
+  font-weight: bold; color: #5d4037; }
 .promo-desc { font-size: 22rpx; color: #ff6b81; margin-top: 4rpx; font-weight: bold; }
-.promo-arrow { font-size: 24rpx; color: #999; font-weight: bold; background: rgba(255,255,255,0.6); padding: 4rpx 12rpx; border-radius: 20rpx; }
+.promo-arrow { font-size: 24rpx; color: #999;
+  font-weight: bold; background: rgba(255,255,255,0.6); padding: 4rpx 12rpx; border-radius: 20rpx; }
 
 @keyframes pulse-slow {
-  0% { transform: scale(1); }
+  0% { transform: scale(1);
+}
   50% { transform: scale(1.01); }
   100% { transform: scale(1); }
 }
@@ -169,7 +173,8 @@ page {
 
 /* 空状态容器 */
 .empty-state-cover { 
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   position: relative; background-color: #f0f0f0; 
   overflow: hidden;
   /* 防止 swiper 溢出圆角 */
@@ -177,7 +182,7 @@ page {
 
 /* Swiper 样式 */
 .style-swiper {
-  width: 100%; 
+  width: 100%;
   height: 100%;
   padding-top: 20rpx;
   /* 给顶部留点呼吸感 */
@@ -316,7 +321,8 @@ page {
 }
 
 .camera-icon-img { width: 60rpx;
-  height: 60rpx; z-index: 10; }
+  height: 60rpx; z-index: 10;
+}
 
 /* VIP 皇冠动效 */
 .vip-crown {
@@ -331,11 +337,13 @@ page {
 }
 
 @keyframes float-crown {
-  0%, 100% { transform: rotate(15deg) translateY(0); }
+  0%, 100% { transform: rotate(15deg) translateY(0);
+}
   50% { transform: rotate(15deg) translateY(-6rpx); }
 }
 
-.empty-hint { color: #fff; font-size: 26rpx; letter-spacing: 4rpx; font-weight: bold; text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.5);
+.empty-hint { color: #fff; font-size: 26rpx; letter-spacing: 4rpx; font-weight: bold;
+  text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.5);
 }
 
 .quota-hint {
@@ -379,11 +387,13 @@ page {
 .stamp-score { font-size: 36rpx; color: #ff4757;
   font-weight: 900; font-family: 'Courier New', monospace; line-height: 1;
 }
-.stamp-anim { animation: stamp-in 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards 0.5s; }
+.stamp-anim { animation: stamp-in 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards 0.5s;
+}
 @keyframes stamp-in {
   0% { transform: rotate(-15deg) scale(2);
   opacity: 0; }
-  100% { transform: rotate(-15deg) scale(1); opacity: 0.9; }
+  100% { transform: rotate(-15deg) scale(1); opacity: 0.9;
+}
 }
 
 /* 底部手写字 */
@@ -402,13 +412,15 @@ page {
 .daily-quote-box {
   text-align: center; opacity: 0.9;
   flex-shrink: 0; height: 80rpx;
-  display: flex; flex-direction: column; justify-content: center;
+  display: flex; flex-direction: column;
+  justify-content: center;
 }
 .quote-text {
   font-family: "PingFang SC", serif; font-size: 24rpx;
   color: #5d4037;
   letter-spacing: 2rpx;
-  font-style: italic; display: block; margin-bottom: 6rpx;
+  font-style: italic; display: block;
+  margin-bottom: 6rpx;
 }
 .quote-author { font-size: 18rpx; color: #bcaaa4; text-transform: uppercase; letter-spacing: 4rpx;
 }
@@ -566,4 +578,103 @@ page {
   box-shadow: none;
   opacity: 0.9;
   transform: scale(0.98); /* 稍微缩小一点，表示按下的状态 */
+}
+
+/* === 📸 新增：拍照确认引导相关样式 === */
+.guide-modal-container {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 10000;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-bg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+}
+
+.guide-overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none; /* 让点击穿透到底部按钮 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 引导框：利用 box-shadow 实现中间镂空遮罩 */
+.guide-box {
+  width: 80%;
+  height: 60%; /* 竖向比例 */
+  border-radius: 40% 40% 50% 50%; /* 模拟头部轮廓 */
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7); /* 超大阴影作为背景遮罩 */
+  border: 4rpx dashed rgba(255, 255, 255, 0.6);
+  position: relative;
+  margin-bottom: 40rpx;
+}
+
+/* 四角装饰 */
+.corner {
+  position: absolute;
+  width: 40rpx; height: 40rpx;
+  border-color: #ff6b81;
+  border-style: solid;
+}
+.c-tl { top: -4rpx; left: -4rpx; border-width: 8rpx 0 0 8rpx; border-top-left-radius: 20rpx; }
+.c-tr { top: -4rpx; right: -4rpx; border-width: 8rpx 8rpx 0 0; border-top-right-radius: 20rpx; }
+.c-bl { bottom: -4rpx; left: -4rpx; border-width: 0 0 8rpx 8rpx; border-bottom-left-radius: 20rpx; }
+.c-br { bottom: -4rpx; right: -4rpx; border-width: 0 8rpx 8rpx 0; border-bottom-right-radius: 20rpx; }
+
+.guide-tip-text {
+  display: flex; flex-direction: column;
+  align-items: center;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+  text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.8);
+  margin-top: 20rpx;
+}
+
+/* 底部按钮栏 */
+.guide-action-bar {
+  position: absolute;
+  bottom: 0; left: 0; width: 100%;
+  height: 180rpx;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  padding-bottom: 40rpx;
+  box-sizing: border-box;
+}
+
+.guide-btn {
+  padding: 20rpx 60rpx;
+  border-radius: 50rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+}
+
+.guide-btn.retake {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(5px);
+}
+
+.guide-btn.confirm {
+  background: #ff6b81;
+  color: #fff;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.4);
 }

@@ -161,33 +161,59 @@
   </view>
 
   <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
-  <view class="god-rays"></view>
-  <view class="confetti-container">
-    <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
-    <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
-    <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
-    <view class="confetti c10"></view>
-  </view>
-  <view class="egg-card bounce-in">
-    <view class="card-ribbon">LUCKY TIME</view>
-    <view class="icon-stage">
-      <view class="halo-ring"></view>
-      <text class="egg-icon">{{eggData.icon}}</text>
-      <view class="shine-star s-left">✨</view>
-      <view class="shine-star s-right">✨</view>
+    <view class="god-rays"></view>
+    <view class="confetti-container">
+      <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+      <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+      <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+      <view class="confetti c10"></view>
     </view>
-    <view class="egg-title">{{eggData.title}}</view>
-    <view class="egg-desc">{{eggData.desc}}</view>
-    <view class="egg-reward-box">
-      <text class="reward-label">获得奖励</text>
-      <view class="reward-val-row">
-        <text class="val-num">+{{eggData.bonus}}</text>
-        <text class="val-unit">g 爱意 💧</text>
+    <view class="egg-card bounce-in">
+      <view class="card-ribbon">LUCKY TIME</view>
+      <view class="icon-stage">
+        <view class="halo-ring"></view>
+        <text class="egg-icon">{{eggData.icon}}</text>
+        <view class="shine-star s-left">✨</view>
+        <view class="shine-star s-right">✨</view>
+      </view>
+      <view class="egg-title">{{eggData.title}}</view>
+      <view class="egg-desc">{{eggData.desc}}</view>
+      <view class="egg-reward-box">
+        <text class="reward-label">获得奖励</text>
+        <view class="reward-val-row">
+          <text class="val-num">+{{eggData.bonus}}</text>
+          <text class="val-unit">g 爱意 💧</text>
+        </view>
+      </view>
+      <button class="btn-get-egg" bindtap="closeEggModal">
+        <text>开心收下 ❤️</text>
+      </button>
+    </view>
+  </view>
+
+  <view class="guide-modal-container" wx:if="{{showGuideModal}}" catchtouchmove="true">
+    <image class="preview-bg" src="{{previewTempPath}}" mode="aspectFill"></image>
+    
+    <view class="guide-overlay">
+      <view class="guide-box">
+        <view class="corner c-tl"></view>
+        <view class="corner c-tr"></view>
+        <view class="corner c-bl"></view>
+        <view class="corner c-br"></view>
+      </view>
+      <view class="guide-tip-text">
+        <text>人物面部在框内图片生成效果最佳哦</text>
+        <text style="font-size: 24rpx; opacity: 0.8; margin-top:10rpx;">(避免全身照或背景杂乱)</text>
       </view>
     </view>
-    <button class="btn-get-egg" bindtap="closeEggModal">
-      <text>开心收下 ❤️</text>
-    </button>
+
+    <view class="guide-action-bar">
+      <view class="guide-btn retake" bindtap="onRetakePhoto">
+        <text>重拍</text>
+      </view>
+      <view class="guide-btn confirm" bindtap="onConfirmPhoto">
+        <text>确认生成 ✨</text>
+      </view>
+    </view>
   </view>
-</view>
 </view>
