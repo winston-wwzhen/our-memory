@@ -5,6 +5,7 @@ miniprogram_npm/
 # === Secrets (绝对不能提交) ===
 cloudfunctions/process_anime/config.js
 project.private.config.json
+scripts/config.js
 
 # === Build / OS Files ===
 unpackage/

@@ -1,14 +1,13 @@
 const tcb = require("tcb-admin-node");
+let config = {};
+try {
+  config = require("./config");
+} catch (e) {}
 
-// 🟢 配置您的云开发环境 ID
-const ENV_ID = "your-env-id-xxxxxx";
-
-// 初始化
 tcb.init({
-  env: ENV_ID,
-  // 如果在本地运行报错提示需要凭证，请去腾讯云控制台获取 SecretId 和 SecretKey
-  // secretId: "您的SecretId",
-  // secretKey: "您的SecretKey"
+  env: config.envId || "test1-3gxkuc1c2093c1a8",
+  secretId: config.secretId,
+  secretKey: config.secretKey,
 });
 
 const db = tcb.database();
