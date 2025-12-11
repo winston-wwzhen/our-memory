@@ -86,6 +86,14 @@ exports.main = async (event, context) => {
     case "toggle_love_list_item":
       return await playgroundService.handle(action, event, ctx);
 
+    case "get_system_config":
+      return {
+        success: true,
+        data: {
+          showVipExchange: ctx.CONFIG.SHOW_VIP_EXCHANGE
+        }
+      };
+
     default:
       return { status: 400, msg: `未知的action: ${action}` };
   }

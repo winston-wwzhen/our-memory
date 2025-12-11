@@ -12,6 +12,7 @@ const DEFAULT_CONFIG = {
   WATER_GROWTH: 10, // 每次浇花成长数值
   HARVEST_MIN_GROWTH: 300, // 每次收获所需爱意值
   CHECKIN_REWARD: 50,
+  SHOW_VIP_EXCHANGE: true,
 };
 
 async function getBizConfig(db) {

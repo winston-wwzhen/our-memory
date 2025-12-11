@@ -19,7 +19,7 @@ const envList = {
 };
 
 // 场景：想在开发者工具里调试正式环境的数据时，可填 'prod'
-const forceEnv = "";
+const forceEnv = "prod";
 
 module.exports = {
   envList,
