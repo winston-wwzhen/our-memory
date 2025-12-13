@@ -54,6 +54,8 @@ exports.main = async (event, context) => {
     case "harvest_garden":
     case "check_in":
     case "watch_ad_reward":
+    case "start_travel":
+    case "get_albums":
       return await gardenService.handle(action, event, ctx);
 
     // === Message (留言板) ===

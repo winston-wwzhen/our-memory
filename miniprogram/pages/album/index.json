@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "旅行相册",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#ffecd2",
+  "navigationBarBackgroundColor": "#ff6b81",
+  "navigationBarTextStyle": "white"
+}

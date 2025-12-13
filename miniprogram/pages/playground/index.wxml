@@ -1,101 +1,242 @@
-<view class="playground-container">
-  
-  <view class="garden-card paper-texture">
+<view class="playground-container room-bg">
+
+  <!-- 房间装饰 -->
+  <view class="room-decoration">
+    <!-- 窗户 -->
+    <view class="window-frame">
+      <view class="window-scene">
+        <text class="weather-icon">{{currentWeather}}</text>
+        <text class="time-text">{{currentTime}}</text>
+      </view>
+    </view>
+    <!-- 装饰元素 -->
+    <view class="decorative-elements">
+      <view class="decoration star star1">⭐</view>
+      <view class="decoration star star2">✨</view>
+      <view class="decoration cloud cloud1">☁️</view>
+      <view class="decoration cloud cloud2">☁️</view>
+    </view>
+  </view>
+
+  <!-- 悬浮状态卡片 -->
+  <view class="floating-status-card {{showStatusDetail ? 'expanded' : ''}}" bindtap="toggleStatusDetail">
+    <view class="status-main">
+      <view class="pet-avatar">
+        <image src="../../images/pet-avatar.png" class="avatar-img" mode="aspectFit"></image>
+        <view class="level-badge">{{petInfo.level}}</view>
+      </view>
+      <view class="pet-info">
+        <text class="pet-name">小萌宠</text>
+        <text class="pet-mood">{{petInfo.moodName}} {{petInfo.moodEmoji}}</text>
+      </view>
+      <view class="status-actions">
+        <text class="expand-icon">{{showStatusDetail ? '▲' : '▼'}}</text>
+      </view>
+    </view>
+    <view class="status-detail" wx:if="{{showStatusDetail}}">
+      <view class="detail-row">
+        <text class="detail-label">等级</text>
+        <text class="detail-value">{{petInfo.levelName}}</text>
+      </view>
+      <view class="exp-progress">
+        <view class="exp-bar">
+          <view class="exp-fill" style="width: {{petInfo.expProgress}}%"></view>
+        </view>
+        <text class="exp-text">{{petInfo.exp}}/{{petInfo.nextLevelExp}} EXP</text>
+      </view>
+      <view class="mood-progress">
+        <text class="mood-label">心情值</text>
+        <view class="mood-bar">
+          <view class="mood-fill" style="width: {{petInfo.mood}}%"></view>
+        </view>
+        <text class="mood-text">{{petInfo.mood}}/100</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="garden-card glass-effect">
     <view class="card-header">
-      <text class="card-title">🐶 我们的萌宠·旺财</text>
-      <view class="harvest-badge" wx:if="{{harvestCount > 0}}">
-        <text>🎒 旅行: {{harvestCount}}次</text>
+      <text class="card-title">🐾 互动区域</text>
+      <view class="harvest-badge" wx:if="{{memoryCount > 0}}">
+        <text>🏆 旅行: {{memoryCount}}次</text>
       </view>
       <view class="water-badge" wx:else>
-        <text>🍖 储备: {{waterCount}}g</text>
+        <text>🍖 粮仓: {{waterCount}}份</text>
       </view>
     </view>
 
-    <view class="water-info-sub" wx:if="{{harvestCount > 0}}">
-        <text>🍖 当前储备: {{waterCount}}g</text>
-    </view>
 
     <view class="log-bubble" bindtap="toggleLogModal">
       <text class="bubble-icon">📝</text>
       <text class="bubble-txt">成长日记</text>
     </view>
 
-    <view class="plant-stage">
-      <image wx:if="{{level === 1}}" src="../../images/pet_idle.png" mode="aspectFit" class="pet-img bounce-anim"></image>
-      <image wx:elif="{{level === 2}}" src="../../images/pet_eating.png" mode="aspectFit" class="pet-img bounce-anim"></image>
-      <image wx:elif="{{level === 3}}" src="../../images/pet_return.png" mode="aspectFit" class="pet-img bounce-anim"></image>
-      <image wx:else src="../../images/pet_travel_note.png" mode="aspectFit" class="pet-img float-anim"></image>
+    <!-- 伴侣状态提示 -->
+    <view class="partner-status-bubble {{partnerStatus ? 'show' : ''}}" wx:if="{{partnerStatus}}">
+      <text class="status-icon">💕</text>
+      <text class="status-text">{{partnerStatus}}</text>
+    </view>
+
+    <view class="album-bubble" bindtap="navToAlbum" wx:if="{{memoryCount > 0}}">
+      <text class="bubble-icon">🖼️</text>
+      <text class="bubble-txt">旅行相册</text>
+      <view class="album-count">{{memoryCount}}</view>
+    </view>
+
+    <!-- 宠物互动区域 -->
+    <view class="pet-play-area">
+      <!-- 地面装饰 -->
+      <view class="ground-decoration">
+        <view class="grass-decoration grass1">🌱</view>
+        <view class="grass-decoration grass2">🌿</view>
+        <view class="grass-decoration grass3">🌾</view>
+        <view class="flower-decoration flower1">🌸</view>
+        <view class="flower-decoration flower2">🌼</view>
+      </view>
+
+      <!-- 状态气泡 -->
+      <view class="pet-speech-bubble {{petState}}" wx:if="{{petSpeechText}}">
+        <text class="bubble-text">{{petSpeechText}}</text>
+        <view class="bubble-tail"></view>
+      </view>
+
+      <!-- 互动特效层 -->
+      <view class="effects-layer">
+        <!-- 爱心飘动 -->
+        <view class="hearts-container" wx:if="{{showHearts}}">
+          <view class="heart heart1" animation="{{heartAnimation1}}">💖</view>
+          <view class="heart heart2" animation="{{heartAnimation2}}">💝</view>
+          <view class="heart heart3" animation="{{heartAnimation3}}">💖</view>
+          <view class="heart heart4" animation="{{heartAnimation4}}">💕</view>
+        </view>
+
+        <!-- 星星闪烁 -->
+        <view class="sparkles" wx:if="{{showSparkles}}">
+          <view class="sparkle sparkle1" animation="{{sparkleAnimation1}}">✨</view>
+          <view class="sparkle sparkle2" animation="{{sparkleAnimation2}}">⭐</view>
+          <view class="sparkle sparkle3" animation="{{sparkleAnimation3}}">✨</view>
+          <view class="sparkle sparkle4" animation="{{sparkleAnimation4}}">🌟</view>
+        </view>
+
+        <!-- 音符特效 -->
+        <view class="music-notes" wx:if="{{showMusicNotes}}">
+          <view class="note note1" animation="{{noteAnimation1}}">♪</view>
+          <view class="note note2" animation="{{noteAnimation2}}">♫</view>
+          <view class="note note3" animation="{{noteAnimation3}}">♪</view>
+        </view>
+      </view>
+
+      <!-- 宠物主体 -->
+      <view class="pet-container" bindtap="onPetTap" bindlongpress="onPetLongPress">
+        <!-- 光环效果 -->
+        <view class="pet-glow {{petMoodLevel}}" wx:if="{{showPetGlow}}"></view>
+
+        <!-- 旅行状态 -->
+        <view class="travel-status" wx:if="{{status === 'TRAVELING'}}">
+          <view class="travel-bubble">
+            <text class="travel-text">旅行中...</text>
+            <view class="travel-progress">
+              <view class="progress-ring">
+                <view class="progress-ring-circle" style="transform: rotate({{travelProgress}}deg);"></view>
+              </view>
+              <text class="progress-text">{{travelProgressPercentage}}%</text>
+            </view>
+          </view>
+          <image src="../../images/note.png" class="pet-img traveling" mode="aspectFit"></image>
+        </view>
+
+        <!-- 其他状态 -->
+        <view class="pet-wrapper" wx:else>
+          <!-- 影子 -->
+          <view class="pet-shadow"></view>
+          <image
+            src="{{petImages[status] || defaultPetImage}}"
+            class="pet-img {{petAnimation}}"
+            mode="aspectFit"
+            animation="{{petMainAnimation}}"
+          ></image>
+
+          <!-- 状态图标 -->
+          <view class="pet-status-icon" wx:if="{{status !== 'IDLE'}}">
+            <text>{{statusIcons[status]}}</text>
+          </view>
+
+          <!-- 心情指示器 -->
+          <view class="mood-indicator {{petMoodLevel}}" wx:if="{{showMoodIndicator}}">
+            <text class="mood-icon">{{petMoodEmoji}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 互动提示 -->
+      <view class="interaction-guide {{guideType}}" wx:if="{{showGuide}}">
+        <view class="guide-arrow {{guideDirection}}"></view>
+        <text class="guide-text">{{guideText}}</text>
+      </view>
     </view>
 
     <view class="progress-box">
       <view class="progress-bar">
         <view class="progress-inner" style="width: {{progress}};"></view>
       </view>
-      <text class="level-text" wx:if="{{level < 4}}">Lv.{{level}} 能量值 ({{growth}}/{{maxGrowth}})</text>
-      <text class="level-text max-level" wx:else>✈️ 宝贝出门旅行啦，快去看看带回了什么！</text>
+
+      <text class="level-text" wx:if="{{status === 'IDLE'}}">
+      <block wx:if="{{interactionCount > 0}}">爱心收集: {{interactionCount}}/30 · 粮仓: {{waterCount}}份</block>
+      <block wx:else>开始收集爱心，让萌宠去旅行吧！· 粮仓: {{waterCount}}份</block>
+    </text>
+      <text class="level-text max-level" wx:elif="{{status === 'READY_TO_TRAVEL'}}">🎒 能量满啦，准备出门旅行咯！</text>
+      <text class="level-text" wx:elif="{{status === 'TRAVELING'}}" style="color:#2196f3; font-weight:bold;">✈️ 旅行中，预计归来: {{travelCountDown}}</text>
+      <text class="level-text max-level" wx:else>🎁 旅行归来，带回纪念礼物啦！</text>
     </view>
 
-    <button class="btn-harvest" bindtap="onWelcomeHome" wx:if="{{level >= 4}}">
-      <text>🎁 迎接宝贝回家</text>
+    <button class="btn-harvest" bindtap="onStartTravel" wx:if="{{status === 'READY_TO_TRAVEL'}}">
+      <text>🎒 收拾行囊出发</text>
+    </button>
+
+    <button class="btn-water" disabled="true" style="background:#b0bec5; box-shadow:none;" wx:elif="{{status === 'TRAVELING'}}">
+      <text>旅行中...</text>
+    </button>
+
+    <button class="btn-harvest" bindtap="onWelcomeHome" wx:elif="{{status === 'READY_TO_HARVEST'}}">
+      <text>🎁 迎接回家</text>
     </button>
 
     <button class="btn-water" bindtap="onFeed" disabled="{{loading}}" wx:else>
-      <text>投喂罐头 (消耗10g)</text>
+      <text>喂食罐头</text>
     </button>
-    
-    <view class="tip-text" wx:if="{{level < 4}}">📸 每日合照打卡，赚取口粮 (+50g)</view>
-    <view class="tip-text" wx:else>每次旅行归来，都会带回一朵玫瑰哦 🌹</view>
+
+    <view class="tip-text" wx:if="{{status === 'IDLE'}}">📸 每日合照打卡，赚取爱心粮 (+10份)</view>
+    <view class="tip-text" wx:else>每次旅行归来，都会带回珍贵的明信片哦 🖼️</view>
   </view>
 
-  <view class="grid-menu">
-    <view class="grid-item paper-texture" bindtap="navToQuiz">
-      <view class="grid-icon">🧩</view>
-      <text class="grid-title">默契大闯关</text>
-      <text class="grid-desc">挑战灵魂契合度</text>
-      <view class="notification-quiz" wx:if="{{quizHint}}">❓</view>
-    </view>
-    <view class="grid-item paper-texture" bindtap="navToBoard">
-      <view class="grid-icon">📌</view>
-      <text class="grid-title">爱的留言板</text>
-      <text class="grid-desc">日常碎碎念</text>
-      <view class="notification-pin" wx:if="{{messageHint}}">📌</view>
-    </view>
-    <view class="grid-item paper-texture" bindtap="navToCapsule">
-      <view class="grid-icon">💊</view>
-      <text class="grid-title">时光胶囊</text>
-      <text class="grid-desc">寄给未来</text>
-      <view class="notification-heart" wx:if="{{capsuleRedDot}}">❤</view>
-    </view>
-    <view class="grid-item paper-texture" bindtap="navToGuide">
-      <view class="grid-icon">📖</view>
-      <text class="grid-title">恋爱宝典</text>
-      <text class="grid-desc">生存与惊喜</text>
-    </view>
-    <view class="grid-item paper-texture" bindtap="navToDecision">
-      <view class="grid-icon">🎲</view>
-      <text class="grid-title">命运的决定</text>
-      <text class="grid-desc">治愈选择困难</text>
-    </view>
-    <view class="grid-item paper-texture" bindtap="navToCoupons">
-      <view class="grid-icon">🎁</view>
-      <text class="grid-title">特权工坊</text>
-      <text class="grid-desc">爱的承诺</text>
+  <!-- 功能快捷入口 -->
+  <view class="quick-actions">
+    <view class="action-card" bindtap="navToFunHub">
+      <view class="action-icon">🎡</view>
+      <text class="action-title">更多功能</text>
+      <text class="action-desc">探索精彩互动</text>
+      <view class="action-arrow">→</view>
     </view>
   </view>
   
   <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
     <view class="log-modal-container" catchtap="return"> 
       <view class="log-modal-header">
-        <text>📜 喂养日记</text>
+        <text>📜 成长日记</text>
         <view class="close-icon" bindtap="toggleLogModal">×</view>
       </view>
       <scroll-view scroll-y class="log-scroll-view">
         <view class="empty-log" wx:if="{{logs.length === 0}}">
-          <text>暂无记录，快去喂食吧~</text>
+          <text>暂无记录，快去喂食小萌宠吧~</text>
         </view>
         <block wx:else>
-          <view class="modal-log-item" wx:for="{{logs}}" wx:key="index">
-            <image class="modal-log-avatar" src="{{item.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="modal-log-item {{item.type}}" wx:for="{{logs}}" wx:key="index">
+            <view class="log-icon">
+              <block wx:if="{{item.type === 'water'}}">💝</block>
+              <block wx:elif="{{item.type === 'travel_start'}}">✈️</block>
+              <block wx:elif="{{item.type === 'harvest'}}">🎁</block>
+              <block wx:else>📝</block>
+            </view>
             <view class="modal-log-content">
               <view class="modal-log-top">
                 <text class="modal-log-name {{item.isMine ? 'mine' : 'partner'}}">{{item.nickName}}</text>
@@ -112,10 +253,10 @@
   <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
     <view class="god-rays"></view>
     <view class="confetti-container">
-      <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
-      <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
-      <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
-      <view class="confetti c10"></view>
+        <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+        <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+        <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+        <view class="confetti c10"></view>
     </view>
     <view class="egg-card bounce-in">
       <view class="card-ribbon">LUCKY TIME</view>
@@ -127,7 +268,6 @@
       </view>
       <view class="egg-title">{{eggData.title}}</view>
       <view class="egg-desc">{{eggData.desc}}</view>
-      
       <view class="egg-reward-box">
         <text class="reward-label">获得奖励</text>
         <view class="reward-val-row">
@@ -140,5 +280,4 @@
       </button>
     </view>
   </view>
-
 </view>

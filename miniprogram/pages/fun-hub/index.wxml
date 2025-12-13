@@ -1,0 +1,128 @@
+<view class="fun-hub-container">
+  <!-- 头部装饰 -->
+  <view class="header-decoration">
+    <text class="page-title">🎪 恋爱乐园</text>
+    <text class="page-subtitle">更多精彩，等你探索</text>
+  </view>
+
+  <!-- 功能卡片网格 -->
+  <view class="function-grid">
+    <!-- 默契大闯关 -->
+    <view class="function-card" bindtap="navToQuiz">
+      <view class="card-icon-wrapper quiz-bg">
+        <text class="card-icon">🧩</text>
+        <view class="icon-glow quiz-glow"></view>
+      </view>
+      <view class="card-content">
+        <text class="card-title">默契大闯关</text>
+        <text class="card-desc">测试你们的灵魂契合度</text>
+        <view class="card-badge quiz-badge" wx:if="{{quizHint}}">
+          <text>❓</text>
+        </view>
+      </view>
+      <view class="card-arrow">
+        <text>→</text>
+      </view>
+    </view>
+
+    <!-- 爱的留言板 -->
+    <view class="function-card" bindtap="navToBoard">
+      <view class="card-icon-wrapper message-bg">
+        <text class="card-icon">📌</text>
+        <view class="icon-glow message-glow"></view>
+      </view>
+      <view class="card-content">
+        <text class="card-title">爱的留言板</text>
+        <text class="card-desc">记录甜蜜的日常碎碎念</text>
+        <view class="card-badge message-badge" wx:if="{{messageHint}}">
+          <text>📌</text>
+        </view>
+      </view>
+      <view class="card-arrow">
+        <text>→</text>
+      </view>
+    </view>
+
+    <!-- 时光胶囊 -->
+    <view class="function-card" bindtap="navToCapsule">
+      <view class="card-icon-wrapper capsule-bg">
+        <text class="card-icon">💊</text>
+        <view class="icon-glow capsule-glow"></view>
+      </view>
+      <view class="card-content">
+        <text class="card-title">时光胶囊</text>
+        <text class="card-desc">给未来写一封情书</text>
+        <view class="card-badge capsule-badge" wx:if="{{capsuleRedDot}}">
+          <text>❤</text>
+        </view>
+      </view>
+      <view class="card-arrow">
+        <text>→</text>
+      </view>
+    </view>
+
+    <!-- 命运的决定 -->
+    <view class="function-card" bindtap="navToDecision">
+      <view class="card-icon-wrapper decision-bg">
+        <text class="card-icon">🎲</text>
+        <view class="icon-glow decision-glow"></view>
+      </view>
+      <view class="card-content">
+        <text class="card-title">命运的决定</text>
+        <text class="card-desc">治愈选择困难症</text>
+      </view>
+      <view class="card-arrow">
+        <text>→</text>
+      </view>
+    </view>
+
+    <!-- 特权工坊 -->
+    <view class="function-card" bindtap="navToCoupons">
+      <view class="card-icon-wrapper coupon-bg">
+        <text class="card-icon">🎁</text>
+        <view class="icon-glow coupon-glow"></view>
+      </view>
+      <view class="card-content">
+        <text class="card-title">特权工坊</text>
+        <text class="card-desc">制作爱的承诺卡券</text>
+      </view>
+      <view class="card-arrow">
+        <text>→</text>
+      </view>
+    </view>
+
+    <!-- 恋爱宝典 -->
+    <view class="function-card" bindtap="navToGuide">
+      <view class="card-icon-wrapper guide-bg">
+        <text class="card-icon">📖</text>
+        <view class="icon-glow guide-glow"></view>
+      </view>
+      <view class="card-content">
+        <text class="card-title">恋爱宝典</text>
+        <text class="card-desc">生存技巧与惊喜</text>
+      </view>
+      <view class="card-arrow">
+        <text>→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="footer-tip">
+    <text class="tip-text">💕 每个功能都为你们的爱情增添色彩</text>
+  </view>
+
+  <!-- 红点提示模态框 -->
+  <view class="red-dot-modal" wx:if="{{showRedDotModal}}" bindtap="closeRedDotModal">
+    <view class="modal-content" catchtap="return">
+      <view class="modal-header">
+        <text class="modal-title">🔔 有新消息哦</text>
+        <view class="close-btn" bindtap="closeRedDotModal">×</view>
+      </view>
+      <view class="modal-body">
+        <text class="modal-text">{{redDotMessage}}</text>
+      </view>
+      <button class="modal-btn" bindtap="closeRedDotModal">知道了</button>
+    </view>
+  </view>
+</view>

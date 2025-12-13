@@ -2,6 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/playground/index",
+    "pages/fun-hub/index",
+    "pages/album/index",
     "pages/decision/index",
     "pages/coupons/index",
     "pages/message_board/index",
@@ -33,7 +35,13 @@
       },
       {
         "pagePath": "pages/playground/index",
-        "text": "Fun",
+        "text": "萌宠",
+        "iconPath": "images/gardan.png",
+        "selectedIconPath": "images/gardan_active.png"
+      },
+      {
+        "pagePath": "pages/fun-hub/index",
+        "text": "乐园",
         "iconPath": "images/gardan.png",
         "selectedIconPath": "images/gardan_active.png"
       },

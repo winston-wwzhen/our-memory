@@ -1,0 +1,363 @@
+/* miniprogram/pages/fun-hub/index.wxss */
+page {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}
+
+.fun-hub-container {
+  min-height: 100vh;
+  padding: 40rpx;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 头部装饰 */
+.header-decoration {
+  text-align: center;
+  padding: 60rpx 40rpx 40rpx;
+  position: relative;
+}
+
+.page-title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  margin-bottom: 16rpx;
+  animation: titleFloat 3s ease-in-out infinite;
+}
+
+.page-subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 300;
+}
+
+@keyframes titleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
+}
+
+/* 功能网格 */
+.function-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30rpx;
+  padding: 20rpx 0;
+}
+
+/* 功能卡片 */
+.function-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24rpx;
+  padding: 30rpx;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  min-height: 160rpx;
+}
+
+.function-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.function-card::before {
+  content: '';
+  position: absolute;
+  top: -2rpx;
+  left: -2rpx;
+  right: -2rpx;
+  bottom: -2rpx;
+  background: linear-gradient(135deg, #ff6b81, #ff8a9b, #feca57);
+  border-radius: 24rpx;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.function-card:hover::before {
+  opacity: 0.1;
+}
+
+/* 卡片图标包装器 */
+.card-icon-wrapper {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-right: 30rpx;
+  flex-shrink: 0;
+}
+
+/* 不同功能的背景色 */
+.quiz-bg {
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+}
+
+.message-bg {
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+}
+
+.capsule-bg {
+  background: linear-gradient(135deg, #d1c4e9, #e1bee7);
+}
+
+.decision-bg {
+  background: linear-gradient(135deg, #ffd89b, #ffed4e);
+}
+
+.coupon-bg {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.guide-bg {
+  background: linear-gradient(135deg, #4fc3f7, #81d4fa);
+}
+
+/* 图标发光效果 */
+.icon-glow {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  border-radius: 50%;
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.quiz-glow {
+  background: rgba(255, 154, 158, 0.3);
+}
+
+.message-glow {
+  background: rgba(161, 196, 253, 0.3);
+}
+
+.capsule-glow {
+  background: rgba(209, 196, 233, 0.3);
+}
+
+.decision-glow {
+  background: rgba(255, 216, 155, 0.3);
+}
+
+.coupon-glow {
+  background: rgba(240, 147, 251, 0.3);
+}
+
+.guide-glow {
+  background: rgba(79, 195, 247, 0.3);
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+/* 卡片图标 */
+.card-icon {
+  font-size: 48rpx;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 2rpx 8rpx rgba(0, 0, 0, 0.1));
+  animation: iconBounce 3s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5rpx); }
+}
+
+/* 卡片内容 */
+.card-content {
+  flex: 1;
+  position: relative;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.card-desc {
+  font-size: 24rpx;
+  color: #666;
+  display: block;
+  line-height: 1.4;
+}
+
+/* 卡片徽章 */
+.card-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff4757;
+  color: #fff;
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 12rpx;
+  animation: badgeBounce 2s ease-in-out infinite;
+}
+
+.quiz-badge {
+  background: #3498db;
+}
+
+.message-badge {
+  background: #9b59b6;
+}
+
+.capsule-badge {
+  background: #e74c3c;
+}
+
+@keyframes badgeBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* 卡片箭头 */
+.card-arrow {
+  margin-left: 20rpx;
+  color: #999;
+  font-size: 28rpx;
+  transition: all 0.3s ease;
+}
+
+.function-card:hover .card-arrow {
+  transform: translateX(5rpx);
+  color: #ff6b81;
+}
+
+/* 底部提示 */
+.footer-tip {
+  text-align: center;
+  padding: 60rpx 40rpx;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 300;
+}
+
+/* 红点提示模态框 */
+.red-dot-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin: 40rpx;
+  max-width: 600rpx;
+  width: 100%;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from { transform: translateY(-50rpx); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30rpx;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #999;
+  transition: all 0.3s ease;
+}
+
+.close-btn:active {
+  background: #e0e0e0;
+  transform: scale(0.9);
+}
+
+.modal-body {
+  margin-bottom: 30rpx;
+}
+
+.modal-text {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.modal-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  border: none;
+  border-radius: 50rpx;
+  padding: 20rpx 60rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.modal-btn:active {
+  opacity: 0.9;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 750rpx) {
+  .function-grid {
+    grid-template-columns: 1fr;
+    gap: 20rpx;
+  }
+
+  .card-icon-wrapper {
+    width: 80rpx;
+    height: 80rpx;
+    margin-right: 20rpx;
+  }
+
+  .card-icon {
+    font-size: 40rpx;
+  }
+
+  .card-title {
+    font-size: 28rpx;
+  }
+
+  .card-desc {
+    font-size: 22rpx;
+  }
+}

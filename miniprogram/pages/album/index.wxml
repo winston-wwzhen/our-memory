@@ -1,0 +1,72 @@
+<!--miniprogram/pages/album/index.wxml-->
+<view class="album-container">
+  <view class="header">
+    <text class="title">🖼️ 旅行相册</text>
+    <text class="subtitle">记录美好时光</text>
+  </view>
+
+  <view class="stats">
+    <view class="stat-item">
+      <text class="stat-num">{{totalMemories}}</text>
+      <text class="stat-label">本回忆录</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num">{{totalPostcards}}</text>
+      <text class="stat-label">张明信片</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading && memories.length === 0}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">正在加载相册...</text>
+  </view>
+
+  <view class="album-grid" wx:else>
+    <view class="empty-album" wx:if="{{memories.length === 0 && !loading}}">
+      <image src="../../images/empty-box.png" mode="aspectFit" class="empty-icon"></image>
+      <text class="empty-text">还没有明信片</text>
+      <text class="empty-desc">带萌宠去旅行收集纪念吧！</text>
+    </view>
+
+    <block wx:else>
+      <view class="memory-card" wx:for="{{memories}}" wx:key="_id" catchtap="viewMemory" data-index="{{index}}" id="memory-{{index}}">
+        <view class="card-border">
+          <!-- 加载状态 -->
+          <view class="loading-placeholder" wx:if="{{!item.loaded && !item.loadError}}">
+            <view class="loading-animation"></view>
+          </view>
+          <image
+            src="{{item.url}}"
+            mode="aspectFill"
+            class="postcard-img {{item.loaded ? 'loaded' : ''}}"
+            lazy-load
+            binderror="onImageError"
+            bindload="onImageLoad"
+            data-index="{{index}}"
+          ></image>
+          <view class="memory-info">
+            <text class="memory-name">{{item.name}}</text>
+            <text class="memory-date">{{item.dateStr}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 预览模态框 -->
+  <view class="preview-modal {{showPreview ? 'show' : ''}}" bindtap="closePreview">
+    <view class="preview-container" catchtap="stopPropagation">
+      <image src="{{currentMemory.url}}" mode="aspectFit" class="preview-img"></image>
+      <view class="preview-info">
+        <text class="preview-title">{{currentMemory.name}}</text>
+        <text class="preview-date">{{currentMemory.fullDate}}</text>
+      </view>
+      <button class="btn-share" bindtap="shareMemory" open-type="share">
+        <text class="share-icon">📤</text>
+        <text>分享纪念</text>
+      </button>
+    </view>
+  </view>
+</view>
