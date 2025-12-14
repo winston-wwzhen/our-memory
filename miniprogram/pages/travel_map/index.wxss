@@ -57,6 +57,28 @@ page {
   flex: 1;
 }
 
+/* 🟢 新增：食物胶囊样式 */
+.food-status {
+  flex: 1.5; /* 给中间的食物栏多一点空间 */
+}
+
+.food-count {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 4rpx;
+}
+
+.food-pill {
+  display: flex;
+  align-items: center;
+  background: #f0f0f0;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #333;
+  gap: 6rpx;
+}
+
 .status-icon {
   font-size: 32rpx;
   margin-bottom: 8rpx;

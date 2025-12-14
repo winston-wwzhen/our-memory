@@ -175,7 +175,7 @@
         <view class="oath-title">遗憾的决定</view>
         <view class="oath-warning unbind-style">
           <text class="warning-title">⚠️ 高能预警</text>
-          <text class="warning-desc">解绑后双方VIP立即失效，且7天内无法再次绑定。</text>
+          <text class="warning-desc">解绑后7天内无法再次绑定</text>
         </view>
         <button class="btn-oath-confirm danger" bindtap="confirmUnbind">
             {{!canUnbind ? '冷静 ' + unbindCount + 's' : '💔 确认解绑'}}

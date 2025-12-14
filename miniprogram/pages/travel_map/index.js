@@ -3,7 +3,7 @@ const app = getApp();
 
 Page({
   data: {
-    TRAVEL_ENERGY_COST: 30, // From backend config
+    TRAVEL_ENERGY_COST: 30,
 
     // Pet status
     petEnergy: 0,
@@ -33,18 +33,31 @@ Page({
   },
 
   onShow: function() {
-    // Refresh pet status when page shows
     this.loadPetStatus();
   },
 
   // Load destinations from backend
   loadDestinations: function() {
+    this.setData({ loading: true });
+    
     wx.cloud.callFunction({
       name: 'user_center',
       data: { action: 'get_destinations' },
       success: (res) => {
         if (res.result.status === 200) {
-          const destinations = res.result.destinations || [];
+          let destinations = res.result.destinations || [];
+          console.log(destinations)
+
+          // 🟢 修复核心Bug：预处理数据，将数组转为字符串
+          // WXML 不支持 .join() 方法，必须在这里处理
+          destinations = destinations.map(d => {
+            return {
+              ...d,
+              rewardsStr: (d.possible_rewards && Array.isArray(d.possible_rewards)) 
+                          ? d.possible_rewards.join(', ') 
+                          : '未知奖励'
+            };
+          });
 
           // Group destinations by unlock status
           const available = destinations.filter(d => d.unlocked);
@@ -82,7 +95,7 @@ Page({
       data: { action: 'get_pet_status' },
       success: (res) => {
         if (res.result.status === 200) {
-          const petData = res.result.pet;
+          const petData = res.result.pet || {}; // 🟢 防止 pet 为 null
 
           this.setData({
             petEnergy: petData.energy_level || 0,
@@ -136,43 +149,19 @@ Page({
   // Get available foods for destination
   getAvailableFoods: function(destination) {
     const foods = [];
+    const { rice_ball, luxury_bento } = this.data.foodCount;
 
-    if (destination.food_required === 'rice_ball' && this.data.foodCount.rice_ball > 0) {
-      foods.push({
-        type: 'rice_ball',
-        name: '饭团便当',
-        count: this.data.foodCount.rice_ball,
-        bonus: 10
-      });
-    }
+    // Helper function to create food object
+    const createFood = (type, name, count, bonus) => ({ type, name, count, bonus });
 
-    if (destination.food_required === 'luxury_bento' && this.data.foodCount.luxury_bento > 0) {
-      foods.push({
-        type: 'luxury_bento',
-        name: '豪华御膳',
-        count: this.data.foodCount.luxury_bento,
-        bonus: 20
-      });
-    }
-
-    // If destination accepts any food type
-    if (destination.food_required === 'any') {
-      if (this.data.foodCount.rice_ball > 0) {
-        foods.push({
-          type: 'rice_ball',
-          name: '饭团便当',
-          count: this.data.foodCount.rice_ball,
-          bonus: 10
-        });
-      }
-      if (this.data.foodCount.luxury_bento > 0) {
-        foods.push({
-          type: 'luxury_bento',
-          name: '豪华御膳',
-          count: this.data.foodCount.luxury_bento,
-          bonus: 20
-        });
-      }
+    // Logic simplified
+    if (destination.food_required === 'rice_ball' && rice_ball > 0) {
+        foods.push(createFood('rice_ball', '饭团便当', rice_ball, 10));
+    } else if (destination.food_required === 'luxury_bento' && luxury_bento > 0) {
+        foods.push(createFood('luxury_bento', '豪华御膳', luxury_bento, 20));
+    } else if (destination.food_required === 'any') {
+      if (rice_ball > 0) foods.push(createFood('rice_ball', '饭团便当', rice_ball, 10));
+      if (luxury_bento > 0) foods.push(createFood('luxury_bento', '豪华御膳', luxury_bento, 20));
     }
 
     return foods;
@@ -209,13 +198,11 @@ Page({
             icon: 'success'
           });
 
-          // Close modal and navigate back
           this.setData({
             showTravelModal: false,
             selectedDestination: null
           });
 
-          // Navigate back to playground after delay
           setTimeout(() => {
             wx.navigateBack();
           }, 1500);

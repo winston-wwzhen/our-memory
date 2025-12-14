@@ -19,6 +19,8 @@ Page({
     petState: "idle",
     moodValue: 60,
     energyLevel: 80,
+    moodText: "很开心",
+    energyText: "精力充沛",
     petName: "小可爱",
     roomBgImage: "/images/pet/home.jpg",
     loveEnergy: 0,
@@ -496,10 +498,14 @@ Page({
       success: (res) => {
         if (res.result.status === 200) {
           const pet = res.result.pet || {};
+          const moodValue = pet.mood_value || 60;
+          const energyLevel = pet.energy_level || 80;
           this.setData({
             petState: pet.state || "idle",
-            moodValue: pet.mood_value || 60,
-            energyLevel: pet.energy_level || 80,
+            moodValue: moodValue,
+            energyLevel: energyLevel,
+            moodText: this.getMoodText(moodValue),
+            energyText: this.getEnergyText(energyLevel),
             travelCount: pet.travel_count || 0,
             foodInventory: pet.food_inventory || {
               rice_ball: 0,
@@ -514,10 +520,14 @@ Page({
           });
         } else {
           // Fallback to default values if no pet exists
+          const defaultMood = 60;
+          const defaultEnergy = 80;
           this.setData({
             petState: "idle",
-            moodValue: 60,
-            energyLevel: 80,
+            moodValue: defaultMood,
+            energyLevel: defaultEnergy,
+            moodText: this.getMoodText(defaultMood),
+            energyText: this.getEnergyText(defaultEnergy),
             travelCount: 0,
             foodInventory: {
               rice_ball: 0,
@@ -533,10 +543,14 @@ Page({
       fail: (err) => {
         console.error("Failed to fetch pet data:", err);
         // Fallback to default values on error
+        const errorMood = 60;
+        const errorEnergy = 80;
         this.setData({
           petState: "idle",
-          moodValue: 60,
-          energyLevel: 80,
+          moodValue: errorMood,
+          energyLevel: errorEnergy,
+          moodText: this.getMoodText(errorMood),
+          energyText: this.getEnergyText(errorEnergy),
           travelCount: 0,
           foodInventory: {
             rice_ball: 0,
@@ -560,6 +574,24 @@ Page({
     if (diff < 3600) return Math.floor(diff / 60) + "分钟前";
     if (diff < 86400) return Math.floor(diff / 3600) + "小时前";
     return Math.floor(diff / 86400) + "天前";
+  },
+
+  // 转换心情数值为文字描述
+  getMoodText: function(value) {
+    if (value >= 80) return "超开心";
+    if (value >= 60) return "很开心";
+    if (value >= 40) return "还不错";
+    if (value >= 20) return "有点低落";
+    return "很沮丧";
+  },
+
+  // 转换体力数值为文字描述
+  getEnergyText: function(value) {
+    if (value >= 80) return "精力充沛";
+    if (value >= 60) return "活力满满";
+    if (value >= 40) return "还不错";
+    if (value >= 30) return "有点累了";
+    return "疲惫不堪";
   },
 
   // Legacy garden methods (kept for compatibility)

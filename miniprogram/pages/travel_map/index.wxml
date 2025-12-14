@@ -1,5 +1,4 @@
 <view class="travel-map-container">
-  <!-- Header with Back Button -->
   <view class="page-header">
     <view class="back-btn" bindtap="goBack">
       <text class="back-icon">←</text>
@@ -7,7 +6,6 @@
     <text class="page-title">🗺️ 旅行地图</text>
   </view>
 
-  <!-- Pet Status Bar -->
   <view class="pet-status-bar paper-texture">
     <view class="status-item">
       <text class="status-icon">⚡</text>
@@ -16,9 +14,9 @@
     </view>
     <view class="status-item">
       <text class="status-icon">🎒</text>
-      <text class="status-label">便当</text>
+      <text class="status-label">便当库存</text>
       <view class="food-count">
-        <text class="food-item">🍱 {{foodCount.rice_ball || 0}}</text>
+        <text class="food-item">🍙 {{foodCount.rice_ball || 0}}</text>
         <text class="food-item">🍱 {{foodCount.luxury_bento || 0}}</text>
       </view>
     </view>
@@ -29,12 +27,10 @@
     </view>
   </view>
 
-  <!-- Loading State -->
   <view wx:if="{{loading}}" class="loading-container">
     <text class="loading-text">正在加载地图...</text>
   </view>
 
-  <!-- Destinations List -->
   <scroll-view wx:else scroll-y class="destinations-scroll">
     <view wx:if="{{destinations.length === 0}}" class="empty-state">
       <text class="empty-icon">🗺️</text>
@@ -43,8 +39,7 @@
     </view>
 
     <block wx:else>
-      <!-- Section: Available Destinations -->
-      <view class="destinations-section">
+      <view class="destinations-section" wx:if="{{availableDestinations.length > 0}}">
         <text class="section-title">📍 可前往的目的地</text>
         <view wx:for="{{availableDestinations}}" wx:key="id" class="destination-card paper-texture {{item.unlocked ? 'unlocked' : 'locked'}}">
           <image class="destination-image" src="{{item.image}}" mode="aspectFill"></image>
@@ -70,22 +65,18 @@
               <view class="requirement-item">
                 <text class="req-icon">🍱</text>
                 <text class="req-text">需要便当</text>
-                <text class="req-value">{{item.food_required}}</text>
+                <text class="req-value">{{item.food_required === 'any' ? '任意便当' : (item.food_required === 'luxury_bento' ? '豪华御膳' : '饭团便当')}}</text>
               </view>
 
               <view class="requirement-item">
                 <text class="req-icon">💎</text>
                 <text class="req-text">可能获得</text>
-                <text class="req-value">{{item.possible_rewards.join(', ')}}</text>
+                <text class="req-value">{{item.rewardsStr}}</text>
               </view>
             </view>
 
             <view class="destination-actions">
-              <button wx:if="{{!item.unlocked}}" class="action-btn unlock-btn" disabled>
-                <text>🔒 需要解锁</text>
-              </button>
-
-              <button wx:else class="action-btn travel-btn" bindtap="onSelectDestination" data-destination="{{item}}">
+              <button class="action-btn travel-btn" bindtap="onSelectDestination" data-destination="{{item}}">
                 <text>🚀 选择这里</text>
               </button>
             </view>
@@ -93,7 +84,6 @@
         </view>
       </view>
 
-      <!-- Section: Locked Destinations -->
       <view wx:if="{{lockedDestinations.length > 0}}" class="destinations-section">
         <text class="section-title">🔒 未解锁的目的地</text>
         <view wx:for="{{lockedDestinations}}" wx:key="id" class="destination-card paper-texture locked">
@@ -120,7 +110,6 @@
     </block>
   </scroll-view>
 
-  <!-- Travel Confirmation Modal -->
   <view class="modal-mask {{showTravelModal ? 'show' : ''}}" bindtap="closeTravelModal">
     <view class="travel-modal paper-texture" catchtap="stopPropagation">
       <view class="modal-header">
@@ -143,7 +132,7 @@
           <view class="cost-item">
             <text class="cost-icon">🍱</text>
             <text class="cost-text">消耗便当</text>
-            <text class="cost-value">{{selectedDestination.food_required}}</text>
+            <text class="cost-value">{{selectedDestination.food_required === 'any' ? '任意便当' : (selectedDestination.food_required === 'luxury_bento' ? '豪华御膳' : '饭团便当')}}</text>
           </view>
         </view>
 

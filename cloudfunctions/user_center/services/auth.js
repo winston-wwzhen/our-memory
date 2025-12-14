@@ -440,23 +440,14 @@ async function handle(action, event, ctx) {
         unbind_cooldown_until: cooldownDate,
       };
 
-      const now = new Date();
-      if (me.vip_expire_date && new Date(me.vip_expire_date) > now) {
-        updateDataMe.vip_expire_date = null;
-      }
-
       await db.collection("users").doc(me._id).update({ data: updateDataMe });
 
       if (pid) {
         const pRes = await db.collection("users").where({ _openid: pid }).get();
         if (pRes.data.length > 0) {
-          const p = pRes.data[0];
-          if (p.vip_expire_date && new Date(p.vip_expire_date) > now) {
-            updateDataPartner.vip_expire_date = null;
-          }
           await db
             .collection("users")
-            .doc(p._id)
+            .doc(pRes.data[0]._id)
             .update({ data: updateDataPartner });
         }
       }
