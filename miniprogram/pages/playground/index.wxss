@@ -17,129 +17,244 @@ page {
   position: relative;
 }
 
-/* === 花园卡片 === */
-.garden-card {
-  padding: 30rpx;
+/* === Pet Paradise Room Container === */
+.room-container {
+  width: 100%;
+  height: 60vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20rpx 20rpx 0 0;
+  margin-top: -30rpx;
+  margin-bottom: 40rpx;
+}
+
+/* Pet Character Positioning */
+.pet-container {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pet-character {
+  width: 300rpx;
+  height: 300rpx;
+  transition: all 0.3s ease;
+}
+
+/* Pet Animations */
+@keyframes pet-pat {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.9); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.pet-animation {
+  animation: pet-pat 1s ease-out;
+}
+
+@keyframes eating {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(0.95) translateY(-10rpx); }
+}
+
+.eating-animation {
+  animation: eating 0.8s ease-in-out infinite;
+}
+
+/* UI Overlay Positioning */
+.ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.ui-overlay > view {
+  pointer-events: auto;
+}
+
+/* Pet Info Panel */
+.pet-info-panel {
+  position: absolute;
+  top: 30rpx;
+  left: 30rpx;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20rpx 30rpx;
+  border-radius: 30rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.pet-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.mood-container {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.mood-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.mood-bar {
+  width: 200rpx;
+  height: 20rpx;
+}
+
+.mood-value {
+  font-size: 22rpx;
+  color: #666;
+  font-weight: bold;
+}
+
+/* Resource Panel */
+.resource-panel {
+  position: absolute;
+  top: 30rpx;
+  right: 30rpx;
+}
+
+.resource-item {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 15rpx 25rpx;
+  border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.resource-icon {
+  font-size: 28rpx;
+}
+
+.resource-value {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Action Buttons */
+.action-buttons {
+  position: absolute;
+  bottom: 30rpx;
+  right: 30rpx;
+  display: flex;
+  gap: 20rpx;
+}
+
+.action-btn {
+  background: #4CAF50;
+  color: white;
+  padding: 20rpx;
+  border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 40rpx;
-  border: 2rpx dashed #aed9e9;
-  background: linear-gradient(180deg, #f0f8ff 0%, #fff 100%);
-  position: relative;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
+  transition: all 0.3s;
 }
 
-.card-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
+.action-btn.disabled {
+  background: #ccc;
+  box-shadow: none;
 }
 
-.card-title { font-size: 30rpx; font-weight: 800; color: #5d4037; }
-
-/* 徽章 */
-.water-badge {
-  background: #e1f5fe; color: #0288d1;
-  font-size: 22rpx; padding: 6rpx 16rpx;
-  border-radius: 20rpx; font-weight: bold;
-  flex-shrink: 0;
-}
-.harvest-badge {
-  background: #fff8e1; color: #ff8f00;
-  font-size: 22rpx; padding: 6rpx 16rpx;
-  border-radius: 20rpx; font-weight: bold;
-  border: 1rpx solid #ffe082;
-  flex-shrink: 0;
-}
-.water-info-sub {
-  width: 100%; text-align: right;
-  font-size: 20rpx; color: #0288d1;
-  margin-top: -10rpx; margin-bottom: 20rpx;
+.btn-icon {
+  font-size: 32rpx;
 }
 
-/* 记录气泡 */
-.log-bubble {
+.btn-text {
+  font-size: 18rpx;
+  margin-top: 4rpx;
+}
+
+/* Mail Button */
+.mail-button {
   position: absolute;
-  top: 120rpx; 
-  left: 40rpx; 
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8rpx 16rpx;
-  border-radius: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
-  display: flex; align-items: center;
-  border: 2rpx solid #fff;
-  z-index: 10;
-  animation: floatBubble 3s infinite ease-in-out;
-}
-.bubble-icon { font-size: 24rpx; margin-right: 6rpx; }
-.bubble-txt { font-size: 20rpx; color: #8d6e63; font-weight: bold; }
-
-@keyframes floatBubble {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6rpx); }
+  bottom: 30rpx;
+  left: 30rpx;
+  font-size: 60rpx;
+  filter: drop-shadow(0 2rpx 8rpx rgba(0,0,0,0.2));
 }
 
-.plant-stage {
-  height: 240rpx;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.flower-img { width: 220rpx; height: 220rpx; }
-
-/* 动画 */
-.bounce-anim { animation: bounce 3s infinite ease-in-out; }
-.glow-anim {
-  filter: drop-shadow(0 0 16rpx rgba(255, 105, 180, 0.6));
-  animation: float 3s infinite ease-in-out;
-}
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12rpx); } }
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16rpx); } }
-
-/* 进度条 */
-.progress-box { width: 100%; margin-bottom: 40rpx; }
-.progress-bar {
-  height: 16rpx; background: #e0e0e0; border-radius: 10rpx; overflow: hidden;
-  margin-bottom: 10rpx;
-}
-.progress-inner {
-  height: 100%; background: #ff6b81; border-radius: 10rpx;
-  transition: width 0.5s ease;
-}
-.level-text { font-size: 22rpx; color: #8d6e63; display: block; text-align: center; font-weight: 500;}
-.max-level { color: #ff6f00; font-weight: bold; }
-
-/* 按钮样式 */
-.btn-water {
-  background: #ff6b81; color: #fff;
-  border-radius: 44rpx; font-size: 28rpx;
-  width: 60% !important; height: 88rpx; line-height: 88rpx;
-  padding: 0; margin: 0 auto;
-  display: flex; align-items: center; justify-content: center;
-  white-space: nowrap;
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);
-}
-
-.btn-harvest {
-  background: linear-gradient(45deg, #ffca28, #ff6f00);
-  color: #fff;
-  border-radius: 44rpx; font-size: 30rpx;
-  width: 65% !important; height: 96rpx; line-height: 96rpx;
-  padding: 0; margin: 0 auto;
-  display: flex; align-items: center; justify-content: center;
-  white-space: nowrap;
-  box-shadow: 0 8rpx 20rpx rgba(255, 111, 0, 0.3);
-  font-weight: bold;
+.with-notification {
   animation: pulse 2s infinite;
 }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-.tip-text { font-size: 20rpx; color: #b0bec5; margin-top: 24rpx; text-align: center; }
+/* Travel Note */
+.travel-note-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.travel-note {
+  width: 400rpx;
+  height: 300rpx;
+}
+
+.note-text {
+  display: block;
+  font-size: 32rpx;
+  color: #333;
+  margin-top: 20rpx;
+  font-weight: bold;
+}
+
+.return-time {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  margin-top: 10rpx;
+}
+
+/* Status Message */
+.status-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 20rpx 40rpx;
+  border-radius: 30rpx;
+  font-size: 28rpx;
+  z-index: 100;
+}
+
+/* Heart Particles */
+.heart-particle {
+  position: absolute;
+  font-size: 40rpx;
+  animation: float-up 2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-200rpx) scale(0.5);
+  }
+}
 
 /* === 宫格菜单 (3列紧凑布局) === */
 .grid-menu { 
@@ -150,14 +265,21 @@ page {
 
 .grid-item {
   width: 31%; /* 一行三个 */
-  padding: 24rpx 10rpx; 
-  box-sizing: border-box; 
+  padding: 24rpx 10rpx;
+  box-sizing: border-box;
   margin-bottom: 20rpx;
-  display: flex; 
+  display: flex;
   flex-direction: column;
-  align-items: center; 
+  align-items: center;
   justify-content: center;
   position: relative;
+  pointer-events: auto; /* 确保可以点击 */
+  cursor: pointer;
+}
+
+.grid-item:active {
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
 .grid-icon { 
@@ -272,3 +394,216 @@ page {
 .modal-log-desc { font-size: 24rpx; color: #666; line-height: 1.4; }
 
 .empty-log { text-align: center; color: #ccc; font-size: 24rpx; margin-top: 100rpx; }
+
+/* === Egg Modal Styles === */
+.egg-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.god-rays {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,223,186,0.3) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  width: 20rpx;
+  height: 20rpx;
+  background: #ff6b81;
+  animation: fall 3s linear infinite;
+}
+
+.confetti.c1 { left: 10%; animation-delay: 0s; background: #ff6b81; }
+.confetti.c2 { left: 20%; animation-delay: 0.3s; background: #4CAF50; }
+.confetti.c3 { left: 30%; animation-delay: 0.6s; background: #2196F3; }
+.confetti.c4 { left: 40%; animation-delay: 0.9s; background: #FFC107; }
+.confetti.c5 { left: 50%; animation-delay: 1.2s; background: #9C27B0; }
+.confetti.c6 { left: 60%; animation-delay: 1.5s; background: #FF5722; }
+.confetti.c7 { left: 70%; animation-delay: 1.8s; background: #795548; }
+.confetti.c8 { left: 80%; animation-delay: 2.1s; background: #607D8B; }
+.confetti.c9 { left: 85%; animation-delay: 2.4s; background: #E91E63; }
+.confetti.c10 { left: 90%; animation-delay: 2.7s; background: #00BCD4; }
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+.egg-card {
+  width: 600rpx;
+  background: white;
+  border-radius: 30rpx;
+  padding: 40rpx;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-ribbon {
+  position: absolute;
+  top: -15rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(45deg, #ff6b81, #ff8f00);
+  color: white;
+  padding: 8rpx 30rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 12rpx rgba(255,107,129,0.4);
+}
+
+.icon-stage {
+  margin: 40rpx 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.halo-ring {
+  position: absolute;
+  width: 160rpx;
+  height: 160rpx;
+  border: 4rpx solid rgba(255,193,7,0.3);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.egg-icon {
+  font-size: 100rpx;
+  z-index: 2;
+  text-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+}
+
+.shine-star {
+  position: absolute;
+  font-size: 30rpx;
+  animation: twinkle 1.5s infinite;
+}
+
+.shine-star.s-left {
+  left: -20rpx;
+  top: 20rpx;
+}
+
+.shine-star.s-right {
+  right: -20rpx;
+  top: 20rpx;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.egg-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.egg-desc {
+  font-size: 26rpx;
+  color: #666;
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.egg-reward-box {
+  width: 100%;
+  background: #f8f8f8;
+  padding: 20rpx;
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.reward-label {
+  font-size: 22rpx;
+  color: #999;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.reward-val-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.val-num {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #ff6b81;
+  margin-right: 10rpx;
+}
+
+.val-unit {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.btn-get-egg {
+  background: linear-gradient(45deg, #ff6b81, #ff8f00);
+  color: white;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  width: 80% !important;
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0;
+  margin: 0;
+  font-weight: bold;
+  box-shadow: 0 8rpx 20rpx rgba(255,107,129,0.3);
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.bounce-in {
+  animation: bounce-in 0.6s ease-out;
+}

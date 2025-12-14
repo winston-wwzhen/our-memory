@@ -1,0 +1,194 @@
+/* components/food-prep-modal/index.wxss */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal-container {
+  width: 85%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  animation: modalShow 0.3s ease-out;
+}
+
+@keyframes modalShow {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  padding: 30rpx;
+  background: linear-gradient(135deg, #ff6b81, #ff8a9b);
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  font-size: 48rpx;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.close-btn:active {
+  color: #fff;
+}
+
+.modal-body {
+  padding: 30rpx;
+}
+
+.energy-display {
+  background: #fff5f5;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.energy-label {
+  color: #666;
+  font-size: 28rpx;
+}
+
+.energy-value {
+  color: #ff6b81;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.food-options {
+  margin-bottom: 30rpx;
+}
+
+.food-item {
+  display: flex;
+  align-items: center;
+  padding: 25rpx;
+  margin-bottom: 20rpx;
+  background: #f8f8f8;
+  border-radius: 15rpx;
+  transition: all 0.3s ease;
+}
+
+.food-item.selected {
+  background: #fff5f5;
+  border: 2rpx solid #ff6b81;
+}
+
+.food-icon {
+  font-size: 60rpx;
+  margin-right: 20rpx;
+}
+
+.food-info {
+  flex: 1;
+}
+
+.food-name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.food-cost {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.food-count {
+  font-size: 26rpx;
+  color: #666;
+  background: #fff;
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.prep-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0;
+}
+
+.prep-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+}
+
+.prep-icon.shake {
+  animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.prep-text {
+  font-size: 28rpx;
+  color: #ff6b81;
+}
+
+.modal-footer {
+  display: flex;
+  padding: 20rpx 30rpx 30rpx;
+  gap: 20rpx;
+}
+
+.cancel-btn, .confirm-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+.cancel-btn {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #ff6b81, #ff8a9b);
+  color: #fff;
+}
+
+.confirm-btn.disabled {
+  background: #ccc;
+  color: #999;
+}

@@ -1,5 +1,7 @@
 {
-  "navigationBarTitleText": "甜蜜互动",
+  "navigationBarTitleText": "萌宠乐园",
   "enablePullDownRefresh": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "food-prep-modal": "/components/food-prep-modal/index"
+  }
 }

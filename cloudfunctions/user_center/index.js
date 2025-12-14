@@ -8,7 +8,7 @@ const _ = db.command;
 
 // 引入各个服务模块
 const authService = require("./services/auth");
-const gardenService = require("./services/garden");
+const petService = require("./services/pet");  // Replaced garden with pet
 const messageService = require("./services/message");
 const capsuleService = require("./services/capsule");
 const quizService = require("./services/quiz");
@@ -47,13 +47,16 @@ exports.main = async (event, context) => {
     case "claim_rewards": // 🟢 [修复] 补上了 claim_rewards 路由
       return await authService.handle(action, event, ctx);
 
-    // === Garden (花园/打卡) ===
-    case "get_garden":
-    case "water_flower":
-    case "harvest_garden":
+    // === Pet (宠物/打卡) ===
+    case "get_pet_status":
+    case "interact_with_pet":
+    case "prepare_food":
+    case "send_pet_travel":
+    case "collect_travel_rewards":
+    case "get_destinations":
     case "check_in":
     case "watch_ad_reward":
-      return await gardenService.handle(action, event, ctx);
+      return await petService.handle(action, event, ctx);
 
     // === Message (留言板) ===
     case "post_message":

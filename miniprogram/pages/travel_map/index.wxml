@@ -1,0 +1,178 @@
+<view class="travel-map-container">
+  <!-- Header with Back Button -->
+  <view class="page-header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <text class="page-title">🗺️ 旅行地图</text>
+  </view>
+
+  <!-- Pet Status Bar -->
+  <view class="pet-status-bar paper-texture">
+    <view class="status-item">
+      <text class="status-icon">⚡</text>
+      <text class="status-label">精力值</text>
+      <text class="status-value">{{petEnergy}}/{{TRAVEL_ENERGY_COST}}</text>
+    </view>
+    <view class="status-item">
+      <text class="status-icon">🎒</text>
+      <text class="status-label">便当</text>
+      <view class="food-count">
+        <text class="food-item">🍱 {{foodCount.rice_ball || 0}}</text>
+        <text class="food-item">🍱 {{foodCount.luxury_bento || 0}}</text>
+      </view>
+    </view>
+    <view class="status-item">
+      <text class="status-icon">❤️</text>
+      <text class="status-label">心情</text>
+      <text class="status-value">{{moodValue}}/100</text>
+    </view>
+  </view>
+
+  <!-- Loading State -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <text class="loading-text">正在加载地图...</text>
+  </view>
+
+  <!-- Destinations List -->
+  <scroll-view wx:else scroll-y class="destinations-scroll">
+    <view wx:if="{{destinations.length === 0}}" class="empty-state">
+      <text class="empty-icon">🗺️</text>
+      <text class="empty-text">暂无可前往的目的地</text>
+      <text class="empty-desc">多去探索，解锁更多旅行地点吧！</text>
+    </view>
+
+    <block wx:else>
+      <!-- Section: Available Destinations -->
+      <view class="destinations-section">
+        <text class="section-title">📍 可前往的目的地</text>
+        <view wx:for="{{availableDestinations}}" wx:key="id" class="destination-card paper-texture {{item.unlocked ? 'unlocked' : 'locked'}}">
+          <image class="destination-image" src="{{item.image}}" mode="aspectFill"></image>
+
+          <view class="destination-info">
+            <view class="destination-header">
+              <text class="destination-name">{{item.name}}</text>
+              <view wx:if="{{!item.unlocked}}" class="lock-badge">
+                <text class="lock-icon">🔒</text>
+                <text class="lock-text">未解锁</text>
+              </view>
+            </view>
+
+            <text class="destination-desc">{{item.description}}</text>
+
+            <view class="travel-requirements">
+              <view class="requirement-item">
+                <text class="req-icon">⏱️</text>
+                <text class="req-text">旅行时长</text>
+                <text class="req-value">{{item.duration}}分钟</text>
+              </view>
+
+              <view class="requirement-item">
+                <text class="req-icon">🍱</text>
+                <text class="req-text">需要便当</text>
+                <text class="req-value">{{item.food_required}}</text>
+              </view>
+
+              <view class="requirement-item">
+                <text class="req-icon">💎</text>
+                <text class="req-text">可能获得</text>
+                <text class="req-value">{{item.possible_rewards.join(', ')}}</text>
+              </view>
+            </view>
+
+            <view class="destination-actions">
+              <button wx:if="{{!item.unlocked}}" class="action-btn unlock-btn" disabled>
+                <text>🔒 需要解锁</text>
+              </button>
+
+              <button wx:else class="action-btn travel-btn" bindtap="onSelectDestination" data-destination="{{item}}">
+                <text>🚀 选择这里</text>
+              </button>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- Section: Locked Destinations -->
+      <view wx:if="{{lockedDestinations.length > 0}}" class="destinations-section">
+        <text class="section-title">🔒 未解锁的目的地</text>
+        <view wx:for="{{lockedDestinations}}" wx:key="id" class="destination-card paper-texture locked">
+          <image class="destination-image" src="{{item.image}}" mode="aspectFill"></image>
+
+          <view class="destination-info">
+            <view class="destination-header">
+              <text class="destination-name">{{item.name}}</text>
+              <view class="lock-badge">
+                <text class="lock-icon">🔒</text>
+                <text class="lock-text">{{item.unlock_condition || '未解锁'}}</text>
+              </view>
+            </view>
+
+            <text class="destination-desc">{{item.description}}</text>
+
+            <view class="unlock-hint">
+              <text class="hint-icon">💡</text>
+              <text class="hint-text">{{item.unlock_hint || '完成更多旅行来解锁'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- Travel Confirmation Modal -->
+  <view class="modal-mask {{showTravelModal ? 'show' : ''}}" bindtap="closeTravelModal">
+    <view class="travel-modal paper-texture" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">确认旅行</text>
+        <view class="close-btn" bindtap="closeTravelModal">×</view>
+      </view>
+
+      <view wx:if="{{selectedDestination}}" class="modal-content">
+        <image class="modal-destination-image" src="{{selectedDestination.image}}" mode="aspectFill"></image>
+
+        <text class="modal-destination-name">{{selectedDestination.name}}</text>
+        <text class="modal-travel-time">预计 {{selectedDestination.duration}} 分钟后返回</text>
+
+        <view class="modal-costs">
+          <view class="cost-item">
+            <text class="cost-icon">⚡</text>
+            <text class="cost-text">消耗精力</text>
+            <text class="cost-value">{{TRAVEL_ENERGY_COST}}</text>
+          </view>
+          <view class="cost-item">
+            <text class="cost-icon">🍱</text>
+            <text class="cost-text">消耗便当</text>
+            <text class="cost-value">{{selectedDestination.food_required}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{availableFoods.length > 0}}" class="food-selection">
+          <text class="selection-title">选择便当：</text>
+          <radio-group bindchange="onFoodChange">
+            <label wx:for="{{availableFoods}}" wx:key="type" class="food-option">
+              <radio value="{{item.type}}" checked="{{item.type === selectedFood}}"/>
+              <view class="food-info">
+                <text class="food-name">{{item.name}}</text>
+                <text class="food-count">({{item.count}}个)</text>
+                <text class="food-effect" wx:if="{{item.bonus}}">+{{item.bonus}}心情值</text>
+              </view>
+            </label>
+          </radio-group>
+        </view>
+
+        <view wx:else class="no-food-warning">
+          <text class="warning-icon">⚠️</text>
+          <text class="warning-text">你没有足够的便当！</text>
+          <text class="warning-desc">快去准备便当吧</text>
+        </view>
+      </view>
+
+      <view class="modal-actions">
+        <button class="modal-btn cancel-btn" bindtap="closeTravelModal">取消</button>
+        <button wx:if="{{canTravel}}" class="modal-btn confirm-btn" bindtap="confirmTravel">确认出发</button>
+        <button wx:else class="modal-btn confirm-btn disabled" disabled>无法出发</button>
+      </view>
+    </view>
+  </view>
+</view>

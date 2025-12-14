@@ -1,0 +1,176 @@
+<view class="postcards-container">
+  <!-- Header with Back Button -->
+  <view class="page-header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <text class="page-title">💌 旅行明信片</text>
+    <view class="share-btn" bindtap="onShare">
+      <text class="share-icon">📤</text>
+    </view>
+  </view>
+
+  <!-- Statistics Summary -->
+  <view class="stats-summary paper-texture">
+    <view class="stat-item">
+      <text class="stat-value">{{totalPostcards}}</text>
+      <text class="stat-label">总明信片</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{totalDestinations}}</text>
+      <text class="stat-label">到访地点</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{specialItems}}</text>
+      <text class="stat-label">特色收藏</text>
+    </view>
+  </view>
+
+  <!-- Loading State -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <text class="loading-text">正在加载明信片...</text>
+  </view>
+
+  <!-- Postcards List -->
+  <scroll-view wx:else scroll-y class="postcards-scroll">
+    <view wx:if="{{postcards.length === 0}}" class="empty-state">
+      <text class="empty-icon">💌</text>
+      <text class="empty-text">还没有收到明信片</text>
+      <text class="empty-desc">让宠物去旅行，收集美好回忆吧！</text>
+      <button class="start-travel-btn" bindtap="goToTravelMap">
+        <text>🗺️ 开始旅行</text>
+      </button>
+    </view>
+
+    <block wx:else>
+      <!-- Timeline View -->
+      <view class="timeline-view">
+        <view wx:for="{{postcards}}" wx:key="id" class="timeline-item">
+          <!-- Time Node -->
+          <view class="time-node">
+            <view class="dot"></view>
+            <view class="line"></view>
+          </view>
+
+          <!-- Postcard Card -->
+          <view class="postcard-card paper-texture" bindtap="onPostcardTap" data-postcard="{{item}}">
+            <!-- Postcard Image -->
+            <image class="postcard-image" src="{{item.destination.image}}" mode="aspectFill"></image>
+
+            <!-- Postcard Content -->
+            <view class="postcard-content">
+              <view class="postcard-header">
+                <text class="destination-name">{{item.destination.name}}</text>
+                <text class="travel-date">{{item.travel_date_formatted}}</text>
+              </view>
+
+              <text class="postcard-message">{{item.message}}</text>
+
+              <!-- Rewards Section -->
+              <view wx:if="{{item.rewards && item.rewards.length > 0}}" class="rewards-section">
+                <text class="rewards-title">获得</text>
+                <view class="rewards-list">
+                  <view wx:for="{{item.rewards}}" wx:key="index" wx:for-item="reward" class="reward-item">
+                    <text class="reward-icon">{{reward.icon}}</text>
+                    <text class="reward-text">{{reward.name}} x{{reward.count}}</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- Special Items -->
+              <view wx:if="{{item.specialty_item}}" class="specialty-item">
+                <text class="specialty-icon">⭐</text>
+                <text class="specialty-name">{{item.specialty_item}}</text>
+              </view>
+            </view>
+
+            <!-- Like Button -->
+            <view class="like-btn {{item.liked ? 'liked' : ''}}" bindtap="onLikePostcard" catchtap="stopPropagation" data-id="{{item.id}}">
+              <text class="like-icon">{{item.liked ? '❤️' : '🤍'}}</text>
+              <text class="like-count">{{item.likes || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- Postcard Detail Modal -->
+  <view class="modal-mask {{showDetailModal ? 'show' : ''}}" bindtap="closeDetailModal">
+    <view class="detail-modal paper-texture" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">旅行回忆</text>
+        <view class="close-btn" bindtap="closeDetailModal">×</view>
+      </view>
+
+      <view wx:if="{{selectedPostcard}}" class="modal-content">
+        <image class="modal-postcard-image" src="{{selectedPostcard.destination.image}}" mode="aspectFill"></image>
+
+        <view class="postcard-detail">
+          <text class="detail-destination">{{selectedPostcard.destination.name}}</text>
+          <text class="detail-date">{{selectedPostcard.travel_date_formatted}}</text>
+          <text class="detail-message">{{selectedPostcard.message}}</text>
+
+          <view class="detail-section">
+            <text class="detail-section-title">旅行信息</text>
+            <view class="detail-info">
+              <view class="info-item">
+                <text class="info-label">旅行时长</text>
+                <text class="info-value">{{selectedPostcard.travel_duration}}分钟</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">便当类型</text>
+                <text class="info-value">{{selectedPostcard.food_type === 'rice_ball' ? '饭团便当' : '豪华御膳'}}</text>
+              </view>
+              <view class="info-item">
+                <text class="info-label">心情变化</text>
+                <text class="info-value">+{{selectedPostcard.mood_bonus}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{selectedPostcard.rewards && selectedPostcard.rewards.length > 0}}" class="detail-section">
+            <text class="detail-section-title">获得奖励</text>
+            <view class="rewards-grid">
+              <view wx:for="{{selectedPostcard.rewards}}" wx:key="index" wx:for-item="reward" class="reward-card">
+                <text class="reward-icon">{{reward.icon}}</text>
+                <text class="reward-name">{{reward.name}}</text>
+                <text class="reward-count">x{{reward.count}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{selectedPostcard.specialty_item}}" class="detail-section">
+            <text class="detail-section-title">特色收藏</text>
+            <view class="specialty-showcase">
+              <text class="specialty-icon-large">⭐</text>
+              <text class="specialty-name-large">{{selectedPostcard.specialty_item}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="modal-actions">
+          <button class="modal-btn share-btn" bindtap="onSharePostcard" open-type="share">
+            <text>📤 分享回忆</text>
+          </button>
+          <button class="modal-btn save-btn" bindtap="onSavePostcard">
+            <text>💾 保存图片</text>
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Share Actions -->
+  <action-sheet hidden="{{!showShareActions}}" bindchange="onShareActionChange">
+    <action-sheet-item bindtap="onShareToWechat">
+      <text>分享给微信好友</text>
+    </action-sheet-item>
+    <action-sheet-item bindtap="onShareToMoments">
+      <text>分享到朋友圈</text>
+    </action-sheet-item>
+    <action-sheet-cancel>取消</action-sheet-cancel>
+  </action-sheet>
+</view>

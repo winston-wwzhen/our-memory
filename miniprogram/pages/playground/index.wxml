@@ -1,58 +1,107 @@
 <view class="playground-container">
-  
-  <view class="garden-card paper-texture">
-    <view class="card-header">
-      <text class="card-title">🌹 爱情结晶·玫瑰</text>
-      <view class="harvest-badge" wx:if="{{harvestCount > 0}}">
-        <text>🏆 已收获: {{harvestCount}}朵</text>
+
+  <view class="room-container" style="background-image: url('{{roomBgImage}}')">
+    <!-- Pet Character Layer -->
+    <view wx:if="{{petState === 'idle'}}" class="pet-container">
+      <image src="/images/pet/ready.png"
+             class="pet-character {{petAnimation}}"
+             bindtap="onPetTap"></image>
+    </view>
+
+    <view wx:elif="{{petState === 'eating'}}" class="pet-container">
+      <image src="/images/pet/eat.png"
+             class="pet-character eating-animation"></image>
+    </view>
+
+    <!-- Travel State - Show Note -->
+    <view wx:elif="{{petState === 'traveling'}}" class="travel-note-container">
+      <image src="/images/pet/note.png" class="travel-note"></image>
+      <text class="note-text">{{petName}}去旅行啦~</text>
+      <text class="return-time">预计{{returnTimeStr}}返回</text>
+    </view>
+
+    <!-- UI Overlay Layer -->
+    <view class="ui-overlay">
+      <!-- Top Left: Pet Info -->
+      <view class="pet-info-panel">
+        <text class="pet-name">{{petName}}</text>
+        <view class="mood-container">
+          <text class="mood-label">❤️ 心情</text>
+          <progress percent="{{moodValue}}"
+                    border-radius="10"
+                    activeColor="#ff6b6b"
+                    backgroundColor="#ffe0e0"
+                    class="mood-bar" />
+          <text class="mood-value">{{moodValue}}/100</text>
+        </view>
       </view>
-      <view class="water-badge" wx:else>
-        <text>💧 爱意: {{waterCount}}g</text>
+
+      <!-- Top Right: Resources -->
+      <view class="resource-panel">
+        <view class="resource-item">
+          <text class="resource-icon">💧</text>
+          <text class="resource-value">{{loveEnergy}}g</text>
+        </view>
+      </view>
+
+      <!-- Bottom Right: Action Buttons -->
+      <view class="action-buttons">
+        <view class="action-btn backpack {{petState !== 'idle' ? 'disabled' : ''}}"
+              bindtap="onBackpackTap">
+          <text class="btn-icon">🎒</text>
+          <text class="btn-text">行囊</text>
+        </view>
+      </view>
+
+      <!-- Bottom Left: Mail -->
+      <view class="mail-button {{hasNewPostcards ? 'with-notification' : ''}}"
+            bindtap="onPostcardsTap">
+        <text class="mail-icon">📮</text>
       </view>
     </view>
 
-    <view class="water-info-sub" wx:if="{{harvestCount > 0}}">
-        <text>💧 当前爱意: {{waterCount}}g</text>
+    <!-- Status Messages -->
+    <view wx:if="{{statusMessage}}" class="status-message">
+      <text>{{statusMessage}}</text>
     </view>
 
-    <view class="log-bubble" bindtap="toggleLogModal">
-      <text class="bubble-icon">📝</text>
-      <text class="bubble-txt">呵护记录</text>
+    <!-- Heart Particles -->
+    <view wx:for="{{heartParticles}}" wx:key="id"
+          class="heart-particle"
+          style="left: {{item.left}}%; bottom: 20%;">
+      ❤️
     </view>
-
-    <view class="plant-stage">
-      <image wx:if="{{level === 1}}" src="../../images/flower_stage_1.png" mode="aspectFit" class="flower-img bounce-anim"></image>
-      <image wx:elif="{{level === 2}}" src="../../images/flower_stage_2.png" mode="aspectFit" class="flower-img bounce-anim"></image>
-      <image wx:else src="../../images/flower_stage_3.png" mode="aspectFit" class="flower-img {{level >= 4 ? 'glow-anim' : 'bounce-anim'}}"></image>
-    </view>
-
-    <view class="progress-box">
-      <view class="progress-bar">
-        <view class="progress-inner" style="width: {{progress}};"></view>
-      </view>
-      <text class="level-text" wx:if="{{level < 4}}">Lv.{{level}} 培育进度 ({{growth}}/{{maxGrowth}})</text>
-      <text class="level-text max-level" wx:else>🌟 玫瑰已盛开，快去收获吧！ 🌟</text>
-    </view>
-
-    <button class="btn-harvest" bindtap="onHarvest" wx:if="{{level >= 4}}">
-      <text>🏆 收获这朵玫瑰</text>
-    </button>
-
-    <button class="btn-water" bindtap="onWater" disabled="{{loading}}" wx:else>
-      <text>注入爱意 (10g)</text>
-    </button>
-    
-    <view class="tip-text" wx:if="{{level < 4}}">📸 每日合照打卡，收集爱的养分 (+50g)</view>
-    <view class="tip-text" wx:else>收获后将开启新的一轮种植 🌱</view>
   </view>
 
   <view class="grid-menu">
+    <!-- Food Prep -->
+    <view class="grid-item paper-texture" catchtap="onFoodPrep">
+      <view class="grid-icon">🍱</view>
+      <text class="grid-title">准备便当</text>
+      <text class="grid-desc">为旅行准备食物</text>
+    </view>
 
+    <!-- Travel Map -->
+    <view class="grid-item paper-texture" bindtap="onTravelMap">
+      <view class="grid-icon">🗺️</view>
+      <text class="grid-title">旅行地图</text>
+      <text class="grid-desc">选择目的地</text>
+    </view>
+
+    <!-- Postcards -->
+    <view class="grid-item paper-texture" bindtap="onPostcards">
+      <view class="grid-icon">💌</view>
+      <text class="grid-title">明信片</text>
+      <text class="grid-desc">旅行回忆</text>
+      <view wx:if="{{hasNewPostcards}}" class="notification-heart">❤</view>
+    </view>
+
+    <!-- Keep existing bottom 3 items -->
     <view class="grid-item paper-texture" bindtap="navToQuiz">
       <view class="grid-icon">🧩</view>
       <text class="grid-title">默契大闯关</text>
       <text class="grid-desc">挑战灵魂契合度</text>
-      
+
       <view class="notification-quiz" wx:if="{{quizHint}}">❓</view>
     </view>
 
@@ -60,7 +109,7 @@
       <view class="grid-icon">📌</view>
       <text class="grid-title">爱的留言板</text>
       <text class="grid-desc">日常碎碎念</text>
-      
+
       <view class="notification-pin" wx:if="{{messageHint}}">📌</view>
     </view>
 
@@ -68,39 +117,21 @@
       <view class="grid-icon">💊</view>
       <text class="grid-title">时光胶囊</text>
       <text class="grid-desc">寄给未来</text>
-      
+
       <view class="notification-heart" wx:if="{{capsuleRedDot}}">❤</view>
     </view>
-
-    <view class="grid-item paper-texture" bindtap="navToGuide">
-      <view class="grid-icon">📖</view>
-      <text class="grid-title">恋爱宝典</text>
-      <text class="grid-desc">生存与惊喜</text>
-    </view>
-
-    <view class="grid-item paper-texture" bindtap="navToDecision">
-      <view class="grid-icon">🎲</view>
-      <text class="grid-title">命运的决定</text>
-      <text class="grid-desc">治愈选择困难</text>
-    </view>
-
-    <view class="grid-item paper-texture" bindtap="navToCoupons">
-      <view class="grid-icon">🎁</view>
-      <text class="grid-title">特权工坊</text>
-      <text class="grid-desc">爱的承诺</text>
-    </view>
   </view>
-  
+
 
   <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
-    <view class="log-modal-container" catchtap="return"> 
+    <view class="log-modal-container" catchtap="return">
       <view class="log-modal-header">
-        <text>📜 呵护日记</text>
+        <text>📜 互动日记</text>
         <view class="close-icon" bindtap="toggleLogModal">×</view>
       </view>
       <scroll-view scroll-y class="log-scroll-view">
         <view class="empty-log" wx:if="{{logs.length === 0}}">
-          <text>暂无记录，快去浇水吧~</text>
+          <text>暂无记录，快和宠物互动吧~</text>
         </view>
         <block wx:else>
           <view class="modal-log-item" wx:for="{{logs}}" wx:key="index">
@@ -147,6 +178,15 @@
       <text>开心收下 ❤️</text>
     </button>
   </view>
-</view>
+
+  </view>
+
+<!-- Food Preparation Modal -->
+<food-prep-modal show="{{showFoodPrepModal}}"
+                 loveEnergy="{{loveEnergy}}"
+                 foodInventory="{{foodInventory}}"
+                 bind:cancel="onFoodPrepModalCancel"
+                 bind:prepare="onFoodPrepare"
+                 bind:success="onFoodPrepSuccess"></food-prep-modal>
 
 </view>

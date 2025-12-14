@@ -10,7 +10,9 @@
     "pages/quiz/index",
     "pages/guide/index",
     "pages/history/index",
-    "pages/mine/index"
+    "pages/mine/index",
+    "pages/travel_map/index",
+    "pages/postcards/index"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",
@@ -33,9 +35,9 @@
       },
       {
         "pagePath": "pages/playground/index",
-        "text": "Fun",
-        "iconPath": "images/gardan.png",
-        "selectedIconPath": "images/gardan_active.png"
+        "text": "萌宠",
+        "iconPath": "images/pet.png",
+        "selectedIconPath": "images/pet_active.png"
       },
       {
         "pagePath": "pages/history/index",

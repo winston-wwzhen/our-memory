@@ -1,0 +1,55 @@
+<!--components/food-prep-modal/index.wxml-->
+<view class="modal-mask" wx:if="{{show}}" bindtap="onCancel" style="display: flex;">
+  <view class="modal-container" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">准备便当</text>
+      <view class="close-btn" bindtap="onCancel">×</view>
+    </view>
+
+    <view class="modal-body">
+      <!-- 爱意能量显示 -->
+      <view class="energy-display">
+        <text class="energy-label">当前爱意能量</text>
+        <text class="energy-value">{{loveEnergy}}g</text>
+      </view>
+
+      <!-- 便当选项 -->
+      <view class="food-options">
+        <view class="food-item {{selectedFood === 'rice_ball' ? 'selected' : ''}}"
+              bindtap="selectFood" data-type="rice_ball">
+          <view class="food-icon">🍙</view>
+          <view class="food-info">
+            <text class="food-name">饭团便当</text>
+            <text class="food-cost">消耗 10g 爱意</text>
+          </view>
+          <view class="food-count">库存: {{foodInventory.rice_ball}}</view>
+        </view>
+
+        <view class="food-item {{selectedFood === 'luxury_bento' ? 'selected' : ''}}"
+              bindtap="selectFood" data-type="luxury_bento">
+          <view class="food-icon">🍱</view>
+          <view class="food-info">
+            <text class="food-name">豪华御膳</text>
+            <text class="food-cost">消耗 50g 爱意</text>
+          </view>
+          <view class="food-count">库存: {{foodInventory.luxury_bento}}</view>
+        </view>
+      </view>
+
+      <!-- 准备动画 -->
+      <view class="prep-animation" wx:if="{{isPreparing}}">
+        <view class="prep-icon {{animationClass}}">{{selectedFood === 'rice_ball' ? '🍙' : '🍱'}}</view>
+        <text class="prep-text">准备中...</text>
+      </view>
+    </view>
+
+    <view class="modal-footer">
+      <button class="cancel-btn" bindtap="onCancel">取消</button>
+      <button class="confirm-btn {{!canPrepare || isPreparing ? 'disabled' : ''}}"
+              bindtap="onConfirm" disabled="{{!canPrepare || isPreparing}}">
+        {{isPreparing ? '准备中...' : '准备'}}
+      </button>
+    </view>
+  </view>
+</view>
+
