@@ -3,7 +3,7 @@
 <view class="room-container">
 
   <view class="ground-spot"></view>
-
+  
   <view wx:if="{{showGiftBox}}" class="gift-box-container" bindtap="onCollectReward">
     <view class="gift-box-wrapper">
       <text class="gift-icon">🎁</text>
@@ -20,7 +20,7 @@
   </view>
 
   <view wx:elif="{{petState === 'traveling'}}" class="travel-note-container">
-    <image src="/images/pet/note.png" class="travel-note"></image>
+    <!-- <image src="/images/pet/note.png" class="travel-note"></image> -->
     <view class="note-content">
       <text class="note-text">{{petName}}去旅行啦~</text>
       <text class="return-time-label">预计归来倒计时</text>
@@ -199,9 +199,6 @@
           <text wx:else>去制作</text>
         </view>
       </view>
-    </view>
-    <view class="feed-footer">
-      <text class="feed-tip">如果没有食物，请点击右下角“行囊”制作哦~</text>
     </view>
   </view>
 </view>
