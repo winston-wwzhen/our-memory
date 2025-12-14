@@ -70,6 +70,16 @@
       </view>
     </view>
 
+    <!-- 爱意值显示区域 -->
+    <view class="love-stat-box">
+      <view class="love-row">
+        <text class="love-icon">💧</text>
+        <text class="love-label">我的爱意:</text>
+        <text class="love-num">{{userData.water_count || 0}}</text>
+        <text class="love-unit">g</text>
+      </view>
+    </view>
+
     <view class="film-stat-box">
       <view class="film-row">
         <text class="film-icon">🎞️</text>

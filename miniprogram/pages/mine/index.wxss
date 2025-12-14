@@ -129,6 +129,44 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
 .disconnect-line { width: 100rpx; height: 2rpx; background-color: #e0e0e0; margin-bottom: 12rpx; }
 .disconnect-txt { font-size: 20rpx; color: #bbb; }
 
+/* 爱意值统计盒子样式 */
+.love-stat-box {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-radius: 32rpx;
+  padding: 24rpx 40rpx;
+  margin: 30rpx 60rpx;
+  box-shadow: 0 8rpx 30rpx rgba(33, 150, 243, 0.15);
+}
+
+.love-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.love-icon {
+  font-size: 48rpx;
+  margin-right: 16rpx;
+}
+
+.love-label {
+  font-size: 30rpx;
+  color: #1976d2;
+  margin-right: 10rpx;
+}
+
+.love-num {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #0d47a1;
+  margin-right: 6rpx;
+}
+
+.love-unit {
+  font-size: 28rpx;
+  color: #1976d2;
+}
+
 /* 胶卷统计盒子样式 */
 .film-stat-box {
   background: #f8f9fa;

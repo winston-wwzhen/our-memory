@@ -639,23 +639,36 @@ async function handle(action, event, ctx) {
         }
         newExpire.setDate(newExpire.getDate() + vipCode.days);
 
+        // 构建更新数据
+        const updateData = {
+          vip_expire_date: newExpire,
+          water_count: _.inc(300)  // 默认赠送300爱意值（水滴）
+        };
+
+        // 如果VIP码配置了永久胶卷，同时更新
+        if (vipCode.extra_quota && vipCode.extra_quota > 0) {
+          updateData.extra_quota = _.inc(vipCode.extra_quota);
+        }
+
         await db
           .collection("users")
           .doc(user._id)
           .update({
-            data: { vip_expire_date: newExpire },
+            data: updateData,
           });
 
         await addLog(
           ctx,
           "redeem_vip",
-          `兑换 ${cleanCode}, 获得 ${vipCode.days} 天`
+          `兑换 ${cleanCode}, 获得 ${vipCode.days} 天VIP${vipCode.extra_quota ? ` + ${vipCode.extra_quota}张永久胶卷` : ''} + 300爱意值`
         );
 
         return {
           status: 200,
           msg: "兑换成功",
           days: vipCode.days,
+          extra_quota: vipCode.extra_quota || 0,
+          waterBonus: 300,  // 返回水滴奖励信息
           expireDate: newExpire,
         };
       } catch (err) {

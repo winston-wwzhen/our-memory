@@ -22,15 +22,16 @@ const CONFIG = {
   mode: "BATCH",
 
   // --- 通用配置 ---
-  days: 7, // VIP天数
-  remark: "2025情人节活动", // 备注
+  days: 10, // VIP天数
+  extra_quota: 5, // 永久胶卷数量，0表示不赠送
+  remark: "2025圣诞节", // 备注
   validDays: 30, // 有效期(天)，30天后过期。如果不限时填 null
 
   // --- 模式 A: BATCH (批量随机码) ---
   batchCount: 3, // 生成数量
-  prefix: "VIP-", // 前缀
+  prefix: "LOVE-", // 前缀
   codeLength: 8, // 随机部分长度
-  usageLimit: 1, // 每个码可用次数 (1代表一次性码)
+  usageLimit: 100, // 每个码可用次数 (1代表一次性码)
 
   // --- 模式 B: SINGLE (单个活动码) ---
   singleCode: "LOVE2025", // 指定的码
@@ -65,6 +66,7 @@ async function main() {
   // 基础数据模板
   const baseData = {
     days: CONFIG.days,
+    extra_quota: CONFIG.extra_quota, // 添加永久胶卷配置
     remark: CONFIG.remark,
     is_active: true,
     used_count: 0,
@@ -104,11 +106,21 @@ async function main() {
   // 写入数据库
   console.log(`📋 准备写入 ${codesToAdd.length} 个兑换码...`);
 
-  // 批量写入 (云开发限制每次最多 1000 条，这里简单处理)
+  // 逐个写入数据库
   try {
-    const res = await db.collection("vip_codes").add(codesToAdd);
-    console.log(`✅ 成功添加 ${res.ids.length} 个兑换码！`);
-    console.log(`示例: ${codesToAdd[0].code} (${codesToAdd[0].days}天VIP)`);
+    let successCount = 0;
+    for (const codeData of codesToAdd) {
+      await db.collection("vip_codes").add(codeData);
+      successCount++;
+    }
+    console.log(`✅ 成功添加 ${successCount} 个兑换码！`);
+    console.log(
+      `示例: ${codesToAdd[0].code} (${codesToAdd[0].days}天VIP${
+        codesToAdd[0].extra_quota
+          ? ` + ${codesToAdd[0].extra_quota}张永久胶卷`
+          : ""
+      })`
+    );
   } catch (err) {
     console.error("❌ 写入失败:", err);
   }

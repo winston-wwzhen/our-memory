@@ -581,13 +581,21 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           const days = res.result.days;
+          const quota = res.result.extra_quota || 0;
+          const waterBonus = res.result.waterBonus || 300;
+
+          let descMsg = `VIP 时长已增加 ${days} 天！\n获得 ${waterBonus} 爱意值！`;
+          if (quota > 0) {
+            descMsg += `\n额外获得 ${quota} 张永久胶卷！`;
+          }
+
           this.setData({
             showEggModal: true,
             eggData: {
               title: "兑换成功",
               icon: "💎",
-              desc: `VIP 时长已增加 ${days} 天！`,
-              bonus: 0,
+              desc: descMsg,
+              bonus: waterBonus,
             },
           });
           wx.vibrateLong();
