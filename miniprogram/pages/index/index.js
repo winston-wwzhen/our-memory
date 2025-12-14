@@ -111,6 +111,10 @@ Page({
     eggData: null,
 
     haspartner: true,
+
+    // 人脸确认框相关
+    showFaceConfirmModal: false,
+    selectedImagePath: '',
   },
 
   onShow: function () {
@@ -370,18 +374,11 @@ Page({
         }
 
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        wx.showLoading({ title: "处理中..." });
-        wx.compressImage({
-          src: tempFilePath,
-          quality: 60,
-          success: (compressRes) => {
-            wx.hideLoading();
-            that.uploadAndProcess(compressRes.tempFilePath);
-          },
-          fail: () => {
-            wx.hideLoading();
-            that.uploadAndProcess(tempFilePath);
-          },
+
+        // 显示人脸确认框
+        that.setData({
+          showFaceConfirmModal: true,
+          selectedImagePath: tempFilePath
         });
       },
       fail(err) {
@@ -607,5 +604,36 @@ Page({
 
   closeEggModal: function () {
     this.setData({ showEggModal: false });
+  },
+
+  // 确认使用照片
+  onConfirmImage: function() {
+    this.setData({ showFaceConfirmModal: false });
+    wx.showLoading({ title: "处理中..." });
+
+    const tempFilePath = this.data.selectedImagePath;
+    const that = this;
+    wx.compressImage({
+      src: tempFilePath,
+      quality: 60,
+      success: (compressRes) => {
+        wx.hideLoading();
+        that.uploadAndProcess(compressRes.tempFilePath);
+      },
+      fail: () => {
+        wx.hideLoading();
+        that.uploadAndProcess(tempFilePath);
+      },
+    });
+  },
+
+  // 重新选择照片
+  onReselectImage: function() {
+    this.setData({
+      showFaceConfirmModal: false,
+      selectedImagePath: ''
+    });
+    // 重新调用拍照流程
+    this.startCameraFlow();
   },
 });
