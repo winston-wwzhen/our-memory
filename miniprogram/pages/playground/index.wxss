@@ -545,3 +545,31 @@ page {
   from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+.gift-box-container {
+  position: absolute;
+  top: 40%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  text-align: center;
+  animation: float 2s ease-in-out infinite;
+}
+
+.gift-box-anim {
+  width: 120rpx;
+  height: 120rpx;
+}
+
+.gift-tip {
+  font-size: 24rpx;
+  color: #ff6b81;
+  background: rgba(255,255,255,0.8);
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  margin-top: 10rpx;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, -60%); }
+}

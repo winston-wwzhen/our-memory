@@ -37,61 +37,6 @@ async function handle(action, event, ctx) {
             .collection("pets")
             .doc(myPet._id)
             .update({ data: { owners: _.addToSet(OPENID) } });
-
-        // 自动结算逻辑修正
-        if (myPet.state === "traveling" && myPet.return_time) {
-          const now = new Date();
-          const returnTime = new Date(myPet.return_time);
-
-          if (now >= returnTime) {
-            // 1. 计算奖励
-            const rewards = await processTravelRewards(db, myPet, me, CONFIG);
-
-            // 2. 更新用户资产
-            await db
-              .collection("users")
-              .doc(me._id)
-              .update({
-                data: {
-                  rose_balance: _.inc(rewards.roses),
-                  water_count: _.inc(rewards.love_energy),
-                },
-              });
-
-            // 3. 更新宠物状态回 idle，并保存进度
-            let petUpdateData = {
-              state: "idle",
-              current_destination: "",
-              return_time: null,
-              guaranteed_progress: rewards.guaranteed_progress, // 保存进度
-              updatedAt: db.serverDate(),
-            };
-
-            // 只有获得了特产才更新收藏字段
-            if (rewards.specialty) {
-              petUpdateData.specialty_collection = _.push(rewards.specialty);
-            }
-
-            await db.collection("pets").doc(myPet._id).update({
-              data: petUpdateData,
-            });
-
-            // 4. 更新本地 myPet 对象，以便正确返回给前端
-            myPet = {
-              ...myPet,
-              ...petUpdateData,
-              state: "idle",
-              return_time: null,
-            };
-
-            // 5. 记录日志
-            await addLog(
-              ctx,
-              "pet_interaction",
-              `宠物旅行归来，带回了${rewards.roses}朵玫瑰`
-            );
-          }
-        }
       } else {
         // Create new pet (保持不变)
         let owners = [OPENID];
@@ -194,7 +139,7 @@ async function handle(action, event, ctx) {
             0,
             (pet.food_inventory[food_type] || 0) - 1
           );
-          
+
           // 增加心情和精力
           updateData.mood_value = Math.min(
             100,
@@ -204,7 +149,7 @@ async function handle(action, event, ctx) {
             100,
             (pet.energy_level || 0) + energyBonus
           );
-          
+
           // 状态变为进食中
           updateData.state = "eating";
 
@@ -215,8 +160,9 @@ async function handle(action, event, ctx) {
               .doc(pet._id)
               .update({ data: { state: "idle", updatedAt: db.serverDate() } });
           }, 3000);
-          
-          const foodName = food_type === "luxury_bento" ? "豪华御膳" : "饭团便当";
+
+          const foodName =
+            food_type === "luxury_bento" ? "豪华御膳" : "饭团便当";
           await addLog(
             ctx,
             "pet_interaction",

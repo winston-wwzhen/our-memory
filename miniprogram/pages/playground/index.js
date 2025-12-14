@@ -28,12 +28,14 @@ Page({
     hasNewPostcards: false,
     statusMessage: "",
     returnTimeStr: "",
-    
-    // 🟢 新增：倒计时字符串 (初始为空，防止闪烁)
-    countdownStr: "", 
-    
+
+    // 🟢 新增：倒计时字符串
+    countdownStr: "",
+    // 🎁 新增：控制礼品盒显示
+    showGiftBox: false,
+
     petAnimation: "",
-    heartParticles: [], 
+    heartParticles: [],
     foodInventory: {
       rice_ball: 0,
       luxury_bento: 0,
@@ -49,12 +51,20 @@ Page({
     showEggModal: false,
     eggData: null,
     showHelpModal: false,
-    helpTitle: '',
-    helpContent: '',
+    helpTitle: "",
+    helpContent: "",
     helpTexts: {
-      mood: { title: '关于心情 (Mood)', content: '心情影响着宠物的成长效率和互动反馈。\n\n💕 如何提升：\n经常抚摸宠物（点击它），或者给它准备好吃的食物，都能让它开心起来哦！' },
-      energy: { title: '关于体力 (Energy)', content: '体力决定了宠物能否出门去远方旅行。\n\n🍱 如何提升：\n当体力不足时，请点击“行囊”为宠物准备便当，进食后体力会迅速恢复！' }
-    }
+      mood: {
+        title: "关于心情 (Mood)",
+        content:
+          "心情影响着宠物的成长效率和互动反馈。\n\n💕 如何提升：\n经常抚摸宠物（点击它），或者给它准备好吃的食物，都能让它开心起来哦！",
+      },
+      energy: {
+        title: "关于体力 (Energy)",
+        content:
+          "体力决定了宠物能否出门去远方旅行。\n\n🍱 如何提升：\n当体力不足时，请点击“行囊”为宠物准备便当，进食后体力会迅速恢复！",
+      },
+    },
   },
 
   timer: null, // 定时器引用
@@ -77,11 +87,11 @@ Page({
     }
   },
 
-  onHide: function() {
+  onHide: function () {
     this.stopCountdown();
   },
 
-  onUnload: function() {
+  onUnload: function () {
     this.stopCountdown();
   },
 
@@ -94,7 +104,10 @@ Page({
     }
     this.fetchPetData(() => {
       wx.stopPullDownRefresh();
-      wx.showToast({ title: "刷新成功", icon: "none" });
+      wx.showToast({
+        title: "刷新成功",
+        icon: "none",
+      });
     });
   },
 
@@ -102,7 +115,9 @@ Page({
   updateUserStatus: function () {
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "login" },
+      data: {
+        action: "login",
+      },
       success: (res) => {
         if (res.result.status === 200) {
           app.globalData.userInfo = res.result.user;
@@ -130,7 +145,9 @@ Page({
         cancelText: "再逛逛",
         success: (res) => {
           if (res.confirm) {
-            wx.switchTab({ url: "/pages/mine/index" });
+            wx.switchTab({
+              url: "/pages/mine/index",
+            });
           }
         },
       });
@@ -148,10 +165,10 @@ Page({
   },
 
   // 🟢 倒计时核心逻辑
-  startCountdown: function(returnTimeStr) {
+  startCountdown: function (returnTimeStr) {
     this.stopCountdown(); // 清除旧的
-    
-    if(!returnTimeStr) return;
+
+    if (!returnTimeStr) return;
 
     const targetTime = new Date(returnTimeStr).getTime();
 
@@ -160,19 +177,13 @@ Page({
       const diff = targetTime - now;
 
       if (diff <= 0) {
-        // 倒计时结束
+        // 倒计时结束，显示礼品盒 🎁
         this.stopCountdown();
-        this.setData({ 
-          countdownStr: "即将归来",
-          petState: "idle" 
+        this.setData({
+          countdownStr: "",
+          showGiftBox: true,
         });
-        
-        // 延迟刷新数据
-        setTimeout(() => {
-          this.fetchPetData(() => {
-            wx.showToast({ title: '旅行结束啦！', icon: 'success' });
-          });
-        }, 1500);
+        wx.vibrateLong(); // 震动提示
         return;
       }
 
@@ -181,9 +192,9 @@ Page({
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
 
-      const pad = n => n < 10 ? `0${n}` : n;
+      const pad = (n) => (n < 10 ? `0${n}` : n);
       this.setData({
-        countdownStr: `${pad(h)}:${pad(m)}:${pad(s)}`
+        countdownStr: `${pad(h)}:${pad(m)}:${pad(s)}`,
       });
     };
 
@@ -191,7 +202,7 @@ Page({
     this.timer = setInterval(update, 1000);
   },
 
-  stopCountdown: function() {
+  stopCountdown: function () {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
@@ -202,7 +213,9 @@ Page({
   fetchPetData: function (callback) {
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "get_pet_status" },
+      data: {
+        action: "get_pet_status",
+      },
       success: (res) => {
         if (res.result.status === 200) {
           const pet = res.result.pet || {};
@@ -210,22 +223,36 @@ Page({
           const energyLevel = pet.energy_level || 80;
 
           const rawLogs = res.result.logs || [];
-          const myAvatar = app.globalData.userInfo?.avatarUrl || "/images/default-avatar.png";
-          const partnerAvatar = "/images/default-avatar.png"; 
+          const myAvatar =
+            app.globalData.userInfo?.avatarUrl || "/images/default-avatar.png";
+          const partnerAvatar = "/images/default-avatar.png";
 
-          const processedLogs = rawLogs.map(log => ({
+          const processedLogs = rawLogs.map((log) => ({
             ...log,
             timeAgo: this.formatTimeAgo(log.date),
             nickName: log.isMine ? "我" : "TA",
-            avatarUrl: log.isMine ? myAvatar : partnerAvatar
+            avatarUrl: log.isMine ? myAvatar : partnerAvatar,
           }));
 
-          // 🟢 检查是否需要启动倒计时
-          if (pet.state === 'traveling' && pet.return_time) {
-            this.startCountdown(pet.return_time);
+          // 🟢 检查是否需要启动倒计时或显示礼品盒
+          let showGiftBox = false;
+          if (pet.state === "traveling" && pet.return_time) {
+            const now = new Date().getTime();
+            const returnTime = new Date(pet.return_time).getTime();
+
+            if (now >= returnTime) {
+              // 时间已到，但后端未结算 -> 显示礼品盒 🎁
+              showGiftBox = true;
+              this.stopCountdown();
+            } else {
+              // 时间未到 -> 继续倒计时 ⏳
+              this.startCountdown(pet.return_time);
+            }
           } else {
             this.stopCountdown();
-            this.setData({ countdownStr: "" }); // 重置
+            this.setData({
+              countdownStr: "",
+            }); // 重置
           }
 
           this.setData({
@@ -243,7 +270,8 @@ Page({
               ? this.formatReturnTime(pet.return_time)
               : "",
             loveEnergy: res.result.love_energy || 0,
-            logs: processedLogs, 
+            logs: processedLogs,
+            showGiftBox: showGiftBox, // 更新礼品盒状态
           });
         } else {
           // Fallback
@@ -268,6 +296,80 @@ Page({
     });
   },
 
+  // 🎁 点击礼品盒领取奖励
+  onCollectReward: function () {
+    if (this.data.loading) return;
+
+    this.setData({
+      loading: true,
+    });
+    wx.showLoading({
+      title: "拆礼物中...",
+      mask: true,
+    });
+
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: {
+        action: "collect_travel_rewards",
+      },
+      success: (res) => {
+        wx.hideLoading();
+        this.setData({
+          loading: false,
+        });
+
+        if (res.result.status === 200) {
+          const { rewards } = res.result;
+
+          // 隐藏礼品盒
+          this.setData({
+            showGiftBox: false,
+          });
+
+          // 构造奖励提示文案
+          let msg = `🌹 玫瑰 +${rewards.roses}`;
+          if (rewards.specialty) {
+            msg += `\n🍱 特产：${rewards.specialty.name}`;
+          }
+          if (rewards.love_energy > 0) {
+            msg += `\n💧 爱意值 +${rewards.love_energy}`;
+          }
+
+          // 弹窗展示喜悦
+          wx.showModal({
+            title: "🎁 旅行归来",
+            content: msg,
+            showCancel: false,
+            confirmText: "开心收下",
+            confirmColor: "#ff6b81",
+            success: () => {
+              // 用户点确认后，刷新最新状态
+              this.fetchPetData();
+              this.updateUserStatus();
+            },
+          });
+        } else {
+          wx.showToast({
+            title: res.result.msg || "领取失败",
+            icon: "none",
+          });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        this.setData({
+          loading: false,
+        });
+        console.error(err);
+        wx.showToast({
+          title: "网络开小差了",
+          icon: "none",
+        });
+      },
+    });
+  },
+
   onPetTap: function () {
     if (this.data.petState !== "idle") {
       this.setData({
@@ -275,7 +377,9 @@ Page({
           this.data.petState === "eating" ? "吃饭中..." : "旅行中...",
       });
       setTimeout(() => {
-        this.setData({ statusMessage: "" });
+        this.setData({
+          statusMessage: "",
+        });
       }, 2000);
       return;
     }
@@ -301,7 +405,9 @@ Page({
           });
 
           setTimeout(() => {
-            this.setData({ statusMessage: "" });
+            this.setData({
+              statusMessage: "",
+            });
           }, 2000);
 
           this.fetchPetData();
@@ -320,7 +426,9 @@ Page({
     });
 
     setTimeout(() => {
-      this.setData({ petAnimation: "" });
+      this.setData({
+        petAnimation: "",
+      });
     }, 600);
   },
 
@@ -366,28 +474,43 @@ Page({
 
   onBackpackTap: function () {
     if (this.data.petState !== "idle") {
-      wx.showToast({ title: "宠物正在忙碌中", icon: "none" });
+      wx.showToast({
+        title: "宠物正在忙碌中",
+        icon: "none",
+      });
       return;
     }
     this.showFoodPrepModal();
   },
 
   onPostcardsTap: function () {
-    this.setData({ hasNewPostcards: false });
-    wx.showToast({ title: "明信片功能开发中...", icon: "none" });
+    this.setData({
+      hasNewPostcards: false,
+    });
+    wx.showToast({
+      title: "明信片功能开发中...",
+      icon: "none",
+    });
   },
 
   // 喂食相关逻辑
   showFeedModal() {
     if (this.data.petState !== "idle") {
-      wx.showToast({ title: "宠物正在忙碌中", icon: "none" });
+      wx.showToast({
+        title: "宠物正在忙碌中",
+        icon: "none",
+      });
       return;
     }
-    this.setData({ showFeedModal: true });
+    this.setData({
+      showFeedModal: true,
+    });
   },
 
   closeFeedModal() {
-    this.setData({ showFeedModal: false });
+    this.setData({
+      showFeedModal: false,
+    });
   },
 
   onFeed(e) {
@@ -396,51 +519,66 @@ Page({
 
     // 1. 检查库存
     if (count <= 0) {
-      this.setData({ showFeedModal: false });
+      this.setData({
+        showFeedModal: false,
+      });
       setTimeout(() => {
-        this.showFoodPrepModal(); 
-        wx.showToast({ title: '库存不足，请先制作', icon: 'none' });
+        this.showFoodPrepModal();
+        wx.showToast({
+          title: "库存不足，请先制作",
+          icon: "none",
+        });
       }, 300);
       return;
     }
 
     // 2. 调用喂食接口
-    wx.showLoading({ title: '喂食中...' });
+    wx.showLoading({
+      title: "喂食中...",
+    });
     wx.cloud.callFunction({
       name: "user_center",
       data: {
         action: "interact_with_pet",
         type: "feed",
-        food_type: type
+        food_type: type,
       },
       success: (res) => {
         wx.hideLoading();
         if (res.result.status === 200) {
-          wx.showToast({ title: '喂食成功', icon: 'success' });
-          this.setData({ 
+          wx.showToast({
+            title: "喂食成功",
+            icon: "success",
+          });
+          this.setData({
             showFeedModal: false,
             statusMessage: "体力恢复中...", // 暂时显示
-            petState: 'eating' // 播放动画
+            petState: "eating", // 播放动画
           });
-          
+
           this.fetchPetData();
-          
+
           setTimeout(() => {
-             this.setData({
-               statusMessage: "",
-               petState: "idle"
-             });
+            this.setData({
+              statusMessage: "",
+              petState: "idle",
+            });
           }, 3000);
-          
         } else {
-          wx.showToast({ title: res.result.msg || '喂食失败', icon: 'none' });
+          wx.showToast({
+            title: res.result.msg || "喂食失败",
+            icon: "none",
+          });
         }
       },
       fail: (err) => {
         wx.hideLoading();
         console.error(err);
-        wx.showToast({ title: '网络异常', icon: 'none' });
-      }
+        wx.showToast({
+          title: "网络异常",
+          icon: "none",
+        });
+      },
     });
   },
 
@@ -460,14 +598,21 @@ Page({
 
   showFoodPrepModal: function () {
     if (this.data.petState !== "idle") {
-      wx.showToast({ title: "宠物正在忙碌中", icon: "none" });
+      wx.showToast({
+        title: "宠物正在忙碌中",
+        icon: "none",
+      });
       return;
     }
-    this.setData({ showFoodPrepModal: true });
+    this.setData({
+      showFoodPrepModal: true,
+    });
   },
 
   onFoodPrepModalCancel: function () {
-    this.setData({ showFoodPrepModal: false });
+    this.setData({
+      showFoodPrepModal: false,
+    });
   },
 
   onFoodPrepare: function (e) {
@@ -495,7 +640,11 @@ Page({
           });
 
           setTimeout(() => {
-            this.onFoodPrepSuccess({ detail: { foodType } });
+            this.onFoodPrepSuccess({
+              detail: {
+                foodType,
+              },
+            });
           }, 1000);
         } else {
           wx.showToast({
@@ -526,7 +675,9 @@ Page({
     });
 
     setTimeout(() => {
-      this.setData({ statusMessage: "" });
+      this.setData({
+        statusMessage: "",
+      });
     }, 2000);
 
     wx.showToast({
@@ -539,15 +690,24 @@ Page({
 
   onTravelMap: function () {
     if (this.data.petState !== "idle") {
-      wx.showToast({ title: "宠物正在旅行中", icon: "none" });
+      wx.showToast({
+        title: "宠物正在旅行中",
+        icon: "none",
+      });
       return;
     }
-    wx.navigateTo({ url: "/pages/travel_map/index" });
+    wx.navigateTo({
+      url: "/pages/travel_map/index",
+    });
   },
 
   onPostcards: function () {
-    this.setData({ hasNewPostcards: false });
-    wx.navigateTo({ url: "/pages/postcards/index" });
+    this.setData({
+      hasNewPostcards: false,
+    });
+    wx.navigateTo({
+      url: "/pages/postcards/index",
+    });
   },
 
   formatReturnTime: function (returnTime) {
@@ -577,7 +737,7 @@ Page({
     return Math.floor(diff / 86400) + "天前";
   },
 
-  getMoodText: function(value) {
+  getMoodText: function (value) {
     if (value >= 80) return "超开心";
     if (value >= 60) return "很开心";
     if (value >= 40) return "还不错";
@@ -585,7 +745,7 @@ Page({
     return "很沮丧";
   },
 
-  getEnergyText: function(value) {
+  getEnergyText: function (value) {
     if (value >= 80) return "精力充沛";
     if (value >= 60) return "活力满满";
     if (value >= 40) return "还不错";
@@ -595,22 +755,32 @@ Page({
 
   onWater: function () {
     if (!this.checkPartner()) return;
-    wx.showToast({ title: "请使用宠物互动功能", icon: "none" });
+    wx.showToast({
+      title: "请使用宠物互动功能",
+      icon: "none",
+    });
   },
 
   toggleLogModal: function () {
-    this.setData({ showLogModal: !this.data.showLogModal });
+    this.setData({
+      showLogModal: !this.data.showLogModal,
+    });
   },
 
   onHarvest: function () {
     if (!this.checkPartner()) return;
-    wx.showToast({ title: "请使用旅行功能", icon: "none" });
+    wx.showToast({
+      title: "请使用旅行功能",
+      icon: "none",
+    });
   },
 
   checkMessageHint: function () {
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "get_messages" },
+      data: {
+        action: "get_messages",
+      },
       success: (res) => {
         if (res.result.status === 200) {
           const msgs = res.result.data || [];
@@ -618,12 +788,18 @@ Page({
           if (partnerMsgs.length > 0) {
             const latest = partnerMsgs[0];
             if (!latest.isLiked) {
-              this.setData({ messageHint: true });
+              this.setData({
+                messageHint: true,
+              });
             } else {
-              this.setData({ messageHint: false });
+              this.setData({
+                messageHint: false,
+              });
             }
           } else {
-            this.setData({ messageHint: false });
+            this.setData({
+              messageHint: false,
+            });
           }
         }
       },
@@ -632,18 +808,24 @@ Page({
 
   navToBoard: function () {
     if (!this.checkPartner()) return;
-    wx.navigateTo({ url: "/pages/message_board/index" });
+    wx.navigateTo({
+      url: "/pages/message_board/index",
+    });
   },
 
   checkCapsuleRedDot: function () {
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "get_capsules" },
+      data: {
+        action: "get_capsules",
+      },
       success: (res) => {
         if (res.result.status === 200) {
           const inbox = res.result.inbox || [];
           const hasNewSurprise = inbox.some((item) => item.canOpen);
-          this.setData({ capsuleRedDot: hasNewSurprise });
+          this.setData({
+            capsuleRedDot: hasNewSurprise,
+          });
         }
       },
     });
@@ -652,18 +834,26 @@ Page({
   checkQuizHint: function () {
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "get_quiz_home" },
+      data: {
+        action: "get_quiz_home",
+      },
       success: (res) => {
         if (res.result.status === 200) {
           const round = res.result.currentRound;
           if (round) {
             if (round.my_progress < round.total) {
-              this.setData({ quizHint: true });
+              this.setData({
+                quizHint: true,
+              });
             } else {
-              this.setData({ quizHint: false });
+              this.setData({
+                quizHint: false,
+              });
             }
           } else {
-            this.setData({ quizHint: false });
+            this.setData({
+              quizHint: false,
+            });
           }
         }
       },
@@ -672,52 +862,71 @@ Page({
 
   navToCapsule: function () {
     if (!this.checkPartner()) return;
-    this.setData({ capsuleRedDot: false });
-    wx.navigateTo({ url: "/pages/capsule/index" });
+    this.setData({
+      capsuleRedDot: false,
+    });
+    wx.navigateTo({
+      url: "/pages/capsule/index",
+    });
   },
 
   navToDecision: function () {
     if (!this.checkPartner()) return;
-    wx.navigateTo({ url: "/pages/decision/index" });
+    wx.navigateTo({
+      url: "/pages/decision/index",
+    });
   },
   navToCoupons: function () {
     if (!this.checkPartner()) return;
-    wx.navigateTo({ url: "/pages/coupons/index" });
+    wx.navigateTo({
+      url: "/pages/coupons/index",
+    });
   },
   navToQuiz: function () {
     if (!this.checkPartner()) return;
-    this.setData({ quizHint: false });
-    wx.navigateTo({ url: "/pages/quiz/index" });
+    this.setData({
+      quizHint: false,
+    });
+    wx.navigateTo({
+      url: "/pages/quiz/index",
+    });
   },
   navToGuide: function () {
     if (!this.checkPartner()) return;
-    wx.navigateTo({ url: "/pages/guide/index" });
+    wx.navigateTo({
+      url: "/pages/guide/index",
+    });
   },
   onTodo: function () {
     if (!this.checkPartner()) return;
-    wx.showToast({ title: "功能开发中...", icon: "none" });
+    wx.showToast({
+      title: "功能开发中...",
+      icon: "none",
+    });
   },
 
   closeEggModal: function () {
-    this.setData({ showEggModal: false });
+    this.setData({
+      showEggModal: false,
+    });
   },
 
   showHelp(e) {
     const type = e.currentTarget.dataset.type;
     const info = this.data.helpTexts[type];
-    
+
     if (info) {
       this.setData({
         showHelpModal: true,
         helpTitle: info.title,
-        helpContent: info.content
+        helpContent: info.content,
       });
     }
   },
 
   closeHelpModal() {
     this.setData({
-      showHelpModal: false
+      showHelpModal: false,
     });
   },
 

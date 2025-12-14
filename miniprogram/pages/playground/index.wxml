@@ -4,7 +4,14 @@
 
   <view class="ground-spot"></view>
 
-  <view wx:if="{{petState === 'idle'}}" class="pet-container">
+  <view wx:if="{{showGiftBox}}" class="gift-box-container" bindtap="onCollectReward">
+    <view class="gift-box-wrapper">
+      <text class="gift-icon">🎁</text>
+      <view class="gift-tip">点击领取礼物</view>
+    </view>
+  </view>
+
+  <view wx:elif="{{petState === 'idle'}}" class="pet-container">
     <image src="/images/pet/pet.png" class="pet-character {{petAnimation}}" bindtap="onPetTap"></image>
   </view>
 
