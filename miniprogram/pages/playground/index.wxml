@@ -1,9 +1,9 @@
 <view class="playground-container">
 
-  <view class="room-container" style="background-image: url('{{roomBgImage}}')">
-    <!-- Pet Character Layer -->
+  <view class="room-container">
+    
     <view wx:if="{{petState === 'idle'}}" class="pet-container">
-      <image src="/images/pet/ready.png"
+      <image src="/images/pet/pet.png"
              class="pet-character {{petAnimation}}"
              bindtap="onPetTap"></image>
     </view>
@@ -13,59 +13,58 @@
              class="pet-character eating-animation"></image>
     </view>
 
-    <!-- Travel State - Show Note -->
     <view wx:elif="{{petState === 'traveling'}}" class="travel-note-container">
       <image src="/images/pet/note.png" class="travel-note"></image>
       <text class="note-text">{{petName}}去旅行啦~</text>
       <text class="return-time">预计{{returnTimeStr}}返回</text>
     </view>
 
-    <!-- UI Overlay Layer -->
     <view class="ui-overlay">
-      <!-- Top Left: Pet Info -->
-      <view class="pet-info-panel">
-        <text class="pet-name">{{petName}}</text>
-        <view class="mood-container">
-          <text class="mood-label">❤️ 心情</text>
-          <progress percent="{{moodValue}}"
-                    border-radius="10"
-                    activeColor="#ff6b6b"
-                    backgroundColor="#ffe0e0"
-                    class="mood-bar" />
-          <text class="mood-value">{{moodValue}}/100</text>
-        </view>
+      <view class="status-pill pet-info">
+        <text class="pill-icon">🐾</text>
+        <text class="pill-text">{{petName}}</text>
+        <view class="v-divider"></view>
+        <text class="pill-label">心情</text>
+        <text class="pill-value {{moodValue < 60 ? 'low' : ''}}">{{moodValue}}</text>
       </view>
 
-      <!-- Top Right: Resources -->
-      <view class="resource-panel">
-        <view class="resource-item">
-          <text class="resource-icon">💧</text>
-          <text class="resource-value">{{loveEnergy}}g</text>
-        </view>
+      <view class="status-pill resource-info">
+        <text class="pill-icon">💧</text>
+        <text class="pill-value">{{loveEnergy}}g</text>
       </view>
 
-      <!-- Bottom Right: Action Buttons -->
       <view class="action-buttons">
-        <view class="action-btn backpack {{petState !== 'idle' ? 'disabled' : ''}}"
-              bindtap="onBackpackTap">
-          <text class="btn-icon">🎒</text>
-          <text class="btn-text">行囊</text>
+        
+        <view class="action-btn-glass" bindtap="onTravelMap">
+          <view class="glass-icon-box blue">
+            <text>🗺️</text>
+          </view>
+          <text class="glass-label">地图</text>
         </view>
-      </view>
 
-      <!-- Bottom Left: Mail -->
-      <view class="mail-button {{hasNewPostcards ? 'with-notification' : ''}}"
-            bindtap="onPostcardsTap">
-        <text class="mail-icon">📮</text>
+        <view class="action-btn-glass" bindtap="onPostcards">
+          <view class="glass-icon-box orange">
+            <text>💌</text>
+            <view wx:if="{{hasNewPostcards}}" class="notification-dot"></view>
+          </view>
+          <text class="glass-label">信箱</text>
+        </view>
+
+        <view class="action-btn-glass {{petState !== 'idle' ? 'disabled' : ''}}"
+              bindtap="onBackpackTap">
+          <view class="glass-icon-box green">
+            <text>🎒</text>
+          </view>
+          <text class="glass-label">行囊</text>
+        </view>
+
       </view>
     </view>
 
-    <!-- Status Messages -->
-    <view wx:if="{{statusMessage}}" class="status-message">
+    <view wx:if="{{statusMessage}}" class="status-toast">
       <text>{{statusMessage}}</text>
     </view>
 
-    <!-- Heart Particles -->
     <view wx:for="{{heartParticles}}" wx:key="id"
           class="heart-particle"
           style="left: {{item.left}}%; bottom: 20%;">
@@ -73,55 +72,75 @@
     </view>
   </view>
 
-  <view class="grid-menu">
-    <!-- Food Prep -->
-    <view class="grid-item paper-texture" catchtap="onFoodPrep">
-      <view class="grid-icon">🍱</view>
-      <text class="grid-title">准备便当</text>
-      <text class="grid-desc">为旅行准备食物</text>
-    </view>
+  <view class="menu-section">
+    <view class="section-title">✨ 甜蜜互动</view>
+    <view class="grid-menu">
+      
+      <view class="grid-card" bindtap="navToQuiz">
+        <view class="card-icon-bg purple">
+          <text class="card-icon">🧩</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">默契闯关</text>
+          <text class="card-desc">灵魂契合度</text>
+        </view>
+        <view class="tag-badge quiz" wx:if="{{quizHint}}">待挑战</view>
+      </view>
 
-    <!-- Travel Map -->
-    <view class="grid-item paper-texture" bindtap="onTravelMap">
-      <view class="grid-icon">🗺️</view>
-      <text class="grid-title">旅行地图</text>
-      <text class="grid-desc">选择目的地</text>
-    </view>
+      <view class="grid-card" bindtap="navToBoard">
+        <view class="card-icon-bg pink">
+          <text class="card-icon">📌</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">留言板</text>
+          <text class="card-desc">日常碎碎念</text>
+        </view>
+        <view class="tag-badge new" wx:if="{{messageHint}}">新留言</view>
+      </view>
 
-    <!-- Postcards -->
-    <view class="grid-item paper-texture" bindtap="onPostcards">
-      <view class="grid-icon">💌</view>
-      <text class="grid-title">明信片</text>
-      <text class="grid-desc">旅行回忆</text>
-      <view wx:if="{{hasNewPostcards}}" class="notification-heart">❤</view>
-    </view>
+      <view class="grid-card" bindtap="navToCapsule">
+        <view class="card-icon-bg blue">
+          <text class="card-icon">💊</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">时光胶囊</text>
+          <text class="card-desc">寄给未来</text>
+        </view>
+        <view class="tag-badge love" wx:if="{{capsuleRedDot}}">❤</view>
+      </view>
 
-    <!-- Keep existing bottom 3 items -->
-    <view class="grid-item paper-texture" bindtap="navToQuiz">
-      <view class="grid-icon">🧩</view>
-      <text class="grid-title">默契大闯关</text>
-      <text class="grid-desc">挑战灵魂契合度</text>
+      <view class="grid-card" bindtap="navToDecision">
+        <view class="card-icon-bg yellow">
+          <text class="card-icon">🎲</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">决定转盘</text>
+          <text class="card-desc">治愈选择困难</text>
+        </view>
+      </view>
 
-      <view class="notification-quiz" wx:if="{{quizHint}}">❓</view>
-    </view>
+      <view class="grid-card" bindtap="navToCoupons">
+        <view class="card-icon-bg red">
+          <text class="card-icon">🎟️</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">特权工坊</text>
+          <text class="card-desc">兑换专属权益</text>
+        </view>
+      </view>
 
-    <view class="grid-item paper-texture" bindtap="navToBoard">
-      <view class="grid-icon">📌</view>
-      <text class="grid-title">爱的留言板</text>
-      <text class="grid-desc">日常碎碎念</text>
+      <view class="grid-card" bindtap="navToGuide">
+        <view class="card-icon-bg cyan">
+          <text class="card-icon">📒</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">恋爱宝典</text>
+          <text class="card-desc">通关秘籍</text>
+        </view>
+      </view>
 
-      <view class="notification-pin" wx:if="{{messageHint}}">📌</view>
-    </view>
-
-    <view class="grid-item paper-texture" bindtap="navToCapsule">
-      <view class="grid-icon">💊</view>
-      <text class="grid-title">时光胶囊</text>
-      <text class="grid-desc">寄给未来</text>
-
-      <view class="notification-heart" wx:if="{{capsuleRedDot}}">❤</view>
     </view>
   </view>
-
 
   <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
     <view class="log-modal-container" catchtap="return">
@@ -149,44 +168,43 @@
     </view>
   </view>
 
-<view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
-  <view class="god-rays"></view>
-  <view class="confetti-container">
-    <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
-    <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
-    <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
-    <view class="confetti c10"></view>
-  </view>
-  <view class="egg-card bounce-in">
-    <view class="card-ribbon">LUCKY TIME</view>
-    <view class="icon-stage">
-      <view class="halo-ring"></view>
-      <text class="egg-icon">{{eggData.icon}}</text>
-      <view class="shine-star s-left">✨</view>
-      <view class="shine-star s-right">✨</view>
+  <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
+    <view class="god-rays"></view>
+    <view class="confetti-container">
+       <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+       <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+       <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+       <view class="confetti c10"></view>
     </view>
-    <view class="egg-title">{{eggData.title}}</view>
-    <view class="egg-desc">{{eggData.desc}}</view>
-    <view class="egg-reward-box">
-      <text class="reward-label">获得奖励</text>
-      <view class="reward-val-row">
-        <text class="val-num">+{{eggData.bonus}}</text>
-        <text class="val-unit">g 爱意 💧</text>
+    <view class="egg-card bounce-in">
+      <view class="card-ribbon">LUCKY TIME</view>
+      <view class="icon-stage">
+        <view class="halo-ring"></view>
+        <text class="egg-icon">{{eggData.icon}}</text>
+        <view class="shine-star s-left">✨</view>
+        <view class="shine-star s-right">✨</view>
       </view>
+      <view class="egg-title">{{eggData.title}}</view>
+      <view class="egg-desc">{{eggData.desc}}</view>
+      
+      <view class="egg-reward-box">
+        <text class="reward-label">获得奖励</text>
+        <view class="reward-val-row">
+          <text class="val-num">+{{eggData.bonus}}</text>
+          <text class="val-unit">g 爱意 💧</text>
+        </view>
+      </view>
+      <button class="btn-get-egg" bindtap="closeEggModal">
+        <text>开心收下 ❤️</text>
+      </button>
     </view>
-    <button class="btn-get-egg" bindtap="closeEggModal">
-      <text>开心收下 ❤️</text>
-    </button>
   </view>
 
-  </view>
-
-<!-- Food Preparation Modal -->
-<food-prep-modal show="{{showFoodPrepModal}}"
-                 loveEnergy="{{loveEnergy}}"
-                 foodInventory="{{foodInventory}}"
-                 bind:cancel="onFoodPrepModalCancel"
-                 bind:prepare="onFoodPrepare"
-                 bind:success="onFoodPrepSuccess"></food-prep-modal>
+  <food-prep-modal show="{{showFoodPrepModal}}"
+                   loveEnergy="{{loveEnergy}}"
+                   foodInventory="{{foodInventory}}"
+                   bind:cancel="onFoodPrepModalCancel"
+                   bind:prepare="onFoodPrepare"
+                   bind:success="onFoodPrepSuccess"></food-prep-modal>
 
 </view>
