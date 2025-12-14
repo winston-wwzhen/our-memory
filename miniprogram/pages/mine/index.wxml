@@ -25,7 +25,6 @@
     </view>
 
     <view class="avatars-area">
-  
       <view class="avatar-left-wrap">
         <button class="avatar-btn me reset-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
           <image class="avatar-img" src="{{userData.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
@@ -35,7 +34,6 @@
            <input type="nickname" class="nickname-input-clean" value="{{userData.nickName}}" placeholder="点击设昵称" bindinput="onNicknameInput" bindblur="onNicknameBlur" />
            <text class="edit-icon-small">✎</text>
         </view>
-  
       </view>
 
       <view class="connect-status">
@@ -47,7 +45,6 @@
           </view>
         </block>
         <block wx:else>
-     
           <view class="disconnect-line"></view>
           <text class="disconnect-txt">等待连接</text>
         </block>
@@ -64,37 +61,40 @@
                <text class="plus-icon">+</text>
             </view>
           </button>
-     
           <view class="name-tag">邀请TA</view>
         </block>
       </view>
     </view>
 
-    <!-- 爱意值显示区域 -->
-    <view class="love-stat-box">
-      <view class="love-row">
-        <text class="love-icon">💧</text>
-        <text class="love-label">我的爱意:</text>
-        <text class="love-num">{{userData.water_count || 0}}</text>
-        <text class="love-unit">g</text>
+    <view class="data-dashboard">
+      <view class="data-item">
+        <view class="data-main">
+          <text class="data-num">{{userData.water_count || 0}}</text>
+          <text class="data-unit">g</text>
+        </view>
+        <view class="data-label">
+           <text class="icon">💧</text> 
+           <text>我的爱意</text>
+        </view>
+      </view>
+      
+      <view class="data-divider"></view>
+
+      <view class="data-item">
+        <view class="data-main">
+          <text class="data-num">{{filmData.total}}</text>
+          <text class="data-unit">张</text>
+        </view>
+        <view class="data-label">
+           <text class="icon">🎞️</text> 
+           <text>剩余胶卷</text>
+        </view>
+        <view class="data-tags">
+           <text class="tag">今日 {{filmData.daily}}</text>
+           <text class="tag">永久 {{filmData.permanent}}</text>
+        </view>
       </view>
     </view>
-
-    <view class="film-stat-box">
-      <view class="film-row">
-        <text class="film-icon">🎞️</text>
-        <text class="film-label">我的胶卷:</text>
-        <text class="film-num">{{filmData.total}}</text>
-        <text class="film-unit">张</text>
-      </view>
-      <view class="film-detail-row">
-        <text class="film-detail-tag">今日 {{filmData.daily}}</text>
-     
-    <text class="film-divider">|</text>
-        <text class="film-detail-tag">永久 {{filmData.permanent}}</text>
-      </view>
-    </view>
-
     <view class="info-edit-area">
       <block wx:if="{{userData.partner_id}}">
         <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
@@ -130,7 +130,6 @@
         </view>
       </view>
       <view class="mi-tag">去邀请</view>
- 
     </button>
 
     <view class="menu-item" bindtap="{{userData.partner_id ? 'onUnbind' : 'showInviteModal'}}">
@@ -146,8 +145,7 @@
 
     <button class="menu-item" open-type="contact">
       <view class="mi-left">
-   
-      <view class="mi-icon blue">🎧</view>
+        <view class="mi-icon blue">🎧</view>
         <view class="mi-content">
           <text class="mi-title">联系客服</text>
           <text class="mi-desc">反馈问题或建议</text>
@@ -159,13 +157,14 @@
 
   <view class="footer-copyright">Designed for Love v1.0.0</view>
 
-  <include src="./components/modals.wxml" /> <view class="oath-modal-mask" wx:if="{{showModal}}" bindtap="hideModal">
+  <include src="./components/modals.wxml" /> 
+  
+  <view class="oath-modal-mask" wx:if="{{showModal}}" bindtap="hideModal">
     <view class="oath-card bounce-in" wx:if="{{modalType === 'invite'}}" catchtap="true">
         <view class="oath-decoration-top">🕊️</view>
         <view class="oath-title">愿得一人心</view>
         <view class="oath-subtitle">邀请 TA 开启共同回忆</view>
-  
-       <view class="oath-warning">
+        <view class="oath-warning">
           <text class="warning-desc">相遇不易，开启后请用心经营你们的回忆。</text>
         </view>
         <button class="btn-oath-confirm" open-type="share">🌹 发送邀请</button>
@@ -176,8 +175,7 @@
         <view class="oath-title">遗憾的决定</view>
         <view class="oath-warning unbind-style">
           <text class="warning-title">⚠️ 高能预警</text>
-    
-       <text class="warning-desc">解绑后双方VIP立即失效，且7天内无法再次绑定。</text>
+          <text class="warning-desc">解绑后双方VIP立即失效，且7天内无法再次绑定。</text>
         </view>
         <button class="btn-oath-confirm danger" bindtap="confirmUnbind">
             {{!canUnbind ? '冷静 ' + unbindCount + 's' : '💔 确认解绑'}}
@@ -193,8 +191,7 @@
         <view class="egg-title">{{eggData.title}}</view>
         <view class="egg-desc">{{eggData.desc}}</view>
         <view class="egg-reward-box">
-         
- <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
+          <text class="val-num">+{{eggData.bonus}}</text> <text class="val-unit">爱意</text>
         </view>
         <button class="btn-get-egg" bindtap="closeEggModal">开心收下</button>
      </view>

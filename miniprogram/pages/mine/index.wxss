@@ -29,13 +29,14 @@ page {
 .profile-card {
   position: relative;
   z-index: 10;
-  /* 🟢 修改：减小顶部边距 (原为180rpx) */
   margin: 30rpx 30rpx 0 30rpx;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 36rpx;
-  padding: 40rpx 30rpx;
-  box-shadow: 0 16rpx 40rpx rgba(255, 154, 158, 0.15);
+  /* 优化：调整内边距，底部留白减少 */
+  padding: 40rpx 30rpx 30rpx 30rpx;
+  /* 优化：阴影更柔和 */
+  box-shadow: 0 20rpx 50rpx rgba(255, 182, 193, 0.25);
   border: 1rpx solid rgba(255, 255, 255, 0.8);
 }
 
@@ -56,11 +57,7 @@ page {
   box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.2);
 }
 .vip-badge .icon { margin-right: 8rpx; }
-
-/* VIP 日期文字 */
-.vip-date-txt {
-  font-size: 18rpx; color: #999; margin-left: 8rpx;
-}
+.vip-date-txt { font-size: 18rpx; color: #999; margin-left: 8rpx; }
 
 .id-tag {
   font-size: 20rpx; color: #ccc; background: rgba(0,0,0,0.03);
@@ -116,8 +113,10 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
   background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   font-size: 20rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15); z-index: 5;
 }
+
 .connect-status {
-  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: -30rpx;
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin-top: -30rpx;
 }
 .heart-beat { 
   font-size: 44rpx; color: #ff6b81; animation: heartBeat 1.5s infinite; 
@@ -129,69 +128,85 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
 .disconnect-line { width: 100rpx; height: 2rpx; background-color: #e0e0e0; margin-bottom: 12rpx; }
 .disconnect-txt { font-size: 20rpx; color: #bbb; }
 
-/* 爱意值统计盒子样式 */
-.love-stat-box {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-  border-radius: 32rpx;
-  padding: 24rpx 40rpx;
-  margin: 30rpx 60rpx;
-  box-shadow: 0 8rpx 30rpx rgba(33, 150, 243, 0.15);
-}
-
-.love-row {
+/* === [NEW] 数据仪表盘样式 (替代原有的 love-stat-box 和 film-stat-box) === */
+.data-dashboard {
+  margin: 40rpx 10rpx 10rpx; /* 调整间距 */
+  background: #fff9fa;       /* 极淡的暖色背景 */
+  border-radius: 24rpx;
+  padding: 30rpx 0 24rpx;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  border: 1rpx solid rgba(255, 235, 238, 0.6);
 }
 
-.love-icon {
-  font-size: 48rpx;
-  margin-right: 16rpx;
-}
-
-.love-label {
-  font-size: 30rpx;
-  color: #1976d2;
-  margin-right: 10rpx;
-}
-
-.love-num {
-  font-size: 40rpx;
-  font-weight: bold;
-  color: #0d47a1;
-  margin-right: 6rpx;
-}
-
-.love-unit {
-  font-size: 28rpx;
-  color: #1976d2;
-}
-
-/* 胶卷统计盒子样式 */
-.film-stat-box {
-  background: #f8f9fa;
-  border-radius: 20rpx;
-  padding: 16rpx 30rpx;
-  margin-bottom: 30rpx;
+.data-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
+  position: relative;
 }
-.film-row {
-  display: flex; align-items: flex-end; margin-bottom: 6rpx;
+
+.data-main {
+  position: relative;
+  line-height: 1;
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: baseline;
 }
-.film-icon { font-size: 30rpx; margin-right: 10rpx; }
-.film-label { font-size: 26rpx; color: #666; margin-right: 10rpx; font-weight: bold; }
-.film-num { font-size: 36rpx; color: #333; font-weight: 900; line-height: 1; font-family: 'Courier New', monospace; }
-.film-unit { font-size: 22rpx; color: #999; margin-left: 6rpx; margin-bottom: 4rpx; }
 
-.film-detail-row {
-  display: flex; align-items: center; font-size: 20rpx; color: #aaa;
+.data-num {
+  font-size: 48rpx;
+  font-weight: 900;
+  color: #333;
+  font-family: 'DINAlternate-Bold', sans-serif;
+  margin-right: 4rpx;
 }
-.film-divider { margin: 0 10rpx; color: #ddd; }
 
+.data-unit {
+  font-size: 24rpx;
+  color: #999;
+  font-weight: normal;
+}
 
-.info-edit-area { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.data-label {
+  font-size: 26rpx;
+  color: #666;
+  display: flex;
+  align-items: center;
+  opacity: 0.9;
+}
+
+.data-label .icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+
+/* 胶卷详情标签优化 */
+.data-tags {
+  margin-top: 12rpx;
+  display: flex;
+  gap: 8rpx;
+}
+.data-tags .tag {
+  font-size: 18rpx;
+  color: #bcaaa4;
+  background: #fff;
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #eee;
+}
+
+.data-divider {
+  width: 2rpx;
+  height: 60rpx;
+  background: linear-gradient(180deg, #eee, #ddd, #eee);
+  margin-top: 10rpx;
+}
+
+/* === 底部信息编辑区 === */
+.info-edit-area { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 20rpx; }
 .date-pill {
   font-size: 22rpx; color: #ff6b81; background: #fff0f5; padding: 10rpx 30rpx; 
   border-radius: 30rpx; font-weight: 600;
@@ -200,7 +215,8 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
 
 /* === 4. 奖励条 & 菜单 === */
 .reward-entry {
-  margin: 30rpx 30rpx 0 30rpx; background: linear-gradient(135deg, #fff8e1, #fff3e0);
+  margin: 30rpx 30rpx 0 30rpx;
+  background: linear-gradient(135deg, #fff8e1, #fff3e0);
   border-radius: 24rpx; padding: 24rpx 30rpx; display: flex; justify-content: space-between; align-items: center;
   box-shadow: 0 4rpx 16rpx rgba(255, 160, 0, 0.1); border: 1rpx solid #ffe0b2;
 }
@@ -222,40 +238,42 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
 button.menu-item { width: 100%; border: none; text-align: left; line-height: normal; padding: 30rpx; }
 button.menu-item::after { border: none; }
 .menu-item.highlight { background: #f9fbe7; border: 1rpx solid #f0f4c3; }
+
 .mi-left { display: flex; align-items: center; }
+
+/* 优化：菜单图标改为圆形 */
 .mi-icon {
-  width: 72rpx; height: 72rpx; border-radius: 20rpx; display: flex; align-items: center; justify-content: center;
-  font-size: 32rpx; margin-right: 24rpx;
+  width: 80rpx; height: 80rpx; border-radius: 50%; 
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; margin-right: 24rpx;
+  transition: transform 0.2s;
 }
+.menu-item:active .mi-icon { transform: scale(0.95); }
+
 .mi-icon.yellow { background: #fffde7; color: #fbc02d; }
 .mi-icon.pink { background: #ffebee; color: #ff5252; }
 .mi-icon.blue { background: #e3f2fd; color: #2196f3; }
 .mi-icon.green { background: #e8f5e9; color: #4caf50; }
+
 .mi-content { display: flex; flex-direction: column; }
 .mi-title { font-size: 28rpx; font-weight: bold; color: #333; margin-bottom: 4rpx; }
 .mi-desc { font-size: 20rpx; color: #999; }
 .mi-arrow { font-size: 24rpx; color: #ccc; }
 .mi-tag { background: #8bc34a; color: #fff; font-size: 22rpx; padding: 6rpx 16rpx; border-radius: 20rpx; }
-.dot-red { width: 14rpx; height: 14rpx; background: #ff5252; border-radius: 50%; }
 
 .footer-copyright { text-align: center; color: #ddd; font-size: 20rpx; margin-bottom: 40rpx; }
 
 /* === 弹窗(Modal)样式 === */
 .oath-modal-mask {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6); z-index: 1000;
   display: flex; align-items: center; justify-content: center;
   backdrop-filter: blur(5px);
 }
 
 .oath-card {
-  width: 560rpx;
-  background: #fff;
-  border-radius: 40rpx;
-  padding: 60rpx 50rpx 40rpx 50rpx;
-  display: flex; flex-direction: column; align-items: center;
-  position: relative;
+  width: 560rpx; background: #fff; border-radius: 40rpx; padding: 60rpx 50rpx 40rpx 50rpx;
+  display: flex; flex-direction: column; align-items: center; position: relative;
   box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.1);
 }
 
@@ -291,29 +309,14 @@ button.menu-item::after { border: none; }
 @keyframes heartBeat { 
   0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } 
 }
-
 @keyframes bounceIn {
   0% { opacity: 0; transform: scale(0.9); } 
   100% { opacity: 1; transform: scale(1); }
 }
-
-.bounce-in {
-  animation: bounceIn 0.4s cubic-bezier(0.215, 0.61, 0.355, 1); 
-}
+.bounce-in { animation: bounceIn 0.4s cubic-bezier(0.215, 0.61, 0.355, 1); }
 
 .redeem-btn-link {
-  margin-top: 10rpx;
-  font-size: 20rpx;
-  color: #ff6b81;
-  background: rgba(255, 107, 129, 0.1);
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
-  font-weight: bold;
-  display: inline-block;
-  transition: all 0.2s;
+  margin-top: 10rpx; font-size: 20rpx; color: #ff6b81; background: rgba(255, 107, 129, 0.1);
+  padding: 6rpx 16rpx; border-radius: 20rpx; font-weight: bold; display: inline-block; transition: all 0.2s;
 }
-
-.redeem-btn-link:active {
-  background: rgba(255, 107, 129, 0.2);
-  transform: scale(0.95);
-}
+.redeem-btn-link:active { background: rgba(255, 107, 129, 0.2); transform: scale(0.95); }
