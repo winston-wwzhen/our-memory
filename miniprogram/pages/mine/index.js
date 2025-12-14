@@ -39,6 +39,9 @@ Page({
     // 临时存储邀请码
     inviteCode: null,
 
+    // 邀请类型：friend | partner
+    inviteType: null,
+
     // 🥚 彩蛋
     showEggModal: false,
     eggData: null,
@@ -55,8 +58,10 @@ Page({
     if (options && options.inviteCode) {
       this.setData({
         inviteCode: options.inviteCode,
+        inviteType: options.type || 'partner', // 默认为伴侣邀请
       });
       app.globalData.tempInviteCode = options.inviteCode;
+      app.globalData.tempInviteType = options.type || 'partner';
     }
   },
 
@@ -150,7 +155,7 @@ Page({
       this.hideModal();
       return {
         title: `💌 ${myName} 邀请你开启：我们的纪念册`,
-        path: `/pages/mine/index?inviteCode=${myOpenId}`,
+        path: `/pages/mine/index?inviteCode=${myOpenId}&type=partner`,
         imageUrl: SHARE_IMG,
       };
     }
@@ -158,21 +163,23 @@ Page({
     if (res.from === "button" && res.target.dataset.type === "referral") {
       return {
         title: `🎁 ${myName} 邀请你加入OurMemory，记录我们的美好回忆~`,
-        path: `/pages/mine/index?inviteCode=${myOpenId}`,
+        path: `/pages/mine/index?inviteCode=${myOpenId}&type=friend`,
         imageUrl: SHARE_IMG,
       };
     }
 
     return {
       title: "邀请你共同开启我们的纪念册",
-      path: "/pages/mine/index?inviteCode=" + (myOpenId || ""),
+      path: "/pages/mine/index?inviteCode=" + (myOpenId || "") + "&type=partner",
       imageUrl: SHARE_IMG,
     };
   },
 
   onShareTimeline: function () {
+    const myOpenId = this.data.userData._openid;
     return {
       title: "邀请你共同开启我们的纪念册",
+      path: "/pages/mine/index?inviteCode=" + (myOpenId || "") + "&type=partner",
     };
   },
 
@@ -252,12 +259,30 @@ Page({
     });
   },
 
+  // 处理朋友邀请
+  handleFriendInvite: function (inviteCode) {
+    // 朋友邀请的奖励已在云函数的login方法中自动处理
+    // 这里只需要显示成功提示即可
+    wx.showModal({
+      title: "✨ 邀请成功",
+      content: "成功接受好友邀请！\n邀请人已获得100水滴和2次拍照次数奖励",
+      showCancel: false,
+      confirmText: "知道了",
+      confirmColor: "#ff6b81",
+      success: () => {
+        // 刷新页面数据，显示可能的新用户奖励
+        this.checkLogin();
+      }
+    });
+  },
+
   // ============================================================
   // 🟢 业务逻辑
   // ============================================================
 
   checkLogin: function (callback) {
     const inviteCode = this.data.inviteCode || app.globalData.tempInviteCode;
+    const inviteType = this.data.inviteType || app.globalData.tempInviteType;
 
     wx.cloud.callFunction({
       name: "user_center",
@@ -265,8 +290,12 @@ Page({
       success: (res) => {
         if (res.result.status === 200 || res.result.status === 201) {
           if (inviteCode) {
-            this.setData({ inviteCode: null });
+            this.setData({
+              inviteCode: null,
+              inviteType: null
+            });
             app.globalData.tempInviteCode = null;
+            app.globalData.tempInviteType = null;
           }
 
           let {
@@ -296,20 +325,40 @@ Page({
 
           app.globalData.userInfo = user;
 
-          if (inviteCode && !user.partner_id) {
+          if (inviteCode) {
             const codeToBind = inviteCode;
-            wx.showModal({
-              title: "💌 收到邀请",
-              content: "检测到来自另一半的绑定邀请，确认要建立关联吗？",
-              confirmText: "确认绑定",
-              confirmColor: "#ff6b81",
-              cancelText: "只是好友",
-              success: (res) => {
-                if (res.confirm) {
-                  this.directBind(codeToBind);
-                }
-              },
-            });
+
+            // 根据邀请类型显示不同的弹窗内容
+            if (inviteType === 'friend') {
+              // 朋友邀请
+              wx.showModal({
+                title: "💌 收到邀请",
+                content: "检测到来自好友的邀请，接受邀请可获得福利哦～",
+                confirmText: "接受邀请",
+                confirmColor: "#ff6b81",
+                cancelText: "暂不需要",
+                success: (res) => {
+                  if (res.confirm) {
+                    // 朋友邀请接受后的处理逻辑
+                    this.handleFriendInvite(codeToBind);
+                  }
+                },
+              });
+            } else if (!user.partner_id) {
+              // 伴侣邀请 - 只有在没有伴侣时才显示
+              wx.showModal({
+                title: "💌 收到邀请",
+                content: "检测到来自另一半的绑定邀请，确认要建立关联吗？",
+                confirmText: "确认绑定",
+                confirmColor: "#ff6b81",
+                cancelText: "只是好友",
+                success: (res) => {
+                  if (res.confirm) {
+                    this.directBind(codeToBind);
+                  }
+                },
+              });
+            }
           }
 
           // 处理 VIP 日期
