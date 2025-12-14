@@ -1,18 +1,15 @@
 <view class="playground-container">
 
 <view class="room-container">
-  
+
   <view class="ground-spot"></view>
 
   <view wx:if="{{petState === 'idle'}}" class="pet-container">
-    <image src="/images/pet/pet.png"
-           class="pet-character {{petAnimation}}"
-           bindtap="onPetTap"></image>
+    <image src="/images/pet/pet.png" class="pet-character {{petAnimation}}" bindtap="onPetTap"></image>
   </view>
 
   <view wx:elif="{{petState === 'eating'}}" class="pet-container">
-    <image src="/images/pet/eat.png"
-           class="pet-character eating-animation"></image>
+    <image src="/images/pet/eat.png" class="pet-character eating-animation"></image>
   </view>
 
   <view wx:elif="{{petState === 'traveling'}}" class="travel-note-container">
@@ -22,49 +19,71 @@
   </view>
 
   <view class="ui-overlay">
-    <view class="status-pill pet-info">
-      <text class="pill-icon">🐾</text>
-      <text class="pill-text">{{petName}}</text>
-      <view class="v-divider"></view>
-      <view class="status-group">
-        <view class="status-item">
-          <text class="status-emoji">{{moodValue < 60 ? '😔' : '😊'}}</text>
-          <text class="status-info">
-            <text class="pill-label">心情</text>
-            <text class="pill-value {{moodValue < 60 ? 'low' : ''}}">{{moodText}}</text>
-          </text>
+    <view class="status-card glass-panel">
+      <view class="pet-identity">
+        <text class="pill-icon">🐾</text>
+        <text class="pill-text">{{petName}}</text>
+      </view>
+      
+      <view class="divider-h"></view>
+
+      <view class="status-metrics">
+        <view class="metric-row" bindtap="showHelp" data-type="mood">
+          <view class="metric-label-group">
+            <text class="metric-icon">{{moodValue < 60 ? '😔' : '😊'}}</text>
+            <text class="metric-name">心情</text>
+            <view class="help-badge">?</view>
+          </view>
+          <view class="metric-bar-box">
+            <progress percent="{{moodValue}}" stroke-width="6" border-radius="6" activeColor="#FF6B6B" backgroundColor="rgba(255,255,255,0.5)" />
+          </view>
+          <text class="metric-val {{moodValue < 60 ? 'low' : ''}}">{{moodText}}</text>
         </view>
-        <view class="status-item">
-          <text class="status-emoji">{{energyLevel < 30 ? '😴' : '💪'}}</text>
-          <text class="status-info">
-            <text class="pill-label">体力</text>
-            <text class="pill-value {{energyLevel < 30 ? 'low' : ''}}">{{energyText}}</text>
-          </text>
+
+        <view class="metric-row" bindtap="showHelp" data-type="energy">
+          <view class="metric-label-group">
+            <text class="metric-icon">{{energyLevel < 30 ? '😴' : '💪'}}</text>
+            <text class="metric-name">体力</text>
+            <view class="help-badge">?</view>
+          </view>
+          <view class="metric-bar-box">
+            <progress percent="{{energyLevel}}" stroke-width="6" border-radius="6" activeColor="#FFB347" backgroundColor="rgba(255,255,255,0.5)" />
+          </view>
+          <text class="metric-val {{energyLevel < 30 ? 'low' : ''}}">{{energyText}}</text>
         </view>
       </view>
     </view>
 
-    <view class="status-pill resource-info">
+    <view class="love-pill glass-panel">
       <text class="pill-icon">💧</text>
       <text class="pill-value">{{loveEnergy}}g</text>
     </view>
 
+    <view class="side-nav-group">
+      <view class="mini-glass-btn" bindtap="onTravelMap">
+        <text>🗺️</text>
+        <text class="mini-label">地图</text>
+      </view>
+
+      <view class="mini-glass-btn" bindtap="onPostcards">
+        <text>💌</text>
+        <view wx:if="{{hasNewPostcards}}" class="notification-dot small"></view>
+        <text class="mini-label">信箱</text>
+      </view>
+
+      <view class="mini-glass-btn" bindtap="toggleLogModal">
+        <text>📜</text>
+        <text class="mini-label">日记</text>
+      </view>
+    </view>
+
     <view class="action-buttons">
-      <view class="action-btn-glass" bindtap="onTravelMap">
-        <view class="glass-icon-box blue"><text>🗺️</text></view>
-        <text class="glass-label">地图</text>
+      <view class="action-btn-glass" bindtap="showFeedModal">
+        <view class="glass-icon-box yellow"><text>🍽️</text></view>
+        <text class="glass-label">喂食</text>
       </view>
 
-      <view class="action-btn-glass" bindtap="onPostcards">
-        <view class="glass-icon-box orange">
-          <text>💌</text>
-          <view wx:if="{{hasNewPostcards}}" class="notification-dot"></view>
-        </view>
-        <text class="glass-label">信箱</text>
-      </view>
-
-      <view class="action-btn-glass {{petState !== 'idle' ? 'disabled' : ''}}"
-            bindtap="onBackpackTap">
+      <view class="action-btn-glass {{petState !== 'idle' ? 'disabled' : ''}}" bindtap="onBackpackTap">
         <view class="glass-icon-box green"><text>🎒</text></view>
         <text class="glass-label">行囊</text>
       </view>
@@ -140,6 +159,42 @@
   </view>
 </view>
 
+<view class="feed-modal-mask {{showFeedModal ? 'show' : ''}}" bindtap="closeFeedModal">
+  <view class="feed-modal-container glass-panel" catchtap="return">
+    <view class="feed-header">
+      <text>🍽️ 投喂时刻</text>
+    </view>
+    <view class="feed-list">
+      <view class="feed-item" bindtap="onFeed" data-type="rice_ball">
+        <view class="feed-icon-bg">🍙</view>
+        <view class="feed-info">
+          <text class="feed-name">饭团便当</text>
+          <text class="feed-effect">体力+20</text>
+        </view>
+        <view class="feed-action {{foodInventory.rice_ball > 0 ? '' : 'disabled'}}">
+          <text wx:if="{{foodInventory.rice_ball > 0}}">拥有: {{foodInventory.rice_ball}}</text>
+          <text wx:else>去制作</text>
+        </view>
+      </view>
+
+      <view class="feed-item" bindtap="onFeed" data-type="luxury_bento">
+        <view class="feed-icon-bg">🍱</view>
+        <view class="feed-info">
+          <text class="feed-name">豪华御膳</text>
+          <text class="feed-effect">体力+40 心情+20</text>
+        </view>
+        <view class="feed-action {{foodInventory.luxury_bento > 0 ? '' : 'disabled'}}">
+          <text wx:if="{{foodInventory.luxury_bento > 0}}">拥有: {{foodInventory.luxury_bento}}</text>
+          <text wx:else>去制作</text>
+        </view>
+      </view>
+    </view>
+    <view class="feed-footer">
+      <text class="feed-tip">如果没有食物，请点击右下角“行囊”制作哦~</text>
+    </view>
+  </view>
+</view>
+
 <view class="log-modal-mask {{showLogModal ? 'show' : ''}}" bindtap="toggleLogModal">
   <view class="log-modal-container" catchtap="return">
     <view class="log-modal-header">
@@ -152,7 +207,7 @@
       </view>
       <block wx:else>
         <view class="modal-log-item" wx:for="{{logs}}" wx:key="index">
-          <image class="modal-log-avatar" src="{{item.avatarUrl || '../../images/default-avatar.png'}}" mode="aspectFill"></image>
+          <image class="modal-log-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
           <view class="modal-log-content">
             <view class="modal-log-top">
               <text class="modal-log-name {{item.isMine ? 'mine' : 'partner'}}">{{item.nickName}}</text>
@@ -169,10 +224,10 @@
 <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
   <view class="god-rays"></view>
   <view class="confetti-container">
-     <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
-     <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
-     <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
-     <view class="confetti c10"></view>
+    <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
+    <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
+    <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
+    <view class="confetti c10"></view>
   </view>
   <view class="egg-card bounce-in">
     <view class="card-ribbon">LUCKY TIME</view>
@@ -184,7 +239,7 @@
     </view>
     <view class="egg-title">{{eggData.title}}</view>
     <view class="egg-desc">{{eggData.desc}}</view>
-    
+
     <view class="egg-reward-box">
       <text class="reward-label">获得奖励</text>
       <view class="reward-val-row">
@@ -197,6 +252,21 @@
     </button>
   </view>
 </view>
+
+<view class="help-modal-mask {{showHelpModal ? 'show' : ''}}" bindtap="closeHelpModal">
+  <view class="help-modal-card glass-panel" catchtap="return">
+    <view class="help-header">
+      <text class="help-title">{{helpTitle}}</text>
+    </view>
+    <view class="help-content">
+      <text>{{helpContent}}</text>
+    </view>
+    <view class="help-footer">
+      <button class="help-btn" catchtap="closeHelpModal">我知道了</button>
+    </view>
+  </view>
+</view>
+
 <food-prep-modal show="{{showFoodPrepModal}}" loveEnergy="{{loveEnergy}}" foodInventory="{{foodInventory}}" bind:cancel="onFoodPrepModalCancel" bind:prepare="onFoodPrepare" bind:success="onFoodPrepSuccess"></food-prep-modal>
 
 </view>

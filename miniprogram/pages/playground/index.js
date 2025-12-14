@@ -39,6 +39,9 @@ Page({
     showFoodPrepModal: false,
     testModal: false,
 
+    // 喂食弹窗状态
+    showFeedModal: false,
+
     // 提示状态
     capsuleRedDot: false,
     messageHint: false,
@@ -47,6 +50,21 @@ Page({
     // 🥚 彩蛋
     showEggModal: false,
     eggData: null,
+
+    // 💡 帮助说明弹窗
+    showHelpModal: false,
+    helpTitle: '',
+    helpContent: '',
+    helpTexts: {
+      mood: {
+        title: '关于心情 (Mood)',
+        content: '心情影响着宠物的成长效率和互动反馈。\n\n💕 如何提升：\n经常抚摸宠物（点击它），或者给它准备好吃的食物，都能让它开心起来哦！'
+      },
+      energy: {
+        title: '关于体力 (Energy)',
+        content: '体力决定了宠物能否出门去远方旅行。\n\n🍱 如何提升：\n当体力不足时，请点击“行囊”为宠物准备便当，进食后体力会迅速恢复！'
+      }
+    }
   },
 
   onShow: function () {
@@ -67,26 +85,19 @@ Page({
     }
   },
 
-  // 🟢 修复：添加下拉刷新监听函数
   onPullDownRefresh: function () {
-    // 1. 刷新用户状态（积分等）
     this.updateUserStatus();
-
-    // 2. 刷新提示红点
     if (app.globalData.userInfo && app.globalData.userInfo.partner_id) {
       this.checkCapsuleRedDot();
       this.checkMessageHint();
       this.checkQuizHint();
     }
-
-    // 3. 刷新宠物数据，并在回调中停止下拉动画
     this.fetchPetData(() => {
       wx.stopPullDownRefresh();
       wx.showToast({ title: "刷新成功", icon: "none" });
     });
   },
 
-  // Time-based background update
   updateRoomBackground: function () {
     const hour = new Date().getHours();
     const isNight = hour < 6 || hour >= 18;
@@ -95,7 +106,6 @@ Page({
     });
   },
 
-  // Pet interaction
   onPetTap: function () {
     if (this.data.petState !== "idle") {
       this.setData({
@@ -108,15 +118,12 @@ Page({
       return;
     }
 
-    // Trigger animation
     this.setData({
-      petAnimation: "pet-pat",
+      petAnimation: "pet-bounce",
     });
 
-    // Create heart particles
     this.createHeartParticles();
 
-    // Call backend to interact with pet
     wx.cloud.callFunction({
       name: "user_center",
       data: {
@@ -135,7 +142,6 @@ Page({
             this.setData({ statusMessage: "" });
           }, 2000);
 
-          // Refresh pet data to sync with backend
           this.fetchPetData();
         } else {
           this.setData({
@@ -151,13 +157,11 @@ Page({
       },
     });
 
-    // Reset animation
     setTimeout(() => {
       this.setData({ petAnimation: "" });
-    }, 1000);
+    }, 600);
   },
 
-  // Create heart particle effect
   createHeartParticles: function () {
     const particles = [];
     for (let i = 0; i < 5; i++) {
@@ -175,14 +179,12 @@ Page({
     });
   },
 
-  // Create single heart particle
   createHeartParticle: function (leftPosition) {
     const particle = {
       id: Date.now() + Math.random(),
       left: leftPosition,
     };
 
-    // Add particle to array
     const particles = this.data.heartParticles || [];
     particles.push(particle);
 
@@ -190,7 +192,6 @@ Page({
       heartParticles: particles,
     });
 
-    // Remove particle after animation
     setTimeout(() => {
       const updatedParticles = this.data.heartParticles.filter(
         (p) => p.id !== particle.id
@@ -199,12 +200,8 @@ Page({
         heartParticles: updatedParticles,
       });
     }, 2000);
-
-    // Vibrate for haptic feedback
-    wx.vibrateShort();
   },
 
-  // Navigation handlers
   onBackpackTap: function () {
     if (this.data.petState !== "idle") {
       wx.showToast({ title: "宠物正在忙碌中", icon: "none" });
@@ -215,17 +212,79 @@ Page({
 
   onPostcardsTap: function () {
     this.setData({ hasNewPostcards: false });
-    // Navigate to postcards page when implemented
     wx.showToast({ title: "明信片功能开发中...", icon: "none" });
   },
 
-  onFoodPrep: function () {
-    console.log(
-      "onFoodPrep clicked! Current showFoodPrepModal:",
-      this.data.showFoodPrepModal
-    );
+  // 喂食相关逻辑
+  showFeedModal() {
+    if (this.data.petState !== "idle") {
+      wx.showToast({ title: "宠物正在忙碌中", icon: "none" });
+      return;
+    }
+    this.setData({ showFeedModal: true });
+  },
 
-    // 检查宠物状态
+  closeFeedModal() {
+    this.setData({ showFeedModal: false });
+  },
+
+  onFeed(e) {
+    const type = e.currentTarget.dataset.type;
+    const count = this.data.foodInventory[type] || 0;
+
+    // 1. 检查库存
+    if (count <= 0) {
+      this.setData({ showFeedModal: false });
+      setTimeout(() => {
+        this.showFoodPrepModal(); 
+        wx.showToast({ title: '库存不足，请先制作', icon: 'none' });
+      }, 300);
+      return;
+    }
+
+    // 2. 调用喂食接口
+    wx.showLoading({ title: '喂食中...' });
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: {
+        action: "interact_with_pet",
+        type: "feed",
+        food_type: type
+      },
+      success: (res) => {
+        wx.hideLoading();
+        if (res.result.status === 200) {
+          wx.showToast({ title: '喂食成功', icon: 'success' });
+          this.setData({ 
+            showFeedModal: false,
+            statusMessage: "体力恢复中...", // 暂时显示
+            petState: 'eating' // 播放动画
+          });
+          
+          // 刷新数据（更新库存和数值）
+          this.fetchPetData();
+          
+          // 🟢 修复：3秒后清除状态提示，并重置宠物状态
+          setTimeout(() => {
+             this.setData({
+               statusMessage: "",
+               petState: "idle"
+             });
+          }, 3000);
+          
+        } else {
+          wx.showToast({ title: res.result.msg || '喂食失败', icon: 'none' });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error(err);
+        wx.showToast({ title: '网络异常', icon: 'none' });
+      }
+    });
+  },
+
+  onFoodPrep: function () {
     if (this.data.petState !== "idle") {
       wx.showToast({
         title: "宠物正在忙碌中",
@@ -234,33 +293,16 @@ Page({
       return;
     }
 
-    // 强制设置模态框显示
-    this.setData(
-      {
-        showFoodPrepModal: true,
-      },
-      () => {
-        console.log(
-          "After setData callback - showFoodPrepModal:",
-          this.data.showFoodPrepModal
-        );
-      }
-    );
+    this.setData({
+      showFoodPrepModal: true,
+    });
   },
 
-  // Test function
-  testModalFunction: function () {
-    console.log("Test button clicked!");
-    this.setData({ showFoodPrepModal: true });
-  },
-
-  // Food Preparation Modal handlers
   showFoodPrepModal: function () {
     if (this.data.petState !== "idle") {
       wx.showToast({ title: "宠物正在忙碌中", icon: "none" });
       return;
     }
-    console.log("showFoodPrepModal called, setting to true");
     this.setData({ showFoodPrepModal: true });
   },
 
@@ -271,7 +313,6 @@ Page({
   onFoodPrepare: function (e) {
     const { foodType, cost } = e.detail;
 
-    // Check if user has enough love energy
     if (this.data.loveEnergy < cost) {
       wx.showToast({
         title: "爱意不足，去首页打卡获取吧~",
@@ -280,7 +321,6 @@ Page({
       return;
     }
 
-    // Call backend to prepare food
     wx.cloud.callFunction({
       name: "user_center",
       data: {
@@ -289,13 +329,11 @@ Page({
       },
       success: (res) => {
         if (res.result.status === 200) {
-          // Update love energy and food inventory
           this.setData({
             loveEnergy: this.data.loveEnergy - cost,
             statusMessage: "正在准备食物...",
           });
 
-          // Simulate preparation time
           setTimeout(() => {
             this.onFoodPrepSuccess({ detail: { foodType } });
           }, 1000);
@@ -320,7 +358,6 @@ Page({
     const { foodType } = e.detail;
     const foodName = foodType === "rice_ball" ? "饭团便当" : "豪华御膳";
 
-    // Update food inventory
     const currentCount = this.data.foodInventory[foodType];
     this.setData({
       [`foodInventory.${foodType}`]: currentCount + 1,
@@ -337,7 +374,6 @@ Page({
       icon: "success",
     });
 
-    // Refresh pet data to sync with backend
     this.fetchPetData();
   },
 
@@ -346,17 +382,14 @@ Page({
       wx.showToast({ title: "宠物正在旅行中", icon: "none" });
       return;
     }
-    // Navigate to travel map page
     wx.navigateTo({ url: "/pages/travel_map/index" });
   },
 
   onPostcards: function () {
     this.setData({ hasNewPostcards: false });
-    // Navigate to postcards page
     wx.navigateTo({ url: "/pages/postcards/index" });
   },
 
-  // Format return time
   formatReturnTime: function (returnTime) {
     const now = new Date();
     const returnDate = new Date(returnTime);
@@ -373,7 +406,6 @@ Page({
     return `${minutes}分钟`;
   },
 
-  // 🟢 核心修改：基于"盖章状态"判断提示
   checkMessageHint: function () {
     wx.cloud.callFunction({
       name: "user_center",
@@ -381,15 +413,9 @@ Page({
       success: (res) => {
         if (res.result.status === 200) {
           const msgs = res.result.data || [];
-
-          // 1. 筛选出"对方"发的留言 (过滤掉我自己的)
           const partnerMsgs = msgs.filter((m) => !m.isMine);
-
-          // 2. 找到最新一条
           if (partnerMsgs.length > 0) {
             const latest = partnerMsgs[0];
-
-            // 3. 只有当"未盖章(isLiked false)"时，才显示提示
             if (!latest.isLiked) {
               this.setData({ messageHint: true });
             } else {
@@ -408,7 +434,6 @@ Page({
     wx.navigateTo({ url: "/pages/message_board/index" });
   },
 
-  // 💊 时光胶囊
   checkCapsuleRedDot: function () {
     wx.cloud.callFunction({
       name: "user_center",
@@ -457,7 +482,6 @@ Page({
       success: (res) => {
         if (res.result.status === 200) {
           app.globalData.userInfo = res.result.user;
-          // Update love energy from user data
           this.setData({
             loveEnergy: res.result.user.water_count || 0,
           });
@@ -490,7 +514,6 @@ Page({
     return true;
   },
 
-  // Modified to fetch pet data instead of garden data
   fetchPetData: function (callback) {
     wx.cloud.callFunction({
       name: "user_center",
@@ -500,6 +523,18 @@ Page({
           const pet = res.result.pet || {};
           const moodValue = pet.mood_value || 60;
           const energyLevel = pet.energy_level || 80;
+
+          const rawLogs = res.result.logs || [];
+          const myAvatar = app.globalData.userInfo?.avatarUrl || "/images/default-avatar.png";
+          const partnerAvatar = "/images/default-avatar.png"; 
+
+          const processedLogs = rawLogs.map(log => ({
+            ...log,
+            timeAgo: this.formatTimeAgo(log.date),
+            nickName: log.isMine ? "我" : "TA",
+            avatarUrl: log.isMine ? myAvatar : partnerAvatar
+          }));
+
           this.setData({
             petState: pet.state || "idle",
             moodValue: moodValue,
@@ -514,27 +549,18 @@ Page({
             returnTimeStr: pet.return_time
               ? this.formatReturnTime(pet.return_time)
               : "",
-            // Update love energy from backend response
             loveEnergy: res.result.love_energy || 0,
-            roseBalance: res.result.rose_balance || 0,
+            logs: processedLogs, 
           });
         } else {
-          // Fallback to default values if no pet exists
-          const defaultMood = 60;
-          const defaultEnergy = 80;
+          // Fallback
           this.setData({
             petState: "idle",
-            moodValue: defaultMood,
-            energyLevel: defaultEnergy,
-            moodText: this.getMoodText(defaultMood),
-            energyText: this.getEnergyText(defaultEnergy),
-            travelCount: 0,
-            foodInventory: {
-              rice_ball: 0,
-              luxury_bento: 0,
-            },
+            moodValue: 60,
+            energyLevel: 80,
+            moodText: "很开心",
+            energyText: "精力充沛",
           });
-          // Still update user status to get love energy
           this.updateUserStatus();
         }
         this.updateRoomBackground();
@@ -542,22 +568,6 @@ Page({
       },
       fail: (err) => {
         console.error("Failed to fetch pet data:", err);
-        // Fallback to default values on error
-        const errorMood = 60;
-        const errorEnergy = 80;
-        this.setData({
-          petState: "idle",
-          moodValue: errorMood,
-          energyLevel: errorEnergy,
-          moodText: this.getMoodText(errorMood),
-          energyText: this.getEnergyText(errorEnergy),
-          travelCount: 0,
-          foodInventory: {
-            rice_ball: 0,
-            luxury_bento: 0,
-          },
-        });
-        // Still update user status to get love energy
         this.updateUserStatus();
         this.updateRoomBackground();
         if (callback) callback();
@@ -576,7 +586,6 @@ Page({
     return Math.floor(diff / 86400) + "天前";
   },
 
-  // 转换心情数值为文字描述
   getMoodText: function(value) {
     if (value >= 80) return "超开心";
     if (value >= 60) return "很开心";
@@ -585,7 +594,6 @@ Page({
     return "很沮丧";
   },
 
-  // 转换体力数值为文字描述
   getEnergyText: function(value) {
     if (value >= 80) return "精力充沛";
     if (value >= 60) return "活力满满";
@@ -594,14 +602,13 @@ Page({
     return "疲惫不堪";
   },
 
-  // Legacy garden methods (kept for compatibility)
   onWater: function () {
     if (!this.checkPartner()) return;
     wx.showToast({ title: "请使用宠物互动功能", icon: "none" });
   },
 
+  // 🟢 移除了 checkPartner 校验，允许单人查看
   toggleLogModal: function () {
-    if (!this.checkPartner()) return;
     this.setData({ showLogModal: !this.data.showLogModal });
   },
 
@@ -634,6 +641,25 @@ Page({
 
   closeEggModal: function () {
     this.setData({ showEggModal: false });
+  },
+
+  showHelp(e) {
+    const type = e.currentTarget.dataset.type;
+    const info = this.data.helpTexts[type];
+    
+    if (info) {
+      this.setData({
+        showHelpModal: true,
+        helpTitle: info.title,
+        helpContent: info.content
+      });
+    }
+  },
+
+  closeHelpModal() {
+    this.setData({
+      showHelpModal: false
+    });
   },
 
   onShareAppMessage: function () {

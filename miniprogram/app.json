@@ -35,7 +35,7 @@
       },
       {
         "pagePath": "pages/playground/index",
-        "text": "萌宠",
+        "text": "Fun",
         "iconPath": "images/pet.png",
         "selectedIconPath": "images/pet_active.png"
       },
