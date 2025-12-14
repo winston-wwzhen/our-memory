@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "旅行地图",
-  "navigationBarBackgroundColor": "#F6F6F6",
+  "navigationBarBackgroundColor": "#ffffff",
   "navigationBarTextStyle": "black",
-  "backgroundColor": "#fdfbf7"
+  "backgroundColor": "#fdfbf7",
+  "usingComponents": {}
 }

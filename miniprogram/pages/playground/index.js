@@ -28,44 +28,36 @@ Page({
     hasNewPostcards: false,
     statusMessage: "",
     returnTimeStr: "",
+    
+    // 🟢 新增：倒计时字符串 (初始为空，防止闪烁)
+    countdownStr: "", 
+    
     petAnimation: "",
-    heartParticles: [], // Heart particles for pet interaction
+    heartParticles: [], 
     foodInventory: {
       rice_ball: 0,
       luxury_bento: 0,
     },
 
-    // Food Preparation Modal
+    // Modals & Hints
     showFoodPrepModal: false,
     testModal: false,
-
-    // 喂食弹窗状态
     showFeedModal: false,
-
-    // 提示状态
     capsuleRedDot: false,
     messageHint: false,
     quizHint: false,
-
-    // 🥚 彩蛋
     showEggModal: false,
     eggData: null,
-
-    // 💡 帮助说明弹窗
     showHelpModal: false,
     helpTitle: '',
     helpContent: '',
     helpTexts: {
-      mood: {
-        title: '关于心情 (Mood)',
-        content: '心情影响着宠物的成长效率和互动反馈。\n\n💕 如何提升：\n经常抚摸宠物（点击它），或者给它准备好吃的食物，都能让它开心起来哦！'
-      },
-      energy: {
-        title: '关于体力 (Energy)',
-        content: '体力决定了宠物能否出门去远方旅行。\n\n🍱 如何提升：\n当体力不足时，请点击“行囊”为宠物准备便当，进食后体力会迅速恢复！'
-      }
+      mood: { title: '关于心情 (Mood)', content: '心情影响着宠物的成长效率和互动反馈。\n\n💕 如何提升：\n经常抚摸宠物（点击它），或者给它准备好吃的食物，都能让它开心起来哦！' },
+      energy: { title: '关于体力 (Energy)', content: '体力决定了宠物能否出门去远方旅行。\n\n🍱 如何提升：\n当体力不足时，请点击“行囊”为宠物准备便当，进食后体力会迅速恢复！' }
     }
   },
+
+  timer: null, // 定时器引用
 
   onShow: function () {
     if (!this.data.navHeight) {
@@ -85,6 +77,14 @@ Page({
     }
   },
 
+  onHide: function() {
+    this.stopCountdown();
+  },
+
+  onUnload: function() {
+    this.stopCountdown();
+  },
+
   onPullDownRefresh: function () {
     this.updateUserStatus();
     if (app.globalData.userInfo && app.globalData.userInfo.partner_id) {
@@ -98,11 +98,173 @@ Page({
     });
   },
 
+  // 🟢 更新用户状态 (爱意值等)
+  updateUserStatus: function () {
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: { action: "login" },
+      success: (res) => {
+        if (res.result.status === 200) {
+          app.globalData.userInfo = res.result.user;
+          this.setData({
+            loveEnergy: res.result.user.water_count || 0,
+          });
+        }
+      },
+      fail: (err) => {
+        console.error("Failed to update user status:", err);
+      },
+    });
+  },
+
+  // 🟢 检查绑定状态
+  checkPartner: function () {
+    const user = app.globalData.userInfo;
+    if (!user || !user.partner_id) {
+      wx.showModal({
+        title: "情侣专属功能",
+        content:
+          "萌宠乐园是情侣专属的互动空间哦 🐾\n\n请先去【Mine】页面邀请另一半绑定，开启你们的甜蜜之旅吧！",
+        confirmText: "去绑定",
+        confirmColor: "#ff6b81",
+        cancelText: "再逛逛",
+        success: (res) => {
+          if (res.confirm) {
+            wx.switchTab({ url: "/pages/mine/index" });
+          }
+        },
+      });
+      return false;
+    }
+    return true;
+  },
+
   updateRoomBackground: function () {
     const hour = new Date().getHours();
     const isNight = hour < 6 || hour >= 18;
     this.setData({
       roomBgImage: isNight ? "/images/pet/back.png" : "/images/pet/home.jpg",
+    });
+  },
+
+  // 🟢 倒计时核心逻辑
+  startCountdown: function(returnTimeStr) {
+    this.stopCountdown(); // 清除旧的
+    
+    if(!returnTimeStr) return;
+
+    const targetTime = new Date(returnTimeStr).getTime();
+
+    const update = () => {
+      const now = new Date().getTime();
+      const diff = targetTime - now;
+
+      if (diff <= 0) {
+        // 倒计时结束
+        this.stopCountdown();
+        this.setData({ 
+          countdownStr: "即将归来",
+          petState: "idle" 
+        });
+        
+        // 延迟刷新数据
+        setTimeout(() => {
+          this.fetchPetData(() => {
+            wx.showToast({ title: '旅行结束啦！', icon: 'success' });
+          });
+        }, 1500);
+        return;
+      }
+
+      // 格式化 HH:MM:SS
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+
+      const pad = n => n < 10 ? `0${n}` : n;
+      this.setData({
+        countdownStr: `${pad(h)}:${pad(m)}:${pad(s)}`
+      });
+    };
+
+    update(); // 立即执行一次
+    this.timer = setInterval(update, 1000);
+  },
+
+  stopCountdown: function() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  },
+
+  // 获取宠物数据
+  fetchPetData: function (callback) {
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: { action: "get_pet_status" },
+      success: (res) => {
+        if (res.result.status === 200) {
+          const pet = res.result.pet || {};
+          const moodValue = pet.mood_value || 60;
+          const energyLevel = pet.energy_level || 80;
+
+          const rawLogs = res.result.logs || [];
+          const myAvatar = app.globalData.userInfo?.avatarUrl || "/images/default-avatar.png";
+          const partnerAvatar = "/images/default-avatar.png"; 
+
+          const processedLogs = rawLogs.map(log => ({
+            ...log,
+            timeAgo: this.formatTimeAgo(log.date),
+            nickName: log.isMine ? "我" : "TA",
+            avatarUrl: log.isMine ? myAvatar : partnerAvatar
+          }));
+
+          // 🟢 检查是否需要启动倒计时
+          if (pet.state === 'traveling' && pet.return_time) {
+            this.startCountdown(pet.return_time);
+          } else {
+            this.stopCountdown();
+            this.setData({ countdownStr: "" }); // 重置
+          }
+
+          this.setData({
+            petState: pet.state || "idle",
+            moodValue: moodValue,
+            energyLevel: energyLevel,
+            moodText: this.getMoodText(moodValue),
+            energyText: this.getEnergyText(energyLevel),
+            travelCount: pet.travel_count || 0,
+            foodInventory: pet.food_inventory || {
+              rice_ball: 0,
+              luxury_bento: 0,
+            },
+            returnTimeStr: pet.return_time
+              ? this.formatReturnTime(pet.return_time)
+              : "",
+            loveEnergy: res.result.love_energy || 0,
+            logs: processedLogs, 
+          });
+        } else {
+          // Fallback
+          this.setData({
+            petState: "idle",
+            moodValue: 60,
+            energyLevel: 80,
+            moodText: "很开心",
+            energyText: "精力充沛",
+          });
+          this.updateUserStatus();
+        }
+        this.updateRoomBackground();
+        if (callback) callback();
+      },
+      fail: (err) => {
+        console.error("Failed to fetch pet data:", err);
+        this.updateUserStatus();
+        this.updateRoomBackground();
+        if (callback) callback();
+      },
     });
   },
 
@@ -261,10 +423,8 @@ Page({
             petState: 'eating' // 播放动画
           });
           
-          // 刷新数据（更新库存和数值）
           this.fetchPetData();
           
-          // 🟢 修复：3秒后清除状态提示，并重置宠物状态
           setTimeout(() => {
              this.setData({
                statusMessage: "",
@@ -406,6 +566,47 @@ Page({
     return `${minutes}分钟`;
   },
 
+  formatTimeAgo: function (dateStr) {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = (now - date) / 1000;
+    if (diff < 60) return "刚刚";
+    if (diff < 3600) return Math.floor(diff / 60) + "分钟前";
+    if (diff < 86400) return Math.floor(diff / 3600) + "小时前";
+    return Math.floor(diff / 86400) + "天前";
+  },
+
+  getMoodText: function(value) {
+    if (value >= 80) return "超开心";
+    if (value >= 60) return "很开心";
+    if (value >= 40) return "还不错";
+    if (value >= 20) return "有点低落";
+    return "很沮丧";
+  },
+
+  getEnergyText: function(value) {
+    if (value >= 80) return "精力充沛";
+    if (value >= 60) return "活力满满";
+    if (value >= 40) return "还不错";
+    if (value >= 30) return "有点累了";
+    return "疲惫不堪";
+  },
+
+  onWater: function () {
+    if (!this.checkPartner()) return;
+    wx.showToast({ title: "请使用宠物互动功能", icon: "none" });
+  },
+
+  toggleLogModal: function () {
+    this.setData({ showLogModal: !this.data.showLogModal });
+  },
+
+  onHarvest: function () {
+    if (!this.checkPartner()) return;
+    wx.showToast({ title: "请使用旅行功能", icon: "none" });
+  },
+
   checkMessageHint: function () {
     wx.cloud.callFunction({
       name: "user_center",
@@ -473,148 +674,6 @@ Page({
     if (!this.checkPartner()) return;
     this.setData({ capsuleRedDot: false });
     wx.navigateTo({ url: "/pages/capsule/index" });
-  },
-
-  updateUserStatus: function () {
-    wx.cloud.callFunction({
-      name: "user_center",
-      data: { action: "login" },
-      success: (res) => {
-        if (res.result.status === 200) {
-          app.globalData.userInfo = res.result.user;
-          this.setData({
-            loveEnergy: res.result.user.water_count || 0,
-          });
-        }
-      },
-      fail: (err) => {
-        console.error("Failed to update user status:", err);
-      },
-    });
-  },
-
-  checkPartner: function () {
-    const user = app.globalData.userInfo;
-    if (!user || !user.partner_id) {
-      wx.showModal({
-        title: "情侣专属功能",
-        content:
-          "萌宠乐园是情侣专属的互动空间哦 🐾\n\n请先去【Mine】页面邀请另一半绑定，开启你们的甜蜜之旅吧！",
-        confirmText: "去绑定",
-        confirmColor: "#ff6b81",
-        cancelText: "再逛逛",
-        success: (res) => {
-          if (res.confirm) {
-            wx.switchTab({ url: "/pages/mine/index" });
-          }
-        },
-      });
-      return false;
-    }
-    return true;
-  },
-
-  fetchPetData: function (callback) {
-    wx.cloud.callFunction({
-      name: "user_center",
-      data: { action: "get_pet_status" },
-      success: (res) => {
-        if (res.result.status === 200) {
-          const pet = res.result.pet || {};
-          const moodValue = pet.mood_value || 60;
-          const energyLevel = pet.energy_level || 80;
-
-          const rawLogs = res.result.logs || [];
-          const myAvatar = app.globalData.userInfo?.avatarUrl || "/images/default-avatar.png";
-          const partnerAvatar = "/images/default-avatar.png"; 
-
-          const processedLogs = rawLogs.map(log => ({
-            ...log,
-            timeAgo: this.formatTimeAgo(log.date),
-            nickName: log.isMine ? "我" : "TA",
-            avatarUrl: log.isMine ? myAvatar : partnerAvatar
-          }));
-
-          this.setData({
-            petState: pet.state || "idle",
-            moodValue: moodValue,
-            energyLevel: energyLevel,
-            moodText: this.getMoodText(moodValue),
-            energyText: this.getEnergyText(energyLevel),
-            travelCount: pet.travel_count || 0,
-            foodInventory: pet.food_inventory || {
-              rice_ball: 0,
-              luxury_bento: 0,
-            },
-            returnTimeStr: pet.return_time
-              ? this.formatReturnTime(pet.return_time)
-              : "",
-            loveEnergy: res.result.love_energy || 0,
-            logs: processedLogs, 
-          });
-        } else {
-          // Fallback
-          this.setData({
-            petState: "idle",
-            moodValue: 60,
-            energyLevel: 80,
-            moodText: "很开心",
-            energyText: "精力充沛",
-          });
-          this.updateUserStatus();
-        }
-        this.updateRoomBackground();
-        if (callback) callback();
-      },
-      fail: (err) => {
-        console.error("Failed to fetch pet data:", err);
-        this.updateUserStatus();
-        this.updateRoomBackground();
-        if (callback) callback();
-      },
-    });
-  },
-
-  formatTimeAgo: function (dateStr) {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = (now - date) / 1000;
-    if (diff < 60) return "刚刚";
-    if (diff < 3600) return Math.floor(diff / 60) + "分钟前";
-    if (diff < 86400) return Math.floor(diff / 3600) + "小时前";
-    return Math.floor(diff / 86400) + "天前";
-  },
-
-  getMoodText: function(value) {
-    if (value >= 80) return "超开心";
-    if (value >= 60) return "很开心";
-    if (value >= 40) return "还不错";
-    if (value >= 20) return "有点低落";
-    return "很沮丧";
-  },
-
-  getEnergyText: function(value) {
-    if (value >= 80) return "精力充沛";
-    if (value >= 60) return "活力满满";
-    if (value >= 40) return "还不错";
-    if (value >= 30) return "有点累了";
-    return "疲惫不堪";
-  },
-
-  onWater: function () {
-    if (!this.checkPartner()) return;
-    wx.showToast({ title: "请使用宠物互动功能", icon: "none" });
-  },
-
-  // 🟢 移除了 checkPartner 校验，允许单人查看
-  toggleLogModal: function () {
-    this.setData({ showLogModal: !this.data.showLogModal });
-  },
-
-  onHarvest: function () {
-    if (!this.checkPartner()) return;
-    wx.showToast({ title: "请使用旅行功能", icon: "none" });
   },
 
   navToDecision: function () {

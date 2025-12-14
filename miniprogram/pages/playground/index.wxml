@@ -14,8 +14,12 @@
 
   <view wx:elif="{{petState === 'traveling'}}" class="travel-note-container">
     <image src="/images/pet/note.png" class="travel-note"></image>
-    <text class="note-text">{{petName}}去旅行啦~</text>
-    <text class="return-time">预计{{returnTimeStr}}返回</text>
+    <view class="note-content">
+      <text class="note-text">{{petName}}去旅行啦~</text>
+      <text class="return-time-label">预计归来倒计时</text>
+      <text class="countdown-clock" wx:if="{{countdownStr}}">{{countdownStr}}</text>
+      <text class="countdown-clock" wx:else>计算中...</text>
+    </view>
   </view>
 
   <view class="ui-overlay">

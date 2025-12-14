@@ -38,7 +38,7 @@ async function handle(action, event, ctx) {
             .doc(myPet._id)
             .update({ data: { owners: _.addToSet(OPENID) } });
 
-        // 🟢 [修复 1] 自动结算逻辑修正
+        // 自动结算逻辑修正
         if (myPet.state === "traveling" && myPet.return_time) {
           const now = new Date();
           const returnTime = new Date(myPet.return_time);
@@ -58,7 +58,7 @@ async function handle(action, event, ctx) {
                 },
               });
 
-            // 3. [关键修复] 必须更新宠物状态回 idle，并保存进度
+            // 3. 更新宠物状态回 idle，并保存进度
             let petUpdateData = {
               state: "idle",
               current_destination: "",
@@ -76,11 +76,10 @@ async function handle(action, event, ctx) {
               data: petUpdateData,
             });
 
-            // 4. [修复] 更新本地 myPet 对象，以便正确返回给前端
+            // 4. 更新本地 myPet 对象，以便正确返回给前端
             myPet = {
               ...myPet,
               ...petUpdateData,
-              // 注意：serverDate在本地无法直接展示，这里简单处理，实际前端下次刷新会获取最新
               state: "idle",
               return_time: null,
             };
@@ -118,7 +117,7 @@ async function handle(action, event, ctx) {
         myPet = newPet;
       }
 
-      // Logs logic (保持不变)
+      // Logs logic
       let recentLogs = [];
       try {
         const owners = myPet.owners || [OPENID];
@@ -145,7 +144,6 @@ async function handle(action, event, ctx) {
     }
 
     case "interact_with_pet": {
-      // ... (保持原有逻辑不变)
       const { type, food_type } = event;
       const userRes = await db
         .collection("users")
@@ -169,25 +167,35 @@ async function handle(action, event, ctx) {
           updateData.energy_level = Math.max(0, (pet.energy_level || 0) - 1);
           await addLog(ctx, "pet_interaction", "抚摸了宠物");
           break;
+
         case "feed":
-          const foodCost = food_type === "luxury_bento" ? 50 : 10;
+          // 🟢 修改点 1: 精力满时阻止喂食
+          if ((pet.energy_level || 0) >= 100) {
+            return { status: 400, msg: "宠物精力充沛，吃不下了~" };
+          }
+
           const moodBonus = food_type === "luxury_bento" ? 20 : 10;
           const energyBonus = food_type === "luxury_bento" ? 40 : 20;
-          if ((me.water_count || 0) < foodCost)
-            return { status: 400, msg: "爱意不足" };
+
+          // 🟢 修改点 2: 移除爱意值校验（之前制作时已经扣过了）
+          // const foodCost = food_type === "luxury_bento" ? 50 : 10;
+          // if ((me.water_count || 0) < foodCost) return { status: 400, msg: "爱意不足" };
+
+          // 校验库存
           if ((pet.food_inventory[food_type] || 0) < 1)
-            return { status: 400, msg: "食物不足" };
+            return { status: 400, msg: "背包里没有这个食物了" };
 
-          await db
-            .collection("users")
-            .doc(me._id)
-            .update({ data: { water_count: _.inc(-foodCost) } });
+          // 🟢 修改点 3: 移除扣除爱意值的逻辑
+          // await db.collection("users").doc(me._id).update({ data: { water_count: _.inc(-foodCost) } });
 
+          // 扣除库存
           updateData.food_inventory = pet.food_inventory || {};
           updateData.food_inventory[food_type] = Math.max(
             0,
             (pet.food_inventory[food_type] || 0) - 1
           );
+          
+          // 增加心情和精力
           updateData.mood_value = Math.min(
             100,
             (pet.mood_value || 0) + moodBonus
@@ -196,20 +204,26 @@ async function handle(action, event, ctx) {
             100,
             (pet.energy_level || 0) + energyBonus
           );
+          
+          // 状态变为进食中
           updateData.state = "eating";
 
+          // 3秒后恢复空闲
           setTimeout(async () => {
             await db
               .collection("pets")
               .doc(pet._id)
               .update({ data: { state: "idle", updatedAt: db.serverDate() } });
           }, 3000);
+          
+          const foodName = food_type === "luxury_bento" ? "豪华御膳" : "饭团便当";
           await addLog(
             ctx,
             "pet_interaction",
-            `喂食了${food_type === "luxury_bento" ? "豪华御膳" : "饭团便当"}`
+            `喂食了${foodName}，心情+${moodBonus}，精力+${energyBonus}`
           );
           break;
+
         default:
           return { status: 400, msg: "无效的互动类型" };
       }
@@ -274,7 +288,6 @@ async function handle(action, event, ctx) {
         return { status: 404, msg: "目的地不存在" };
       const destination = destRes.data[0];
 
-      // 这里可以加一个校验：如果 unlocked_locations 不存在，默认为 ['park']
       const unlocked = pet.unlocked_locations || ["park"];
       if (!unlocked.includes(destination_id))
         return { status: 400, msg: "该地点尚未解锁" };
@@ -394,7 +407,6 @@ async function handle(action, event, ctx) {
       return { status: 200, destinations: destinations };
     }
 
-    // ... (其他 check_in, watch_ad_reward 保持不变)
     case "check_in": {
       const { imageFileID, style, evaluation } = event;
       if (!imageFileID) return { status: 400 };
@@ -403,7 +415,7 @@ async function handle(action, event, ctx) {
         .collection("logs")
         .where({
           _openid: OPENID,
-          originalDate: todayStr,
+          originalDate: getTodayStr(),
           type: "daily_check_in",
         })
         .count();
@@ -416,7 +428,7 @@ async function handle(action, event, ctx) {
           type: "daily_check_in",
           content: "打卡",
           imageFileID,
-          originalDate: todayStr,
+          originalDate: getTodayStr(),
           createdAt: db.serverDate(),
           style: style || "Sweet",
           evaluation: evaluation || null,
@@ -462,6 +474,7 @@ async function handle(action, event, ctx) {
         .where({ _openid: OPENID })
         .get();
       const user = userRes.data[0];
+      const todayStr = getTodayStr();
       const stats = user.daily_usage || { date: todayStr };
       if (
         (stats.date === todayStr ? stats.ad_count || 0 : 0) >=
@@ -522,7 +535,6 @@ async function processTravelRewards(db, pet, user, CONFIG) {
     }
 
     // 3. 特产掉落
-    // 确保 specialty_chance 存在
     const specialtyChance = destination.specialty_chance || 0;
     if (Math.random() < specialtyChance) {
       rewards.specialty = {
