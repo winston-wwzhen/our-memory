@@ -265,9 +265,9 @@ Page({
 
   showVipInfo: function () {
     wx.showModal({
-      title: "💎 内测 VIP 权益",
+      title: "💎 VIP 尊享权益",
       content:
-        "感谢参与内测！\n\n✨ 新人礼：注册首日获赠 10 张新人胶卷\n🚀 会员礼：VIP 期间每日享有 3 张每日胶卷",
+        "尊贵的VIP会员，感谢您的支持！\n\n✨ 新人礼：注册首日获赠 10 张新人胶卷\n🚀 会员礼：VIP 期间每日享有 3 张每日胶卷",
       showCancel: false,
       confirmText: "太棒了",
       confirmColor: "#ff6b81",
@@ -283,7 +283,7 @@ Page({
     if (currentStyle.isVip && !this.data.isVip) {
       wx.showModal({
         title: "VIP 专属风格",
-        content: `【${currentStyle.name}】需要 VIP 身份才能解锁哦，内测用户绑定伴侣可获得7天VIP身份！`,
+        content: `【${currentStyle.name}】需要 VIP 身份才能解锁哦！`,
         showCancel: false,
         confirmText: "知道了",
       });

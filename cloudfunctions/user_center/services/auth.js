@@ -1,13 +1,11 @@
 // cloudfunctions/user_center/services/auth.js
 const { getTodayStr, getRandomName } = require("../utils/common");
-const { getSudoUsers } = require("../utils/config");
 const { addLog } = require("../utils/logger");
 const { checkTextSafety, checkImageSafety } = require("../utils/safety");
 const { tryTriggerEgg } = require("../utils/eggs"); // 🟢 [引入] 确保引入彩蛋工具
 
 async function handle(action, event, ctx) {
   const { OPENID, db, _, CONFIG } = ctx;
-  const SUDO_USERS = await getSudoUsers(db);
   const todayStr = getTodayStr();
 
   // ... (checkCooldown 函数保持不变) ...
@@ -100,10 +98,8 @@ async function handle(action, event, ctx) {
           invite_count: 0, // 累计邀请人数
           invited_by: inviterId, // 记录邀请人
 
-          // 受邀奖励：赠送 1 天体验 VIP
-          vip_expire_date: inviterId
-            ? new Date(Date.now() + 24 * 60 * 60 * 1000)
-            : null,
+          // VIP过期时间始终为null
+          vip_expire_date: null,
         };
 
         const addRes = await db.collection("users").add({ data: newUser });
@@ -140,15 +136,11 @@ async function handle(action, event, ctx) {
         }
       }
 
-      const isPermanentVip = SUDO_USERS.includes(OPENID);
-      const isTrialVip =
+      const isVip =
         currentUser.vip_expire_date &&
         new Date(currentUser.vip_expire_date) > new Date();
-      const isVip = isPermanentVip || isTrialVip;
 
-      let currentLimit = isPermanentVip
-        ? 9999
-        : isVip
+      let currentLimit = isVip
         ? registerDays <= 1
           ? CONFIG.REG_DAY_LIMIT
           : CONFIG.VIP_DAILY_LIMIT
@@ -234,7 +226,7 @@ async function handle(action, event, ctx) {
         partner: partnerInfo,
         loginBonus,
         isVip,
-        vipExpireDate: isTrialVip ? currentUser.vip_expire_date : null,
+        vipExpireDate: isVip ? currentUser.vip_expire_date : null,
         registerDays,
         remaining: totalRemaining, // 🟢 返回总剩余次数
         dailyFreeLimit: currentLimit,
@@ -350,12 +342,6 @@ async function handle(action, event, ctx) {
         const pMsg = checkCooldown(pRes.data[0]);
         if (pMsg) return { status: 403, msg: "对方处于解绑冷静期" };
 
-        const vipExpire = new Date();
-        vipExpire.setDate(vipExpire.getDate() + CONFIG.VIP_TRIAL_DAYS);
-        const vipUpdate = {
-          vip_expire_date: vipExpire,
-        };
-
         const resA = await db
           .collection("users")
           .where({ _openid: OPENID, partner_id: null })
@@ -363,7 +349,6 @@ async function handle(action, event, ctx) {
             data: {
               partner_id: partnerCode,
               bind_request_from: null,
-              ...vipUpdate,
             },
           });
 
@@ -379,7 +364,6 @@ async function handle(action, event, ctx) {
               partner_id: OPENID,
               bind_request_from: null,
               bind_notification: true,
-              ...vipUpdate,
             },
           });
 
@@ -507,41 +491,6 @@ async function handle(action, event, ctx) {
         });
       await addLog(ctx, "update_status", `状态:${statusIcon}`);
       return { status: 200, msg: "已同步" };
-    }
-
-    case "admin_grant_vip": {
-      if (!SUDO_USERS.includes(OPENID)) {
-        return { status: 403, msg: "无权操作" };
-      }
-      const { targetOpenId, days } = event;
-      if (!targetOpenId || !days) {
-        return { status: 400, msg: "参数缺失" };
-      }
-      const targetUserRes = await db
-        .collection("users")
-        .where({ _openid: targetOpenId })
-        .get();
-      if (targetUserRes.data.length === 0) {
-        return { status: 404, msg: "未找到该用户 ID" };
-      }
-      const targetUser = targetUserRes.data[0];
-      let newExpire = new Date();
-      if (
-        targetUser.vip_expire_date &&
-        new Date(targetUser.vip_expire_date) > new Date()
-      ) {
-        newExpire = new Date(targetUser.vip_expire_date);
-      }
-      newExpire.setDate(newExpire.getDate() + parseInt(days));
-      await db
-        .collection("users")
-        .doc(targetUser._id)
-        .update({
-          data: { vip_expire_date: newExpire },
-        });
-      const dateStr = newExpire.toISOString().split("T")[0];
-      await addLog(ctx, "admin_vip", `管理员充值 ${days} 天`);
-      return { status: 200, msg: `充值成功！有效期至: ${dateStr}` };
     }
 
     case "redeem_vip_code": {

@@ -123,15 +123,6 @@ function generateEvaluation(taskTitle) {
   return { score, comment };
 }
 
-async function getSudoUsers() {
-  try {
-    const res = await db.collection("app_config").doc("global_settings").get();
-    return res.data.sudo_users || [];
-  } catch (err) {
-    console.error("读取全局配置失败:", err);
-    return [];
-  }
-}
 
 // 🛡️ 图片安全校验
 async function checkImageSafety(fileID) {
@@ -206,7 +197,6 @@ exports.main = async (event, context) => {
   const todayStr = getBeijingDateStr();
 
   let remainingAttempts = 0;
-  const SUDO_USERS = await getSudoUsers();
 
   // 获取用户信息判断额度和身份
   const userRes = await db.collection("users").where({ _openid: openid }).get();
@@ -216,10 +206,8 @@ exports.main = async (event, context) => {
   }
 
   const user = userRes.data[0];
-  const isPermanentVip = SUDO_USERS.includes(openid);
-  const isTrialVip =
+  const isVip =
     user.vip_expire_date && new Date(user.vip_expire_date) > new Date();
-  const isVip = isPermanentVip || isTrialVip;
 
   // 判断是否为测试账号
   const isTestUser =
@@ -254,7 +242,7 @@ exports.main = async (event, context) => {
   const adRewards = isToday ? stats.ad_count || 0 : 0;
   const totalDailyLimit = baseLimit + adRewards;
 
-  if (!isPermanentVip) {
+  {
     const currentUsed = isToday ? stats.count || 0 : 0;
     const extraQuota = user.extra_quota || 0;
 
@@ -324,8 +312,6 @@ exports.main = async (event, context) => {
     } else {
       remainingAttempts = (user.extra_quota || 0) - 1;
     }
-  } else {
-    remainingAttempts = 999;
   }
 
   let finalBuffer = null;
@@ -339,7 +325,7 @@ exports.main = async (event, context) => {
     const isImgSafe = await checkImageSafety(imageFileID);
     if (!isImgSafe) {
       // ⚠️ 校验失败回滚额度
-      if (!isPermanentVip) {
+      {
         if (deductedType === "daily") {
           await db
             .collection("users")
@@ -390,7 +376,7 @@ exports.main = async (event, context) => {
   } catch (aiError) {
     console.error("⚠️ AI Failed:", aiError);
     // ⚠️ AI 生成失败回滚额度
-    if (!isPermanentVip) {
+    {
       if (deductedType === "daily") {
         await db
           .collection("users")

@@ -43,7 +43,6 @@ exports.main = async (event, context) => {
     case "unbind":
     case "clear_bind_notification":
     case "update_status":
-    case "admin_grant_vip":
     case "redeem_vip_code":
     case "claim_rewards": // 🟢 [修复] 补上了 claim_rewards 路由
       return await authService.handle(action, event, ctx);

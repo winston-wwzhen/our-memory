@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(move c:UserswwzheDesktop副业微信小程序OurMemorydocs内测*.md c:UserswwzheDesktop副业微信小程序OurMemorydocsarchive)",
+      "Bash(powershell:*)",
+      "Bash(dir:*)"
     ]
   }
 }

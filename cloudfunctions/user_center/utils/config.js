@@ -1,8 +1,7 @@
 const DEFAULT_CONFIG = {
   NORMAL_FREE_LIMIT: 1, // 日常免费拍照次数
   VIP_DAILY_LIMIT: 3, // vip 每日拍照次数
-  REG_DAY_LIMIT: 10, // 内测期首日免费次数
-  VIP_TRIAL_DAYS: 7, // 内测时试用vip天数
+  REG_DAY_LIMIT: 10, // 首日免费次数
   DAILY_AD_LIMIT: 1, // 每日可看广告次数获取次数
   DAILY_LOGIN_BONUS: 50, // 每日登录获得的爱意数量
   DAILY_MSG_LIMIT: 10, // 每日留言数量限制
@@ -19,13 +18,4 @@ async function getBizConfig(db) {
   return DEFAULT_CONFIG;
 }
 
-async function getSudoUsers(db) {
-  try {
-    const res = await db.collection("app_config").doc("global_settings").get();
-    return res.data.sudo_users || [];
-  } catch (err) {
-    return [];
-  }
-}
-
-module.exports = { getBizConfig, getSudoUsers };
+module.exports = { getBizConfig };

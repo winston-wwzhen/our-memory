@@ -157,7 +157,7 @@ Page({
 
     if (res.from === "button" && res.target.dataset.type === "referral") {
       return {
-        title: `🎁 ${myName} 送你VIP和爱意值！快来和我一起记录生活~`,
+        title: `🎁 ${myName} 邀请你加入OurMemory，记录我们的美好回忆~`,
         path: `/pages/mine/index?inviteCode=${myOpenId}`,
         imageUrl: SHARE_IMG,
       };
@@ -530,17 +530,17 @@ Page({
   showVipInfo: function () {
     if (this.data.vipStatus.isVip) {
       wx.showModal({
-        title: "💎 内测 VIP 尊享权益",
-        content: `有效期至：${this.data.vipStatus.expireDateStr}\n\n感谢成为首批内测体验官！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会`,
+        title: "💎 VIP 尊享权益",
+        content: `有效期至：${this.data.vipStatus.expireDateStr}\n\n尊贵的VIP会员，感谢您的支持！\n\n✨ 新人礼：注册首日获赠 10 次生图额度\n🚀 会员礼：VIP 期间每日享有 3 次免费生图机会`,
         showCancel: false,
         confirmText: "太棒了",
         confirmColor: "#ff6b81",
       });
     } else {
       wx.showModal({
-        title: "🚀 VIP 筹备中",
+        title: "🌟 升级VIP",
         content:
-          "为了带给你们更好的体验，VIP 会员计划正在紧锣密鼓地筹备中！\n\n后续将解锁更多专属风格、无限畅玩特权，敬请期待~",
+          "升级VIP，解锁更多专属特权！\n\n✨ 每日免费生图额度\n🎨 解锁所有VIP专属风格\n💝 享受更多会员专属功能",
         showCancel: false,
         confirmText: "期待",
         confirmColor: "#9e9e9e",
