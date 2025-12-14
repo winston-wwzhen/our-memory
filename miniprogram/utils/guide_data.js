@@ -1,6 +1,5 @@
 // miniprogram/utils/guide_data.js
 
-// 1. 恋爱清单 (示例 30 件，可自行扩充至 100)
 const LOVE_LIST = [
   { id: 1, title: "一起看日出", icon: "🌅" },
   { id: 2, title: "一起去迪士尼", icon: "🏰" },
