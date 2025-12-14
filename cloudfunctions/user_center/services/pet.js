@@ -25,7 +25,7 @@ async function handle(action, event, ctx) {
 
       if (petRes.data.length > 0) {
         myPet = petRes.data[0];
-
+        myPet = await applyMoodDecay(ctx, myPet);
         // Update owners logic (保持不变)
         if (partnerId && !myPet.owners.includes(partnerId))
           await db
@@ -100,7 +100,7 @@ async function handle(action, event, ctx) {
         .where({ owners: OPENID })
         .get();
       if (petRes.data.length === 0) return { status: 404, msg: "宠物不存在" };
-      const pet = petRes.data[0];
+      let pet = await applyMoodDecay(ctx, petRes.data[0]);
       let updateData = {
         last_interaction: db.serverDate(),
         updatedAt: db.serverDate(),
@@ -494,6 +494,52 @@ async function processTravelRewards(db, pet, user, CONFIG) {
   }
 
   return rewards;
+}
+
+async function applyMoodDecay(ctx, pet) {
+  const { db, _, CONFIG } = ctx;
+  const now = new Date();
+  const lastUpdate = new Date(pet.updatedAt || pet.createdAt);
+
+  // 计算时间差（分钟）
+  const diffMinutes = (now - lastUpdate) / (1000 * 60);
+  const decayInterval = CONFIG.MOOD_DECAY_INTERVAL_MINUTES || 60;
+
+  // 如果时间差小于衰减间隔，不处理
+  if (diffMinutes < decayInterval) {
+    return pet;
+  }
+
+  // 计算需要衰减的次数
+  const decayCount = Math.floor(diffMinutes / decayInterval);
+  const decayAmount = decayCount * (CONFIG.MOOD_DECAY_AMOUNT || 2);
+
+  if (decayAmount <= 0) return pet;
+
+  // 计算新的心情值（最低为0）
+  const currentMood = pet.mood_value || 0;
+  let newMood = Math.max(0, currentMood - decayAmount);
+
+  // 如果心情值没有变化（已经是0了），直接返回
+  if (newMood === currentMood) return pet;
+
+  // 更新数据库
+  await db
+    .collection("pets")
+    .doc(pet._id)
+    .update({
+      data: {
+        mood_value: newMood,
+        updatedAt: db.serverDate(), // 更新时间，作为下一次衰减的基准
+      },
+    });
+
+  // 返回更新后的 pet 对象
+  return {
+    ...pet,
+    mood_value: newMood,
+    updatedAt: now,
+  };
 }
 
 module.exports = { handle };
