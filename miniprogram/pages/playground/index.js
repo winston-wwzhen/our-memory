@@ -29,9 +29,16 @@ Page({
     statusMessage: "",
     returnTimeStr: "",
 
-    // 🟢 新增：倒计时字符串
+    // 宠物对话气泡相关
+    petMessage: "",
+    showBubble: false,
+
+    // 🟢 新增：飘字弹窗数组
+    popups: [],
+
+    // 倒计时字符串
     countdownStr: "",
-    // 🎁 新增：控制礼品盒显示
+    // 控制礼品盒显示
     showGiftBox: false,
 
     petAnimation: "",
@@ -68,6 +75,7 @@ Page({
   },
 
   timer: null, // 定时器引用
+  bubbleTimer: null, // 气泡定时器
 
   onShow: function () {
     if (!this.data.navHeight) {
@@ -77,7 +85,7 @@ Page({
       });
     }
     this.updateUserStatus();
-    this.fetchPetData();
+    this.fetchPetData(true); // 传入 true 表示是 onShow 触发
 
     // 检查红点状态
     if (app.globalData.userInfo && app.globalData.userInfo.partner_id) {
@@ -89,10 +97,12 @@ Page({
 
   onHide: function () {
     this.stopCountdown();
+    if (this.bubbleTimer) clearTimeout(this.bubbleTimer);
   },
 
   onUnload: function () {
     this.stopCountdown();
+    if (this.bubbleTimer) clearTimeout(this.bubbleTimer);
   },
 
   onPullDownRefresh: function () {
@@ -111,7 +121,70 @@ Page({
     });
   },
 
-  // 🟢 更新用户状态 (爱意值等)
+  // 🟢 新增：显示飘字动画
+  showPopup: function (text) {
+    const id = Date.now() + Math.random(); // 唯一ID
+    // 随机微调位置，让飘字不重叠
+    const randomX = (Math.random() - 0.5) * 60;
+
+    const newPopup = { id, text, x: randomX };
+
+    this.setData({
+      popups: [...this.data.popups, newPopup],
+    });
+
+    // 动画结束后移除
+    setTimeout(() => {
+      const nextPopups = this.data.popups.filter((p) => p.id !== id);
+      this.setData({ popups: nextPopups });
+    }, 1000);
+  },
+
+  // 宠物说话逻辑
+  sayHello: function () {
+    const hours = new Date().getHours();
+    let msgs = ["你回来啦！", "好想你呀~", "等你很久咯！"];
+    if (hours < 9) msgs = ["早安主人！", "又是元气满满的一天！"];
+    else if (hours > 22) msgs = ["这么晚了，早点休息哦", "还没睡嘛？"];
+
+    this.sayRandomText(msgs);
+  },
+
+  sayInteractText: function () {
+    const msgs = ["嘻嘻~", "再摸摸头", "好痒呀~", "最喜欢你了❤️", "蹭蹭你~"];
+    this.sayRandomText(msgs);
+  },
+
+  sayEatingText: function () {
+    const msgs = [
+      "真好吃！",
+      "啊呜啊呜",
+      "肚子饱饱，心情好好",
+      "谢谢主人的投喂！",
+    ];
+    this.sayRandomText(msgs);
+  },
+
+  sayRandomText: function (msgs) {
+    if (!msgs || msgs.length === 0) return;
+    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+    this.showPetMessage(msg);
+  },
+
+  showPetMessage: function (msg) {
+    if (this.bubbleTimer) clearTimeout(this.bubbleTimer);
+
+    this.setData({
+      petMessage: msg,
+      showBubble: true,
+    });
+
+    this.bubbleTimer = setTimeout(() => {
+      this.setData({ showBubble: false });
+    }, 3500); // 3.5秒后消失
+  },
+
+  // 更新用户状态 (爱意值等)
   updateUserStatus: function () {
     wx.cloud.callFunction({
       name: "user_center",
@@ -132,7 +205,7 @@ Page({
     });
   },
 
-  // 🟢 检查绑定状态
+  // 检查绑定状态
   checkPartner: function () {
     const user = app.globalData.userInfo;
     if (!user || !user.partner_id) {
@@ -164,7 +237,7 @@ Page({
     });
   },
 
-  // 🟢 倒计时核心逻辑
+  // 倒计时核心逻辑
   startCountdown: function (returnTimeStr) {
     this.stopCountdown(); // 清除旧的
 
@@ -210,7 +283,14 @@ Page({
   },
 
   // 获取宠物数据
-  fetchPetData: function (callback) {
+  fetchPetData: function (isFromOnShow = false) {
+    // 如果传入的是 function，则认为是回调
+    let callback = null;
+    if (typeof isFromOnShow === "function") {
+      callback = isFromOnShow;
+      isFromOnShow = false;
+    }
+
     wx.cloud.callFunction({
       name: "user_center",
       data: {
@@ -234,7 +314,7 @@ Page({
             avatarUrl: log.isMine ? myAvatar : partnerAvatar,
           }));
 
-          // 🟢 检查是否需要启动倒计时或显示礼品盒
+          // 检查是否需要启动倒计时或显示礼品盒
           let showGiftBox = false;
           if (pet.state === "traveling" && pet.return_time) {
             const now = new Date().getTime();
@@ -273,6 +353,11 @@ Page({
             logs: processedLogs,
             showGiftBox: showGiftBox, // 更新礼品盒状态
           });
+
+          // 如果是进入页面且宠物在家，打个招呼
+          if (isFromOnShow === true && pet.state !== "traveling") {
+            this.sayHello();
+          }
         } else {
           // Fallback
           this.setData({
@@ -296,7 +381,7 @@ Page({
     });
   },
 
-  // 🎁 点击礼品盒领取奖励
+  // 点击礼品盒领取奖励
   onCollectReward: function () {
     if (this.data.loading) return;
 
@@ -388,6 +473,9 @@ Page({
       petAnimation: "pet-bounce",
     });
 
+    // 触发对话
+    this.sayInteractText();
+
     this.createHeartParticles();
 
     wx.cloud.callFunction({
@@ -401,14 +489,10 @@ Page({
           const newMood = Math.min(100, this.data.moodValue + 2);
           this.setData({
             moodValue: newMood,
-            statusMessage: "好感度 +2 ❤️",
           });
 
-          setTimeout(() => {
-            this.setData({
-              statusMessage: "",
-            });
-          }, 2000);
+          // 🟢 触发好感度飘字，而不是 statusMessage
+          this.showPopup("❤️ +2");
 
           this.fetchPetData();
         } else {
@@ -550,11 +634,15 @@ Page({
             title: "喂食成功",
             icon: "success",
           });
+
           this.setData({
             showFeedModal: false,
-            statusMessage: "体力恢复中...", // 暂时显示
-            petState: "eating", // 播放动画
+            statusMessage: "体力恢复中...",
+            petState: "eating",
           });
+
+          // 喂食说话
+          this.sayEatingText();
 
           this.fetchPetData();
 

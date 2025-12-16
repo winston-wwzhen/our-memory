@@ -6,23 +6,37 @@
   
   <view wx:if="{{showGiftBox}}" class="gift-box-container" bindtap="onCollectReward">
     <view class="gift-box-wrapper">
-      <text class="gift-icon">🎁</text>
+      <view class="gift-glow"></view> <text class="gift-icon">🎁</text>
       <view class="gift-tip">点击领取礼物</view>
     </view>
   </view>
 
-  <view wx:elif="{{petState === 'idle'}}" class="pet-container">
-    <image src="/images/pet/pet.png" class="pet-character {{petAnimation}}" bindtap="onPetTap"></image>
+  <view class="pet-container" wx:if="{{petState !== 'traveling'}}">
+    
+    <view class="pet-bubble {{showBubble ? 'show' : ''}}">
+      <text>{{petMessage}}</text>
+      <view class="bubble-arrow"></view>
+    </view>
+    
+    <block wx:for="{{popups}}" wx:key="id">
+      <view class="popup-text" style="transform: translateX(calc(-50% + {{item.x}}rpx)) translateY(0) scale(0.5);">{{item.text}}</view>
+    </block>
+
+    <view class="pet-image-wrapper" bindtap="onPetTap">
+      <image src="/images/pet/pet.png" 
+             class="pet-character base {{petState === 'idle' ? 'visible' : ''}} {{petAnimation}}" 
+      ></image>
+      <image src="/images/pet/eat.png" 
+             class="pet-character overlay {{petState === 'eating' ? 'visible' : ''}} eating-animation"
+      ></image>
+    </view>
+
   </view>
 
-  <view wx:elif="{{petState === 'eating'}}" class="pet-container">
-    <image src="/images/pet/eat.png" class="pet-character eating-animation"></image>
-  </view>
-
-  <view wx:elif="{{petState === 'traveling'}}" class="travel-note-container">
-    <!-- <image src="/images/pet/note.png" class="travel-note"></image> -->
+  <view wx:elif="{{petState === 'traveling' && !showGiftBox}}" class="travel-note-container">
     <view class="note-content">
       <text class="note-text">{{petName}}去旅行啦~</text>
+      
       <text class="return-time-label">预计归来倒计时</text>
       <text class="countdown-clock" wx:if="{{countdownStr}}">{{countdownStr}}</text>
       <text class="countdown-clock" wx:else>计算中...</text>
@@ -40,6 +54,7 @@
 
       <view class="status-metrics">
         <view class="metric-row" bindtap="showHelp" data-type="mood">
+      
           <view class="metric-label-group">
             <text class="metric-icon">{{moodValue < 60 ? '😔' : '😊'}}</text>
             <text class="metric-name">心情</text>
@@ -49,6 +64,7 @@
             <progress percent="{{moodValue}}" stroke-width="6" border-radius="6" activeColor="#FF6B6B" backgroundColor="rgba(255,255,255,0.5)" />
           </view>
           <text class="metric-val {{moodValue < 60 ? 'low' : ''}}">{{moodText}}</text>
+     
         </view>
 
         <view class="metric-row" bindtap="showHelp" data-type="energy">
@@ -61,6 +77,7 @@
             <progress percent="{{energyLevel}}" stroke-width="6" border-radius="6" activeColor="#FFB347" backgroundColor="rgba(255,255,255,0.5)" />
           </view>
           <text class="metric-val {{energyLevel < 30 ? 'low' : ''}}">{{energyText}}</text>
+     
         </view>
       </view>
     </view>
@@ -216,7 +233,7 @@
       <block wx:else>
         <view class="modal-log-item" wx:for="{{logs}}" wx:key="index">
           <image class="modal-log-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-          <view class="modal-log-content">
+           <view class="modal-log-content">
             <view class="modal-log-top">
               <text class="modal-log-name {{item.isMine ? 'mine' : 'partner'}}">{{item.nickName}}</text>
               <text class="modal-log-time">{{item.timeAgo}}</text>

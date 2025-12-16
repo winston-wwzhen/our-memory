@@ -7,7 +7,7 @@
         </view>
         <view class="status-info">
           <text class="status-label">精力值</text>
-          <text class="status-value">{{petEnergy}}/{{TRAVEL_ENERGY_COST}}</text>
+          <text class="status-value">{{petEnergy}}/100</text>
         </view>
       </view>
 
