@@ -56,9 +56,9 @@ async function handle(action, event, ctx) {
           last_interaction: db.serverDate(),
           travel_count: 0,
           current_destination: "",
+          current_travel_id: null,
           return_time: null,
           unlocked_locations: [], // 默认为空数组，代表全解锁
-          specialty_collection: [],
           food_inventory: { rice_ball: 0, luxury_bento: 0 },
           guaranteed_progress: 0,
           current_skin: "default", // 默认皮肤
@@ -260,6 +260,27 @@ async function handle(action, event, ctx) {
         ) + destination.min_travel_time;
       const returnTime = new Date(Date.now() + travelTime * 60 * 1000);
 
+      // 🌟 [新增] 创建旅行记录 (Travel Record)
+      const travelRecord = {
+        pet_id: pet._id,
+        owners: pet.owners,
+        destination_id: destination_id,
+        destination_name: destination.name,
+        start_time: db.serverDate(),
+        expected_return_time: returnTime,
+        status: "traveling", // traveling -> completed
+        food_consumed: {
+          type: food_type,
+          count: foodCost,
+        },
+        created_at: db.serverDate(),
+      };
+
+      const travelRes = await db
+        .collection("travel_records")
+        .add({ data: travelRecord });
+      const travelId = travelRes._id;
+
       await db
         .collection("pets")
         .doc(pet._id)
@@ -267,17 +288,20 @@ async function handle(action, event, ctx) {
           data: {
             state: "traveling",
             current_destination: destination_id,
+            current_travel_id: travelId,
             return_time: returnTime,
             energy_level: _.inc(-30),
             [`food_inventory.${food_type}`]: _.inc(-foodCost),
             updatedAt: db.serverDate(),
           },
         });
+
       await addLog(
         ctx,
         "pet_interaction",
         `宠物带上${foodCost}份便当去${destination.name}旅行了`
       );
+
       return {
         status: 200,
         msg: `宠物出发前往${destination.name}`,
@@ -322,6 +346,38 @@ async function handle(action, event, ctx) {
           },
         });
 
+      // 🌟 [新增] 处理明信片存储到独立表 (Postcards Table)
+      if (rewards.specialty) {
+        await db.collection("postcards").add({
+          data: {
+            ...rewards.specialty,
+            pet_id: pet._id,
+            owners: pet.owners,
+            travel_id: pet.current_travel_id, // 关联本次旅行
+            obtained_by: OPENID,
+            created_at: db.serverDate(),
+          },
+        });
+      }
+
+      // 🌟 [新增] 更新旅行记录表状态
+      if (pet.current_travel_id) {
+        await db
+          .collection("travel_records")
+          .doc(pet.current_travel_id)
+          .update({
+            data: {
+              status: "completed",
+              actual_return_time: db.serverDate(),
+              rewards_summary: {
+                roses: rewards.roses,
+                love_energy: rewards.love_energy,
+                has_specialty: !!rewards.specialty,
+              },
+            },
+          });
+      }
+
       // 更新宠物状态
       let petUpdateData = {
         state: "idle",
@@ -331,10 +387,6 @@ async function handle(action, event, ctx) {
         guaranteed_progress: rewards.guaranteed_progress,
         updatedAt: db.serverDate(),
       };
-
-      if (rewards.specialty) {
-        petUpdateData.specialty_collection = _.push(rewards.specialty);
-      }
 
       await db.collection("pets").doc(pet._id).update({
         data: petUpdateData,
@@ -377,26 +429,16 @@ async function handle(action, event, ctx) {
 
     // 7. 获取明信片墙 (新增)
     case "get_postcards": {
-      const petRes = await db
-        .collection("pets")
+      // 🌟 改为查询 postcards 独立集合
+      const postcardsRes = await db
+        .collection("postcards")
         .where({ owners: OPENID })
+        .orderBy("collected_at", "desc")
+        .limit(100) // 可根据需要分页
         .get();
 
-      if (petRes.data.length === 0) {
-        return { status: 200, postcards: [] };
-      }
-
-      const pet = petRes.data[0];
-      const collection = pet.specialty_collection || [];
-
-      // 按收集时间倒序排列
-      collection.sort(
-        (a, b) => new Date(b.collected_at) - new Date(a.collected_at)
-      );
-
-      // 映射为前端需要的格式
-      const postcards = collection.map((item) => {
-        // 兼容处理：如果没有 composition，说明是老数据，构造一个默认的
+      const postcards = postcardsRes.data.map((item) => {
+        // 兼容处理
         const composition = item.composition || {
           bg_image: item.image_url,
           skin_id: "default",
@@ -404,21 +446,21 @@ async function handle(action, event, ctx) {
         };
 
         return {
-          id: item.id,
+          id: item._id, // 使用文档ID
           travel_date: item.collected_at,
           message: item.description || "一次难忘的旅行回忆...",
-          destination_id: item.id.split("_")[0] || "unknown",
+          destination_id: (item.id || "").split("_")[0] || "unknown", // 兼容旧数据结构 item.id
           destination: {
             name: item.name.replace("纪念品", "").replace("明信片", ""),
-            image: item.image_url, // 前端展示用的合成图
+            image: item.image_url,
           },
-          composition: composition, // 将配方传递给前端
+          composition: composition,
           rewards: [
             { name: "爱意", count: 30, icon: "💧" },
             { name: "玫瑰", count: 1, icon: "🌹" },
-          ], // 模拟展示奖励
+          ],
           specialty_item: item.name,
-          likes: 0,
+          likes: item.likes || 0,
         };
       });
 

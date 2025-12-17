@@ -23,8 +23,7 @@
     </block>
 
     <view class="pet-image-wrapper" bindtap="onPetTap">
-      <image src="/images/pet/pet.png" 
-             class="pet-character base {{petState === 'idle' ? 'visible' : ''}} {{petAnimation}}" 
+      <image src="{{(moodValue < 60 || energyLevel < 40) ? '/images/pet/pet_sad.png' : (moodValue >= 80 ? '/images/pet/pet_happy.png' : '/images/pet/pet.png')}}"class="pet-character base {{petState === 'idle' ? 'visible' : ''}} {{petAnimation}}" 
       ></image>
       <image src="/images/pet/eat.png" 
              class="pet-character overlay {{petState === 'eating' ? 'visible' : ''}} eating-animation"
