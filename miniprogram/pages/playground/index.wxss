@@ -409,12 +409,14 @@ page {
 /* 右侧功能导航组 (位于胶囊下方) */
 .side-nav-group {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 100rpx);
+  /* 原来是 100rpx，改为 170rpx 以避开玫瑰胶囊 */
+  top: calc(env(safe-area-inset-top) + 170rpx); 
   right: 32rpx;
   display: flex;
   flex-direction: column;
   gap: 20rpx;
   align-items: center;
+  z-index: 20;
 }
 
 .mini-glass-btn {
@@ -786,4 +788,21 @@ page {
   0%, 100% { transform: translate(-50%, -50%);
   }
   50% { transform: translate(-50%, -60%); }
+}
+
+/* 🟢 [新增] 玫瑰胶囊样式 */
+.rose-pill {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 90rpx); /* 放在爱意值下方 */
+  right: 32rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 50rpx;
+  display: flex; 
+  align-items: center;
+  z-index: 25;
+}
+.rose-pill .pill-value {
+  font-size: 26rpx; 
+  font-weight: 700; 
+  color: #e91e63; /* 玫瑰红 */
 }

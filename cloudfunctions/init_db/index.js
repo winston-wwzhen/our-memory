@@ -86,24 +86,30 @@ exports.main = async (event, context) => {
     const destCount = await db.collection("destinations").count();
     if (destCount.total === 0) {
       const defaultDestinations = [
-        // Level 1: 家门口 - 社区花园 (新手福利)
+        // Level 1: 社区花园
         {
           id: "community_garden",
           name: "社区花园",
           description: "下楼就能到的秘密基地，晒晒太阳就很舒服",
-          min_travel_time: 15,          // 15分钟
+          min_travel_time: 15,
           max_travel_time: 30,
-          rose_chance_base: 0.1,        // 掉率低
-          specialty_chance: 0.5,        // 明信片掉率高
-          mood_bonus_required: 50,      // 门槛低
-          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight1.png?sign=5357ba1bf9918bcf639a62d4178fb636&t=1765960150",
-          food_required: "rice_ball",   // 需求：饭团
-          food_consumption: 1,          // 🟢 消耗：1个
-          base_love_reward: 20,         // 🟢 奖励：20g 爱意
-          possible_rewards: ["猫咪合影明信片", "1朵玫瑰"],
+          rose_chance_base: 0.1,
+          specialty_chance: 0.5,
+          mood_bonus_required: 50,
+          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight1.png?sign=3785d2d547d5c64a0818b882dbf4e7b8&t=1765964312", // 小程序端展示的封面
+          
+          // === 明信片配置 ===
+          postcard_image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/postcards/postcard1.png?sign=327a684c006fc581e0c46d57cf3aa7ad&t=1765964405", // MVP: 预合成好的图
+          postcard_bg: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight1.png?sign=3785d2d547d5c64a0818b882dbf4e7b8&t=1765964312",         // Future: 纯背景
+          postcard_layout: { x: 0.5, y: 0.65, scale: 0.8, rotation: 0, z_index: 10 }, // Future: 布局
+          
+          food_required: "rice_ball",
+          food_consumption: 1,
+          base_love_reward: 20,
+          possible_rewards: ["公园明信片", "1朵玫瑰"],
         },
 
-        // Level 2: 街区 - 深夜便利店 (都市氛围)
+        // Level 2: 24h便利店
         {
           id: "convenience_store",
           name: "24h便利店",
@@ -113,14 +119,20 @@ exports.main = async (event, context) => {
           rose_chance_base: 0.15,
           specialty_chance: 0.3,
           mood_bonus_required: 60,
-          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight2.png?sign=74c48f27c597e9adb7cbbdb1e807a682&t=1765960163",
+          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight2.png?sign=256ffff40c412cb336673a3874dac69a&t=1765964327",
+          
+          // === 明信片配置 ===
+          postcard_image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/postcards/postcard2.png?sign=87ec1ddd758004981b532b1a7681d541&t=1765964419",
+          postcard_bg: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight2.png?sign=256ffff40c412cb336673a3874dac69a&t=1765964327",
+          postcard_layout: { x: 0.5, y: 0.7, scale: 0.75, rotation: 0, z_index: 10 },
+          
           food_required: "rice_ball",
-          food_consumption: 2,          // 🟢 消耗：2个饭团
-          base_love_reward: 40,         // 🟢 奖励：40g 爱意
-          possible_rewards: ["关东煮明信片", "玫瑰"],
+          food_consumption: 2,
+          base_love_reward: 40,
+          possible_rewards: ["街边小店明信片", "玫瑰"],
         },
 
-        // Level 3: 城市 - 滨江步道 (浪漫散步)
+        // Level 3: 滨江步道
         {
           id: "riverside_walk",
           name: "滨江步道",
@@ -130,44 +142,62 @@ exports.main = async (event, context) => {
           rose_chance_base: 0.25,
           specialty_chance: 0.25,
           mood_bonus_required: 70,
-          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight3.png?sign=c5dcf36e4947a0a3e05eb9edd1fe68c7&t=1765960206",
-          food_required: "rice_ball",
-          food_consumption: 2,          // 🟢 消耗：2个 (如果是御膳就是2个御膳)
-          base_love_reward: 80,         // 🟢 奖励：80g 爱意
+          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight3.png?sign=748962f44182a3bc9d778686ee4041cd&t=1765964341",
+          
+          // === 明信片配置 ===
+          postcard_image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/postcards/postcard3.png?sign=8688ec0172f3d96e0fb167cc15ce7f41&t=1765964447",
+          postcard_bg: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight3.png?sign=748962f44182a3bc9d778686ee4041cd&t=1765964341",
+          postcard_layout: { x: 0.6, y: 0.6, scale: 0.7, rotation: 5, z_index: 10 },
+          
+          food_required: "any",
+          food_consumption: 2,
+          base_love_reward: 80,
           possible_rewards: ["夜景烟花明信片", "玫瑰"],
         },
 
-        // Level 4: 郊区 - 森林露营地 (周末短途)
+        // Level 4: 森林露营
         {
           id: "forest_camp",
           name: "森林露营",
           description: "逃离城市喧嚣，在帐篷里数星星",
-          min_travel_time: 180,         // 3小时
+          min_travel_time: 180,
           max_travel_time: 240,
           rose_chance_base: 0.35,
           specialty_chance: 0.2,
           mood_bonus_required: 80,
-          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight4.png?sign=09dca0bd4bd43b45668f62a2bfb1f0bd&t=1765960216",
-          food_required: "luxury_bento",// 必须豪华御膳
-          food_consumption: 1,          // 🟢 消耗：1个御膳
-          base_love_reward: 150,        // 🟢 奖励：150g 爱意 (高回报)
+          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight4.png?sign=44e2bd76c86a89aecb400c7ccc9f3ffb&t=1765964352",
+          
+          // === 明信片配置 ===
+          postcard_image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/postcards/postcard4.png?sign=bc4032432e24182b46a206f6733dc051&t=1765964459",
+          postcard_bg: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight4.png?sign=44e2bd76c86a89aecb400c7ccc9f3ffb&t=1765964352",
+          postcard_layout: { x: 0.4, y: 0.65, scale: 0.8, rotation: -5, z_index: 10 },
+          
+          food_required: "luxury_bento",
+          food_consumption: 1,
+          base_love_reward: 150,
           possible_rewards: ["星空营地明信片", "大量玫瑰"],
         },
 
-        // Level 5: 远方 - 海边灯塔 (诗与远方)
+        // Level 5: 孤独灯塔
         {
           id: "lighthouse",
           name: "孤独灯塔",
           description: "陆地的尽头，海浪拍打礁石的声音",
-          min_travel_time: 300,         // 5小时
+          min_travel_time: 300,
           max_travel_time: 480,
-          rose_chance_base: 0.5,        // 极高玫瑰掉率
+          rose_chance_base: 0.5,
           specialty_chance: 0.15,
           mood_bonus_required: 90,
-          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight5.png?sign=fcc85cfc206a9472589e3ee69dfa7766&t=1765960226",
+          image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight5.png?sign=2b14d8189ca29a3a48796b569aa29260&t=1765964365",
+          
+          // === 明信片配置 ===
+          postcard_image: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/postcards/postcard5.png?sign=a1cb503c188669b060cae4369f422f83&t=1765964470",
+          postcard_bg: "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight5.png?sign=2b14d8189ca29a3a48796b569aa29260&t=1765964365",
+          postcard_layout: { x: 0.5, y: 0.6, scale: 0.6, rotation: 0, z_index: 10 },
+          
           food_required: "luxury_bento",
-          food_consumption: 2,          // 🟢 消耗：2个豪华御膳 (重氪)
-          base_love_reward: 300,        // 🟢 奖励：300g 爱意 (超高回报)
+          food_consumption: 2,
+          base_love_reward: 300,
           possible_rewards: ["日出灯塔明信片", "海量玫瑰"],
         },
       ];

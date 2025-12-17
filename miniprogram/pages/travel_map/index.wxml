@@ -70,7 +70,7 @@
 
             <view class="card-footer">
               <view class="requirements">
-                <text class="req-tag">🍱 {{item.food_required === 'any' ? '任意便当' : (item.food_required === 'luxury_bento' ? '豪华御膳' : '饭团便当')}}</text>
+                <text class="req-tag">🍱 {{item.food_required === 'any' ? '任意便当' : (item.food_required === 'luxury_bento' ? '豪华御膳' : '饭团便当')}} <text style="font-weight:900; color:#ff6b81;" wx:if="{{item.foodCost > 1}}">x{{item.foodCost}}</text></text>
               </view>
               <view class="action-btn-area">
                 <text class="go-btn-text">GO 🚀</text>
@@ -139,10 +139,10 @@
                   <radio value="{{item.type}}" checked="{{item.type === selectedFood}}"/>
                   <view class="food-details">
                     <text class="food-name">{{item.name}}</text>
-                    <text class="food-bonus" wx:if="{{item.bonus}}">心情 +{{item.bonus}}</text>
+                    <text class="food-bonus" style="color:#ff6b81; font-weight:bold;">消耗: {{item.cost}}</text>
                   </view>
                 </view>
-                <text class="food-count-badge">x{{item.count}}</text>
+                <text class="food-count-badge">库存: {{item.count}}</text>
               </label>
             </radio-group>
           </view>

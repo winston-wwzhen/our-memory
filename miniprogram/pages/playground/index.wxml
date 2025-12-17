@@ -91,6 +91,11 @@
       <text class="pill-value">{{loveEnergy}}g</text>
     </view>
 
+    <view class="rose-pill glass-panel">
+      <text class="pill-icon">🌹</text>
+      <text class="pill-value">{{roseBalance}}</text>
+    </view>
+
     <view class="side-nav-group">
       <view class="mini-glass-btn" bindtap="onTravelMap">
         <text>🗺️</text>

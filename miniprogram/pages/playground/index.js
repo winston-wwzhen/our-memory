@@ -73,6 +73,8 @@ Page({
           "体力决定了宠物能否出门去远方旅行。\n\n🍱 如何提升：\n当体力不足时，请点击“行囊”为宠物准备便当，进食后体力会迅速恢复！",
       },
     },
+
+    roseBalance: 0, // 🌹 玫瑰余额
   },
 
   timer: null, // 定时器引用
@@ -197,6 +199,7 @@ Page({
           app.globalData.userInfo = res.result.user;
           this.setData({
             loveEnergy: res.result.user.water_count || 0,
+            roseBalance: res.result.user.rose_balance || 0, // 🟢 [新增] 同步玫瑰数量
           });
         }
       },
@@ -343,8 +346,9 @@ Page({
               ? this.formatReturnTime(pet.return_time)
               : "",
             loveEnergy: res.result.love_energy || 0,
+            roseBalance: res.result.rose_balance || 0,
             logs: processedLogs,
-            showGiftBox: showGiftBox, // 更新礼品盒状态
+            showGiftBox: showGiftBox,
           });
 
           // 如果是进入页面且宠物在家，打个招呼
@@ -401,9 +405,9 @@ Page({
           // 隐藏礼品盒
           this.setData({
             showGiftBox: false,
-            petState: 'idle',      // 强制设为空闲
-            statusMessage: '',     // 清空可能存在的提示
-            countdownStr: ''       // 清空倒计时
+            petState: "idle", // 强制设为空闲
+            statusMessage: "", // 清空可能存在的提示
+            countdownStr: "", // 清空倒计时
           });
 
           // 构造奖励提示文案
@@ -596,11 +600,10 @@ Page({
   },
 
   onFeed(e) {
-
     if (this.data.petState !== "idle") {
       wx.showToast({
         title: "宠物正在忙碌中",
-        icon: "none"
+        icon: "none",
       });
       this.setData({ showFeedModal: false });
       return;
