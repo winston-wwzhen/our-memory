@@ -1,11 +1,10 @@
+// cloudfunctions/user_center/services/pet.js
 const { getTodayStr } = require("../utils/common");
 const { addLog } = require("../utils/logger");
-// const { checkImageSafety } = require("../utils/safety"); // 暂时没用到
 const { tryTriggerEgg } = require("../utils/eggs");
 
 async function handle(action, event, ctx) {
   const { OPENID, db, _, CONFIG } = ctx;
-  // const todayStr = getTodayStr(); // 暂时没用到
 
   switch (action) {
     case "get_pet_status": {
@@ -26,7 +25,8 @@ async function handle(action, event, ctx) {
       if (petRes.data.length > 0) {
         myPet = petRes.data[0];
         myPet = await applyMoodDecay(ctx, myPet);
-        // Update owners logic (保持不变)
+
+        // Update owners logic
         if (partnerId && !myPet.owners.includes(partnerId))
           await db
             .collection("pets")
@@ -38,7 +38,7 @@ async function handle(action, event, ctx) {
             .doc(myPet._id)
             .update({ data: { owners: _.addToSet(OPENID) } });
       } else {
-        // Create new pet (保持不变)
+        // Create new pet
         let owners = [OPENID];
         if (partnerId) owners.push(partnerId);
         const newPet = {
@@ -94,18 +94,19 @@ async function handle(action, event, ctx) {
         .collection("users")
         .where({ _openid: OPENID })
         .get();
-      const me = userRes.data[0];
+      // const me = userRes.data[0]; // 暂时没用到
       const petRes = await db
         .collection("pets")
         .where({ owners: OPENID })
         .get();
+
       if (petRes.data.length === 0) return { status: 404, msg: "宠物不存在" };
       let pet = await applyMoodDecay(ctx, petRes.data[0]);
 
       if (pet.state === "traveling") {
         return { status: 400, msg: "宠物正在远方旅行，暂时无法互动哦~" };
       }
-      
+
       let updateData = {
         last_interaction: db.serverDate(),
         updatedAt: db.serverDate(),
@@ -122,7 +123,6 @@ async function handle(action, event, ctx) {
           if (pet.state !== "idle") {
             return { status: 400, msg: "宠物不在家，无法喂食哦~" };
           }
-
           if ((pet.energy_level || 0) >= 100) {
             return { status: 400, msg: "宠物精力充沛，吃不下了~" };
           }
@@ -130,18 +130,15 @@ async function handle(action, event, ctx) {
           const moodBonus = food_type === "luxury_bento" ? 20 : 10;
           const energyBonus = food_type === "luxury_bento" ? 40 : 20;
 
-          // 校验库存
           if ((pet.food_inventory[food_type] || 0) < 1)
             return { status: 400, msg: "背包里没有这个食物了" };
 
-          // 扣除库存
           updateData.food_inventory = pet.food_inventory || {};
           updateData.food_inventory[food_type] = Math.max(
             0,
             (pet.food_inventory[food_type] || 0) - 1
           );
 
-          // 增加心情和精力
           updateData.mood_value = Math.min(
             100,
             (pet.mood_value || 0) + moodBonus
@@ -150,11 +147,8 @@ async function handle(action, event, ctx) {
             100,
             (pet.energy_level || 0) + energyBonus
           );
-
-          // 状态变为进食中
           updateData.state = "eating";
 
-          // 3秒后恢复空闲
           setTimeout(async () => {
             await db
               .collection("pets")
@@ -182,6 +176,7 @@ async function handle(action, event, ctx) {
       const { food_type, quantity = 1 } = event;
       const foodCost = food_type === "luxury_bento" ? 50 : 10;
       const totalCost = foodCost * quantity;
+
       const userRes = await db
         .collection("users")
         .where({ _openid: OPENID })
@@ -201,6 +196,7 @@ async function handle(action, event, ctx) {
         .doc(me._id)
         .update({ data: { water_count: _.inc(-totalCost) } });
       const foodName = food_type === "luxury_bento" ? "豪华御膳" : "饭团便当";
+
       await db
         .collection("pets")
         .doc(petRes.data[0]._id)
@@ -214,6 +210,7 @@ async function handle(action, event, ctx) {
       return { status: 200, msg: `成功准备${quantity}份${foodName}` };
     }
 
+    // 🟢 [修改] 发送旅行逻辑升级
     case "send_pet_travel": {
       const { destination_id, food_type } = event;
       const petRes = await db
@@ -239,8 +236,16 @@ async function handle(action, event, ctx) {
       if (!unlocked.includes(destination_id))
         return { status: 400, msg: "该地点尚未解锁" };
 
-      if ((pet.food_inventory[food_type] || 0) < 1)
-        return { status: 400, msg: "食物不足，请先准备" };
+      // 🟢 关键修改：读取配置的消耗数量 (默认为1)
+      const foodCost = destination.food_consumption || 1;
+      const currentStock = pet.food_inventory[food_type] || 0;
+
+      if (currentStock < foodCost) {
+        return {
+          status: 400,
+          msg: `食物不足，去${destination.name}需要消耗 ${foodCost} 份便当`,
+        };
+      }
 
       const travelTime =
         Math.floor(
@@ -258,11 +263,16 @@ async function handle(action, event, ctx) {
             current_destination: destination_id,
             return_time: returnTime,
             energy_level: _.inc(-30),
-            [`food_inventory.${food_type}`]: _.inc(-1),
+            // 🟢 关键修改：扣除 foodCost 数量
+            [`food_inventory.${food_type}`]: _.inc(-foodCost),
             updatedAt: db.serverDate(),
           },
         });
-      await addLog(ctx, "pet_interaction", `宠物去${destination.name}旅行了`);
+      await addLog(
+        ctx,
+        "pet_interaction",
+        `宠物带上${foodCost}份便当去${destination.name}旅行了`
+      );
       return {
         status: 200,
         msg: `宠物出发前往${destination.name}`,
@@ -271,6 +281,7 @@ async function handle(action, event, ctx) {
       };
     }
 
+    // 🟢 [修改] 领取奖励逻辑升级
     case "collect_travel_rewards": {
       const userRes = await db
         .collection("users")
@@ -292,7 +303,7 @@ async function handle(action, event, ctx) {
       const returnTime = new Date(pet.return_time);
       if (now < returnTime) return { status: 400, msg: "宠物尚未返回" };
 
-      // 1. 计算奖励
+      // 1. 计算奖励 (使用新的函数)
       const rewards = await processTravelRewards(db, pet, me, CONFIG);
 
       // 2. 更新用户
@@ -311,7 +322,7 @@ async function handle(action, event, ctx) {
         current_destination: "",
         return_time: null,
         travel_count: _.inc(1),
-        guaranteed_progress: rewards.guaranteed_progress, // 保存进度
+        guaranteed_progress: rewards.guaranteed_progress,
         updatedAt: db.serverDate(),
       };
 
@@ -326,7 +337,7 @@ async function handle(action, event, ctx) {
       await addLog(
         ctx,
         "pet_interaction",
-        `宠物从旅行返回，带回了${rewards.roses}朵玫瑰` +
+        `宠物从旅行返回，带回了${rewards.roses}朵玫瑰，${rewards.love_energy}g爱意` +
           (rewards.specialty ? `和${rewards.specialty.name}` : "")
       );
 
@@ -342,14 +353,13 @@ async function handle(action, event, ctx) {
         .collection("pets")
         .where({ owners: OPENID })
         .get();
-      const unlocked_locations =
-        petRes.data.length > 0
-          ? petRes.data[0].unlocked_locations || ["park"]
-          : ["park"];
+      const unlocked_locations = petRes.data[0].unlocked_locations || [];
       const destinationsRes = await db.collection("destinations").get();
       const destinations = destinationsRes.data.map((dest) => ({
         ...dest,
-        unlocked: unlocked_locations.includes(dest.id),
+        unlocked:
+          unlocked_locations.length === 0 ||
+          unlocked_locations.includes(dest.id),
       }));
       return { status: 200, destinations: destinations };
     }
@@ -412,9 +422,9 @@ async function handle(action, event, ctx) {
           }
         }
       }
-
       return { status: 200, msg: msg, triggerEgg: egg };
     }
+
     case "watch_ad_reward": {
       const userRes = await db
         .collection("users")
@@ -446,12 +456,13 @@ async function handle(action, event, ctx) {
   }
 }
 
+// 🟢 [修改] 奖励计算函数升级
 async function processTravelRewards(db, pet, user, CONFIG) {
   const rewards = {
     roses: 0,
-    love_energy: 30,
+    love_energy: 30, // 兜底默认值
     specialty: null,
-    guaranteed_progress: pet.guaranteed_progress || 0, // 默认值
+    guaranteed_progress: pet.guaranteed_progress || 0,
   };
 
   const destRes = await db
@@ -461,6 +472,11 @@ async function processTravelRewards(db, pet, user, CONFIG) {
 
   if (destRes.data.length > 0) {
     const destination = destRes.data[0];
+
+    // 🟢 关键修改：读取配置的爱意值奖励
+    if (destination.base_love_reward) {
+      rewards.love_energy = destination.base_love_reward;
+    }
 
     // 1. 计算保底进度
     const newProgress = (pet.guaranteed_progress || 0) + 30;
@@ -473,7 +489,6 @@ async function processTravelRewards(db, pet, user, CONFIG) {
 
     // 2. 随机玫瑰掉落
     const roseChance = destination.rose_chance_base || 0.2;
-    // 安全获取 mood_bonus_required
     const reqMood = destination.mood_bonus_required || 60;
     const moodBonus = (pet.mood_value || 0) >= reqMood ? 0.2 : 0;
 
@@ -481,15 +496,25 @@ async function processTravelRewards(db, pet, user, CONFIG) {
       rewards.roses += 1;
     }
 
-    // 3. 特产掉落
+    // 3. 特产/明信片掉落
     const specialtyChance = destination.specialty_chance || 0;
     if (Math.random() < specialtyChance) {
+      // 动态生成名字
+      let cardName = `${destination.name}纪念品`;
+      if (
+        destination.possible_rewards &&
+        destination.possible_rewards.length > 0
+      ) {
+        cardName = destination.possible_rewards[0]; // 优先取配置的名字
+      }
+
       rewards.specialty = {
         id: `${destination.id}_${Date.now()}`,
-        name: `${destination.name}纪念品`,
+        name: cardName,
         description: destination.description,
-        image_url: destination.image_url || destination.image, // 兼容字段名
+        image_url: destination.image_url || destination.image,
         collected_at: new Date(),
+        type: "postcard",
       };
     }
   }
@@ -502,45 +527,32 @@ async function applyMoodDecay(ctx, pet) {
   const now = new Date();
   const lastUpdate = new Date(pet.updatedAt || pet.createdAt);
 
-  // 计算时间差（分钟）
   const diffMinutes = (now - lastUpdate) / (1000 * 60);
   const decayInterval = CONFIG.MOOD_DECAY_INTERVAL_MINUTES || 60;
 
-  // 如果时间差小于衰减间隔，不处理
-  if (diffMinutes < decayInterval) {
-    return pet;
-  }
+  if (diffMinutes < decayInterval) return pet;
 
-  // 计算需要衰减的次数
   const decayCount = Math.floor(diffMinutes / decayInterval);
   const decayAmount = decayCount * (CONFIG.MOOD_DECAY_AMOUNT || 2);
 
   if (decayAmount <= 0) return pet;
 
-  // 计算新的心情值（最低为0）
   const currentMood = pet.mood_value || 0;
   let newMood = Math.max(0, currentMood - decayAmount);
 
-  // 如果心情值没有变化（已经是0了），直接返回
   if (newMood === currentMood) return pet;
 
-  // 更新数据库
   await db
     .collection("pets")
     .doc(pet._id)
     .update({
       data: {
         mood_value: newMood,
-        updatedAt: db.serverDate(), // 更新时间，作为下一次衰减的基准
+        updatedAt: db.serverDate(),
       },
     });
 
-  // 返回更新后的 pet 对象
-  return {
-    ...pet,
-    mood_value: newMood,
-    updatedAt: now,
-  };
+  return { ...pet, mood_value: newMood, updatedAt: now };
 }
 
 module.exports = { handle };
