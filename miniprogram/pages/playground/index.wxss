@@ -701,7 +701,7 @@ page {
 /* 🟢 修改：礼物盒样式优化 - 增大点击区域和视觉冲击力 */
 .gift-box-container {
   position: absolute;
-  top: 45%; /* 稍微下移一点，居中感更好 */
+  top: 58%; /* 稍微下移一点，居中感更好 */
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 200; /* 确保在最上层，甚至高于 status-toast */
@@ -733,7 +733,7 @@ page {
   background: #ff6b81; /* 实色背景更醒目 */
   padding: 10rpx 30rpx;
   border-radius: 40rpx;
-  margin-top: 20rpx;
+  margin-top: 10rpx;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 129, 0.3);
   font-weight: bold;
 }

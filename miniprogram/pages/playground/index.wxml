@@ -7,7 +7,7 @@
   <view wx:if="{{showGiftBox}}" class="gift-box-container" bindtap="onCollectReward">
     <view class="gift-box-wrapper">
       <image src="/images/pet/back.png" class="back-pet-image" mode="aspectFit"></image>
-      <view class="gift-tip">宠物已归来，点击领取奖励</view>
+      <view class="gift-tip">我给你带了礼物回来哦</view>
     </view>
   </view>
 
