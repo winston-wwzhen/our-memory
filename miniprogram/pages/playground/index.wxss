@@ -53,7 +53,6 @@ page {
   pointer-events: none; /* 容器本身不阻挡点击，子元素开启点击 */
 }
 
-/* 🟢 修改：宠物图片包装器 - 填满容器 */
 .pet-image-wrapper {
   position: absolute;
   top: 0;
@@ -63,7 +62,6 @@ page {
   pointer-events: auto; /* 恢复点击 */
 }
 
-/* 🟢 修改：宠物角色 - 绝对重叠 */
 .pet-character {
   position: absolute;
   top: 0;
@@ -102,9 +100,10 @@ page {
 /* 🟢 修改：气泡对话框样式 - 绝对定位在宠物头顶 */
 .pet-bubble {
   position: absolute; /* 绝对定位，不占流式空间 */
-  bottom: 460rpx; /* 距离底部460rpx，正好浮在520rpx高的图片头部附近 */
+  bottom: 100%; /* 距离底部460rpx，正好浮在520rpx高的图片头部附近 */
   left: 50%;
   transform: translateX(-50%) translateY(20rpx) scale(0.8); /* 初始位置略下沉 */
+  margin-bottom: -40rpx; /* 微调，让气泡稍微盖住一点头顶或者悬浮 */
   
   background: #fff;
   padding: 20rpx 32rpx;
@@ -567,19 +566,19 @@ page {
 
 /* 计时器样式优化 */
 .countdown-clock {
-  font-size: 48rpx; 
+  font-size: 32rpx;   /* 原 48rpx -> 缩小至 32rpx */
   font-weight: 900; 
   color: #d81b60;
   font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace; 
   background: #fff;
-  padding: 10rpx 30rpx;
-  border-radius: 24rpx;
-  border: 4rpx dashed #ffcdd2; 
-  box-shadow: 0 6rpx 16rpx rgba(216, 27, 96, 0.15);
-  letter-spacing: 4rpx;
-  min-width: 240rpx;
+  padding: 8rpx 24rpx; /* 缩小内边距 */
+  border-radius: 20rpx;
+  border: 3rpx dashed #ffcdd2; /* 边框稍微细一点 */
+  box-shadow: 0 4rpx 12rpx rgba(216, 27, 96, 0.1);
+  letter-spacing: 2rpx; /* 字间距稍微收紧 */
+  min-width: 180rpx;    /* 缩小最小宽度 */
   text-align: center;
-  margin-top: 8rpx;
+  margin-top: 12rpx;
 }
 
 .heart-particle {
@@ -700,12 +699,17 @@ page {
 
 /* 旅行状态总容器 */
 .travel-container {
+  position: absolute; /* 关键：加上绝对定位 */
+  top: 60%;           /* 设定垂直位置，55% 比较适中 */
+  left: 50%;          /* 水平居中 */
+  transform: translate(-50%, -50%); /* 配合 left/top 实现完全居中 */
+  
   display: flex;
-  top: 88%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
+  z-index: 20;        /* 确保在背景之上 */
 }
 
 /* 倒计时文字样式 */

@@ -401,6 +401,9 @@ Page({
           // 隐藏礼品盒
           this.setData({
             showGiftBox: false,
+            petState: 'idle',      // 强制设为空闲
+            statusMessage: '',     // 清空可能存在的提示
+            countdownStr: ''       // 清空倒计时
           });
 
           // 构造奖励提示文案
