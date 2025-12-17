@@ -6,8 +6,8 @@
   
   <view wx:if="{{showGiftBox}}" class="gift-box-container" bindtap="onCollectReward">
     <view class="gift-box-wrapper">
-      <view class="gift-glow"></view> <text class="gift-icon">🎁</text>
-      <view class="gift-tip">点击领取礼物</view>
+      <image src="/images/pet/back.png" class="back-pet-image" mode="aspectFit"></image>
+      <view class="gift-tip">宠物已归来，点击领取奖励</view>
     </view>
   </view>
 
@@ -33,10 +33,14 @@
 
   </view>
 
-  <view wx:elif="{{petState === 'traveling' && !showGiftBox}}" class="travel-note-container">
-    <view class="note-content">
+  <view wx:elif="{{petState === 'traveling' && !showGiftBox}}" class="travel-container">
+    <view class="travel-image-wrapper">
+      <image src="/images/pet/travel.png" class="traveling-pet-image" mode="aspectFit"></image>
+    </view>
+    
+    <view class="travel-note-content">
       <text class="note-text">{{petName}}去旅行啦~</text>
-      
+      <view class="divider-h small"></view>
       <text class="return-time-label">预计归来倒计时</text>
       <text class="countdown-clock" wx:if="{{countdownStr}}">{{countdownStr}}</text>
       <text class="countdown-clock" wx:else>计算中...</text>
@@ -58,13 +62,14 @@
           <view class="metric-label-group">
             <text class="metric-icon">{{moodValue < 60 ? '😔' : '😊'}}</text>
             <text class="metric-name">心情</text>
-            <view class="help-badge">?</view>
+          
+          <view class="help-badge">?</view>
           </view>
           <view class="metric-bar-box">
             <progress percent="{{moodValue}}" stroke-width="6" border-radius="6" activeColor="#FF6B6B" backgroundColor="rgba(255,255,255,0.5)" />
           </view>
           <text class="metric-val {{moodValue < 60 ? 'low' : ''}}">{{moodText}}</text>
-     
+        
         </view>
 
         <view class="metric-row" bindtap="showHelp" data-type="energy">
@@ -73,11 +78,12 @@
             <text class="metric-name">体力</text>
             <view class="help-badge">?</view>
           </view>
+        
           <view class="metric-bar-box">
             <progress percent="{{energyLevel}}" stroke-width="6" border-radius="6" activeColor="#FFB347" backgroundColor="rgba(255,255,255,0.5)" />
           </view>
           <text class="metric-val {{energyLevel < 30 ? 'low' : ''}}">{{energyText}}</text>
-     
+        
         </view>
       </view>
     </view>
@@ -233,7 +239,7 @@
       <block wx:else>
         <view class="modal-log-item" wx:for="{{logs}}" wx:key="index">
           <image class="modal-log-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-           <view class="modal-log-content">
+          <view class="modal-log-content">
             <view class="modal-log-top">
               <text class="modal-log-name {{item.isMine ? 'mine' : 'partner'}}">{{item.nickName}}</text>
               <text class="modal-log-time">{{item.timeAgo}}</text>

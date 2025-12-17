@@ -45,6 +45,7 @@ page {
   position: absolute;
   top: 52%; /* 调整垂直位置，确保脚踩在影子上 */
   left: 50%;
+  margin-top: 50rpx;
   transform: translate(-50%, -50%); /* 居中 */
   width: 520rpx; /* 固定宽度 */
   height: 520rpx; /* 固定高度 */
@@ -514,14 +515,15 @@ page {
   transform: translate(-50%, -50%);
   text-align: center; 
   z-index: 15;
-  width: 440rpx; 
-  height: 340rpx;
-  display: flex;
-  flex-direction: column; 
+  width: 520rpx; 
+  height: 520rpx;
+  display: block;
   align-items: center; 
   justify-content: center;
   animation: float-note 3s ease-in-out infinite;
 }
+
+
 
 @keyframes float-note {
   0%, 100% { transform: translate(-50%, -50%) translateY(0);

@@ -60,6 +60,8 @@ Page({
     showHelpModal: false,
     helpTitle: "",
     helpContent: "",
+    // 🟢 关键新增：追踪食物制作的来源
+    prepSource: "",
     helpTexts: {
       mood: {
         title: "关于心情 (Mood)",
@@ -564,6 +566,10 @@ Page({
       });
       return;
     }
+    // 🟢 修改：记录来源为 'backpack'
+    this.setData({
+      prepSource: "backpack",
+    });
     this.showFoodPrepModal();
   },
 
@@ -605,6 +611,8 @@ Page({
     if (count <= 0) {
       this.setData({
         showFeedModal: false,
+        // 🟢 修改：记录来源为 'feed'
+        prepSource: "feed",
       });
       setTimeout(() => {
         this.showFoodPrepModal();
@@ -698,9 +706,16 @@ Page({
   },
 
   onFoodPrepModalCancel: function () {
+    // 🟢 修改：取消制作时，重置 prepSource，但不影响 feed 弹窗
+    const prepSource = this.data.prepSource;
     this.setData({
       showFoodPrepModal: false,
+      prepSource: "",
     });
+    // 如果是从 feed 跳转过来的，取消时重新打开 feed modal
+    if (prepSource === "feed") {
+      this.showFeedModal();
+    }
   },
 
   onFoodPrepare: function (e) {
@@ -751,15 +766,18 @@ Page({
     });
   },
 
+  // 🟢 关键修改：根据 prepSource 决定是否重新弹出喂食弹窗
   onFoodPrepSuccess: function (e) {
     const { foodType } = e.detail;
     const foodName = foodType === "rice_ball" ? "饭团便当" : "豪华御膳";
+    const prepSource = this.data.prepSource; // 获取制作来源
 
     const currentCount = this.data.foodInventory[foodType];
     this.setData({
       [`foodInventory.${foodType}`]: currentCount + 1,
       showFoodPrepModal: false,
       statusMessage: `成功准备${foodName}！`,
+      prepSource: "", // 重置来源，防止影响下一次操作
     });
 
     setTimeout(() => {
@@ -769,11 +787,16 @@ Page({
     }, 2000);
 
     wx.showToast({
-      title: `获得${foodName} x1`,
+      title: `获得${foodName} 1份`,
       icon: "success",
     });
 
     this.fetchPetData();
+
+    // 只有当制作来源是 'feed' (因库存不足) 时，才重新显示喂食弹窗
+    if (prepSource === "feed") {
+      this.showFeedModal();
+    }
   },
 
   onTravelMap: function () {
