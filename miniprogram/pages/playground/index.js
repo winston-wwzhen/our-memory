@@ -22,7 +22,6 @@ Page({
     moodText: "很开心",
     energyText: "精力充沛",
     petName: "小可爱",
-    roomBgImage: "/images/pet/home.jpg",
     loveEnergy: 0,
     travelCount: 0,
     hasNewPostcards: false,
@@ -231,14 +230,6 @@ Page({
     return true;
   },
 
-  updateRoomBackground: function () {
-    const hour = new Date().getHours();
-    const isNight = hour < 6 || hour >= 18;
-    this.setData({
-      roomBgImage: isNight ? "/images/pet/back.png" : "/images/pet/home.jpg",
-    });
-  },
-
   // 倒计时核心逻辑
   startCountdown: function (returnTimeStr) {
     this.stopCountdown(); // 清除旧的
@@ -371,13 +362,11 @@ Page({
           });
           this.updateUserStatus();
         }
-        this.updateRoomBackground();
         if (callback) callback();
       },
       fail: (err) => {
         console.error("Failed to fetch pet data:", err);
         this.updateUserStatus();
-        this.updateRoomBackground();
         if (callback) callback();
       },
     });
@@ -604,6 +593,16 @@ Page({
   },
 
   onFeed(e) {
+
+    if (this.data.petState !== "idle") {
+      wx.showToast({
+        title: "宠物正在忙碌中",
+        icon: "none"
+      });
+      this.setData({ showFeedModal: false });
+      return;
+    }
+
     const type = e.currentTarget.dataset.type;
     const count = this.data.foodInventory[type] || 0;
 

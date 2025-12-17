@@ -101,6 +101,11 @@ async function handle(action, event, ctx) {
         .get();
       if (petRes.data.length === 0) return { status: 404, msg: "宠物不存在" };
       let pet = await applyMoodDecay(ctx, petRes.data[0]);
+
+      if (pet.state === "traveling") {
+        return { status: 400, msg: "宠物正在远方旅行，暂时无法互动哦~" };
+      }
+      
       let updateData = {
         last_interaction: db.serverDate(),
         updatedAt: db.serverDate(),
@@ -114,7 +119,10 @@ async function handle(action, event, ctx) {
           break;
 
         case "feed":
-          // 🟢 修改点 1: 精力满时阻止喂食
+          if (pet.state !== "idle") {
+            return { status: 400, msg: "宠物不在家，无法喂食哦~" };
+          }
+
           if ((pet.energy_level || 0) >= 100) {
             return { status: 400, msg: "宠物精力充沛，吃不下了~" };
           }
@@ -122,16 +130,9 @@ async function handle(action, event, ctx) {
           const moodBonus = food_type === "luxury_bento" ? 20 : 10;
           const energyBonus = food_type === "luxury_bento" ? 40 : 20;
 
-          // 🟢 修改点 2: 移除爱意值校验（之前制作时已经扣过了）
-          // const foodCost = food_type === "luxury_bento" ? 50 : 10;
-          // if ((me.water_count || 0) < foodCost) return { status: 400, msg: "爱意不足" };
-
           // 校验库存
           if ((pet.food_inventory[food_type] || 0) < 1)
             return { status: 400, msg: "背包里没有这个食物了" };
-
-          // 🟢 修改点 3: 移除扣除爱意值的逻辑
-          // await db.collection("users").doc(me._id).update({ data: { water_count: _.inc(-foodCost) } });
 
           // 扣除库存
           updateData.food_inventory = pet.food_inventory || {};

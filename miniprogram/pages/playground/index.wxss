@@ -698,6 +698,27 @@ page {
 }
 }
 
+/* 旅行状态总容器 */
+.travel-container {
+  display: flex;
+  top: 88%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 倒计时文字样式 */
+.countdown-text {
+  font-size: 30rpx;
+  color: #ff6b81;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.85); /* 半透明背景防止与页面背景冲突 */
+  padding: 12rpx 32rpx;
+  border-radius: 50rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 129, 0.2);
+}
+
 /* 🟢 修改：礼物盒样式优化 - 增大点击区域和视觉冲击力 */
 .gift-box-container {
   position: absolute;

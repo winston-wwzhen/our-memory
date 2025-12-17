@@ -39,8 +39,6 @@
     </view>
     
     <view class="travel-note-content">
-      <text class="note-text">{{petName}}去旅行啦~</text>
-      <view class="divider-h small"></view>
       <text class="return-time-label">预计归来倒计时</text>
       <text class="countdown-clock" wx:if="{{countdownStr}}">{{countdownStr}}</text>
       <text class="countdown-clock" wx:else>计算中...</text>
