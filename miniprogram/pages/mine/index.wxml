@@ -67,7 +67,7 @@
     </view>
 
     <view class="data-dashboard">
-      <view class="data-item">
+      <view class="data-item" bindtap="showItemHelp" data-type="love">
         <view class="data-main">
           <text class="data-num">{{userData.water_count || 0}}</text>
           <text class="data-unit">g</text>
@@ -75,12 +75,27 @@
         <view class="data-label">
            <text class="icon">💧</text> 
            <text>我的爱意</text>
+           <text style="font-size: 20rpx; margin-left: 4rpx; opacity: 0.5;">?</text>
         </view>
       </view>
       
       <view class="data-divider"></view>
 
-      <view class="data-item">
+      <view class="data-item" bindtap="showItemHelp" data-type="rose">
+        <view class="data-main">
+          <text class="data-num">{{userData.rose_balance || 0}}</text>
+          <text class="data-unit">朵</text>
+        </view>
+        <view class="data-label">
+           <text class="icon">🌹</text> 
+           <text>我的玫瑰</text>
+           <text style="font-size: 20rpx; margin-left: 4rpx; opacity: 0.5;">?</text>
+        </view>
+      </view>
+
+      <view class="data-divider"></view>
+
+      <view class="data-item" bindtap="showItemHelp" data-type="film">
         <view class="data-main">
           <text class="data-num">{{filmData.total}}</text>
           <text class="data-unit">张</text>
@@ -88,6 +103,7 @@
         <view class="data-label">
            <text class="icon">🎞️</text> 
            <text>剩余胶卷</text>
+           <text style="font-size: 20rpx; margin-left: 4rpx; opacity: 0.5;">?</text>
         </view>
         <view class="data-tags">
            <text class="tag">今日 {{filmData.daily}}</text>
@@ -95,6 +111,7 @@
         </view>
       </view>
     </view>
+
     <view class="info-edit-area">
       <block wx:if="{{userData.partner_id}}">
         <picker mode="date" value="{{anniversary}}" bindchange="onDateChange">
@@ -125,11 +142,11 @@
       <view class="mi-left">
         <view class="mi-icon yellow">🤝</view>
         <view class="mi-content">
-          <text class="mi-title">邀请好友得福利</text>
-          <text class="mi-desc">邀请好友注册，你获得100水滴和2次永久拍照次数</text>
+          <text class="mi-title">分享给好友</text>
+          <text class="mi-desc">邀请好友加入，共同记录美好时光</text>
         </view>
       </view>
-      <view class="mi-tag">去邀请</view>
+      <view class="mi-tag">去分享</view>
     </button>
 
     <view class="menu-item" bindtap="{{userData.partner_id ? 'onUnbind' : 'showInviteModal'}}">
@@ -155,7 +172,7 @@
     </button>
   </view>
 
-  <view class="footer-copyright">Designed for Love v1.0.0</view>
+  <view class="footer-copyright">Designed for Love by winston.wan</view>
 
   <include src="./components/modals.wxml" /> 
   

@@ -99,36 +99,48 @@ page {
 
 /* 🟢 修改：气泡对话框样式 - 绝对定位在宠物头顶 */
 .pet-bubble {
-  position: absolute; /* 绝对定位，不占流式空间 */
-  bottom: 100%; /* 距离底部460rpx，正好浮在520rpx高的图片头部附近 */
-  left: 50%;
-  transform: translateX(-50%) translateY(20rpx) scale(0.8); /* 初始位置略下沉 */
-  margin-bottom: -40rpx; /* 微调，让气泡稍微盖住一点头顶或者悬浮 */
+  position: absolute;
+  /* 位置调整：位于宠物头顶右侧 */
+  bottom: 72%;  
+  left: 77%;    
+  
+  /* 初始状态：从左下角（嘴巴方向）缩小 */
+  transform: scale(0);
+  transform-origin: bottom left; 
   
   background: #fff;
-  padding: 20rpx 32rpx;
-  border-radius: 36rpx;
-  box-shadow: 0 10rpx 30rpx rgba(233, 30, 99, 0.1);
-  border: 2rpx solid rgba(255, 240, 245, 0.5);
+  padding: 24rpx 32rpx;
+  /* 形状优化：大圆角，左下角微收，配合尾巴 */
+  border-radius: 36rpx 36rpx 36rpx 8rpx;
   
+  /* 视觉优化：柔和的投影和边框 */
+  box-shadow: 4rpx 12rpx 30rpx rgba(233, 30, 99, 0.15);
+  border: 2rpx solid rgba(255, 235, 238, 0.9);
+  
+  /* 布局限制 */
   width: max-content;
-  max-width: 420rpx;
-  text-align: center;
+  max-width: 380rpx;
+  min-width: 120rpx;
+  
+  /* 字体样式 */
+  text-align: left; /* 左对齐更像说话 */
   font-size: 28rpx;
   color: #5d4037;
-  font-weight: bold;
-  opacity: 0;
-  z-index: 40;
-  pointer-events: auto;
+  font-weight: 800; /* 加粗 */
   line-height: 1.4;
   letter-spacing: 1rpx;
   
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0;
+  z-index: 40;
+  pointer-events: auto;
+  
+  /* 弹性动画：像果冻一样弹出 */
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .pet-bubble.show {
   opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1); /* 弹起效果 */
+  transform: scale(1);
 }
 
 /* 气泡小箭头 */
@@ -159,6 +171,26 @@ page {
   pointer-events: none;
   /* 动画由 keyframes 控制 */
   animation: popupAnim 0.8s ease-out forwards;
+}
+
+.bubble-arrow {
+  position: absolute;
+  bottom: -10rpx;   /* 沉底 */
+  left: -2rpx;      /* 靠左 */
+  width: 20rpx; 
+  height: 20rpx;
+  background: #fff;
+  
+  /* 关键：旋转矩形来制作平滑的尾巴 */
+  transform: skew(10deg) rotate(45deg);
+  
+  /* 补充边框，保持整体一致性 */
+  border-bottom: 2rpx solid rgba(255, 235, 238, 0.9);
+  border-right: 2rpx solid rgba(255, 235, 238, 0.9);
+  
+  /* 阴影衔接 */
+  box-shadow: 4rpx 4rpx 4rpx rgba(233, 30, 99, 0.05);
+  z-index: 41;
 }
 
 @keyframes popupAnim {
@@ -605,6 +637,7 @@ page {
 .heart-particle {
   position: absolute; font-size: 40rpx;
   animation: float-up 2s ease-out forwards; pointer-events: none;
+  z-index: 99;
 }
 @keyframes float-up {
   0% { opacity: 1; transform: translateY(0) scale(1); }

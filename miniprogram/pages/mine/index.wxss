@@ -130,14 +130,15 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
 
 /* === [NEW] 数据仪表盘样式 (替代原有的 love-stat-box 和 film-stat-box) === */
 .data-dashboard {
-  margin: 40rpx 10rpx 10rpx; /* 调整间距 */
-  background: #fff9fa;       /* 极淡的暖色背景 */
+  margin: 40rpx 20rpx 10rpx; /* 左右边距稍微增加，让卡片不要太满 */
+  background: linear-gradient(180deg, #fffcfd 0%, #fff9fa 100%); /* 增加微弱渐变，更有质感 */
   border-radius: 24rpx;
-  padding: 30rpx 0 24rpx;
+  padding: 32rpx 0; /* 上下内边距统一 */
   display: flex;
-  align-items: flex-start;
+  align-items: flex-start; /* 顶部对齐，方便显示下方的 tags */
   justify-content: space-evenly;
-  border: 1rpx solid rgba(255, 235, 238, 0.6);
+  border: 1rpx solid rgba(255, 235, 238, 0.8);
+  box-shadow: 0 4rpx 12rpx rgba(255, 228, 225, 0.3); /* 增加轻微的立体阴影 */
 }
 
 .data-item {
@@ -146,6 +147,7 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
   align-items: center;
   flex: 1;
   position: relative;
+  transition: opacity 0.2s; /* 增加过渡效果 */
 }
 
 .data-main {
@@ -157,52 +159,66 @@ button.reset-btn::after { border: none !important; width: 0; height: 0; }
 }
 
 .data-num {
-  font-size: 48rpx;
+  font-size: 36rpx; /* 稍微调小一点点，显得更精致 */
   font-weight: 900;
   color: #333;
-  font-family: 'DINAlternate-Bold', sans-serif;
+  font-family: 'DINAlternate-Bold', -apple-system, sans-serif;
   margin-right: 4rpx;
+  letter-spacing: -1rpx;
+}
+
+.data-dashboard > view:nth-child(3) .data-num {
+  color: #e91e63; /* 玫瑰红，与图标呼应 */
 }
 
 .data-unit {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
   font-weight: normal;
+  transform: translateY(-2rpx); /* 微调对齐 */
 }
 
 .data-label {
-  font-size: 26rpx;
-  color: #666;
+  font-size: 24rpx;
+  color: #888;
   display: flex;
   align-items: center;
   opacity: 0.9;
+  background: rgba(0,0,0,0.02); /* 给标签加一个极淡的背景条，增加层次 */
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
 }
 
 .data-label .icon {
-  font-size: 28rpx;
-  margin-right: 8rpx;
+  font-size: 24rpx;
+  margin-right: 6rpx;
 }
 
 /* 胶卷详情标签优化 */
 .data-tags {
   margin-top: 12rpx;
   display: flex;
-  gap: 8rpx;
+  gap: 6rpx;
+  flex-wrap: wrap; /* 防止宽度不够时撑开 */
+  justify-content: center;
 }
+
 .data-tags .tag {
-  font-size: 18rpx;
-  color: #bcaaa4;
+  font-size: 16rpx;
+  color: #b0a0a0;
   background: #fff;
-  padding: 4rpx 10rpx;
-  border-radius: 8rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
   border: 1rpx solid #eee;
+  white-space: nowrap;
 }
 
 .data-divider {
   width: 2rpx;
-  height: 60rpx;
-  background: linear-gradient(180deg, #eee, #ddd, #eee);
-  margin-top: 10rpx;
+  height: 50rpx; /* 高度稍微调小 */
+  background: linear-gradient(180deg, transparent, #eee, #e0e0e0, #eee, transparent); /* 两头渐隐，更柔和 */
+  align-self: center; /* 关键：垂直居中，不再依赖 margin-top */
+  margin-top: -10rpx; /* 微调：因为 data-item 有 tags 可能会把整体高度撑大，上移一点视觉更平衡 */
 }
 
 /* === 底部信息编辑区 === */

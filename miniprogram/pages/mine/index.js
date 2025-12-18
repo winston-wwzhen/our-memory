@@ -50,6 +50,21 @@ Page({
     pendingRewards: null,
 
     showVipExchange: false,
+
+    itemHelpTexts: {
+      love: {
+        title: "关于爱意 (Love Energy)",
+        content: "爱意是情侣空间的核心能量 💧\n\n✨ 主要作用：\n1. 制作宠物便当 (行囊 -> 制作)\n\n📈 获取方式：\n每日拍照打卡、完成每日任务、宠物旅行带回、或触发幸运彩蛋"
+      },
+      rose: {
+        title: "关于玫瑰 (Rose)",
+        content: "玫瑰是珍贵的稀有信物 🌹\n\n✨ 主要作用：\n用于兑换「特权工坊」中的稀有卡券（如和好卡、许愿卡、静音卡等）。后续可兑换高级情侣头像、获取宠物皮肤等多种用途。\n\n📈 获取方式：\n宠物旅行时概率掉落，心情越好掉落概率越高哦！"
+      },
+      film: {
+        title: "关于胶卷 (Film)",
+        content: "胶卷用于 AI 相机拍摄 🎞️\n\n✨ 规则：\n1. 每日胶卷：每天凌晨自动刷新 (普通用户3张/VIP更多)\n2. 永久胶卷：长期有效，优先消耗每日胶卷\n\n📈 获取：\n邀请好友注册、参与官方活动或使用玫瑰兑换。"
+      }
+    }
   },
 
   onLoad: function (options) {
@@ -658,5 +673,21 @@ Page({
         wx.showToast({ title: "网络错误", icon: "none" });
       },
     });
+  },
+
+  showItemHelp: function(e) {
+    const type = e.currentTarget.dataset.type;
+    const info = this.data.itemHelpTexts[type];
+
+    if (info) {
+      wx.vibrateShort({ type: 'light' }); // 加个轻震动反馈
+      wx.showModal({
+        title: info.title,
+        content: info.content,
+        showCancel: false,
+        confirmText: "了解",
+        confirmColor: "#ff6b81"
+      });
+    }
   },
 });
