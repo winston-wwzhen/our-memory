@@ -57,6 +57,7 @@ exports.main = async (event, context) => {
     case "check_in":
     case "watch_ad_reward":
     case "get_postcards":
+    case "rename_pet":
       return await petService.handle(action, event, ctx);
 
     // === Message (留言板) ===
@@ -89,6 +90,7 @@ exports.main = async (event, context) => {
     case "toggle_love_list_item":
     case "get_avatar_list":
     case "get_avatar_detail":
+    case "confirm_coupon":
       return await playgroundService.handle(action, event, ctx);
 
     case "get_system_config":

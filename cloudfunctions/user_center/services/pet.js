@@ -2,8 +2,8 @@
 const { getTodayStr } = require("../utils/common");
 const { addLog } = require("../utils/logger");
 const { tryTriggerEgg } = require("../utils/eggs");
+const { checkTextSafety } = require("../utils/safety");
 
-// 新手村 ID (用于兜底逻辑，主要逻辑已调整为全解锁)
 const STARTER_LOCATION_ID = "community_garden";
 
 async function handle(action, event, ctx) {
@@ -561,6 +561,32 @@ async function handle(action, event, ctx) {
             };
       await db.collection("users").doc(user._id).update({ data: updateData });
       return { status: 200, msg: "奖励到账" };
+    }
+
+    case "rename_pet": {
+      const { name } = event;
+      if (!name || name.trim().length === 0) return { status: 400, msg: "名字不能为空" };
+      if (name.length > 6) return { status: 400, msg: "名字太长啦(最多6个字)" };
+
+      // 🛡️ 安全检测
+      const isSafe = await checkTextSafety(ctx, name);
+      if (!isSafe) return { status: 403, msg: "名字包含敏感词，请换一个" };
+
+      const petRes = await db.collection("pets").where({ owners: OPENID }).get();
+      if (petRes.data.length === 0) return { status: 404, msg: "宠物不存在" };
+      
+      const pet = petRes.data[0];
+
+      await db.collection("pets").doc(pet._id).update({
+        data: {
+          name: name,
+          updatedAt: db.serverDate()
+        }
+      });
+
+      await addLog(ctx, "pet_interaction", `给宠物改名为：${name}`);
+
+      return { status: 200, msg: "改名成功", newName: name };
     }
   }
 }

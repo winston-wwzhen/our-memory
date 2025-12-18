@@ -87,7 +87,7 @@
               <view class="vip-crown" wx:if="{{isVip}}">👑</view>
             </view>
 
-            <text class="empty-hint" wx:if="{{isVip}}">VIP 尊享极速生成 ✨</text>
+            <text class="empty-hint" wx:if="{{isVip}}">记录爱意时刻 ✨</text>
             <text class="empty-hint" wx:else>点这里，定格此刻 ✨</text>
             
             <text class="quota-hint {{isVip ? 'vip-quota' : ''}}">剩余胶卷：{{remainingCount}} 张</text>

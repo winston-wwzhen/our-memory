@@ -43,10 +43,12 @@ Page({
     // 1. 获取玫瑰余额 (保持不变)
     wx.cloud.callFunction({
       name: "user_center",
-      data: { action: "get_garden" },
+      data: { action: "get_pet_status" },
       success: (res) => {
-        if (res.result.status === 200 && res.result.garden) {
-          this.setData({ roseBalance: res.result.garden.rose_balance || 0 });
+        if (res.result.status === 200) {
+          this.setData({ 
+            roseBalance: res.result.rose_balance || 0 
+          });
         }
       },
     });
@@ -154,7 +156,7 @@ Page({
 
     wx.showModal({
       title: "使用卡券确认",
-      content: `你正在使用卡券【${couponToUse.title}】，确认向你的伴侣兑现这项承诺吗？`,
+      content: `确认使用【${couponToUse.title}】？使用后将消耗一张库存。`,
       confirmText: "立即使用",
       confirmColor: "#ff6b81",
       success: (res) => {
@@ -210,4 +212,26 @@ Page({
       title: "爱的兑换券 🎫"
     };
   },
+
+  onVerifyCoupon: function(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '确认核销',
+      content: '确认履行此承诺，并完成核销吗？',
+      success: (res) => {
+        if(res.confirm) {
+          wx.cloud.callFunction({
+            name: 'user_center',
+            data: { action: 'confirm_coupon', couponId: id }, // 调用新接口
+            success: (res) => {
+               if(res.result.status === 200) {
+                 wx.showToast({ title: '核销成功' });
+                 this.onPullDownRefresh(); // 刷新列表
+               }
+            }
+          })
+        }
+      }
+    })
+  }
 });

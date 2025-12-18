@@ -166,18 +166,43 @@ async function handle(action, event, ctx) {
     }
 
     case "get_my_coupons": {
-      // 4. 性能修复：增加分页支持
       const { page = 0, pageSize = 20 } = event;
-
-      const res = await db
-        .collection("coupons")
-        .where({ _openid: OPENID })
+      
+      // 获取我的 partner_id
+      const me = (await db.collection("users").where({_openid: OPENID}).get()).data[0];
+      const partnerId = me.partner_id;
+    
+      const $ = db.command;
+      
+      // 查询条件：
+      // 1. 我拥有的卡券 (_openid == ME)
+      // 2. 或者：我是伴侣，且状态为核销中 (_openid == PARTNER && status == 1)
+      let condition = { _openid: OPENID };
+      
+      if (partnerId) {
+        condition = $.or([
+          { _openid: OPENID },
+          { _openid: partnerId, status: 1 } // 只能看到伴侣申请核销的那部分
+        ]);
+      }
+    
+      const res = await db.collection("coupons")
+        .where(condition)
+        .orderBy("status", "asc") // 把申请中的排前面
         .orderBy("createdAt", "desc")
         .skip(page * pageSize)
         .limit(pageSize)
         .get();
-
-      return { status: 200, data: res.data };
+    
+      // 标记一下哪些是需要我核销的
+      const list = res.data.map(item => {
+        if (item._openid !== OPENID) {
+          item.isRequest = true; // 这是一个请求
+        }
+        return item;
+      });
+    
+      return { status: 200, data: list };
     }
 
     case "use_coupon": {
@@ -187,18 +212,18 @@ async function handle(action, event, ctx) {
       // 5. 逻辑修复：乐观锁核销
       // 确保只有当 status 为 0 (未使用) 时才能更新为 2 (已使用)
       const updateRes = await db
-        .collection("coupons")
-        .where({
-          _id: id,
-          _openid: OPENID, // 确保是自己的
-          status: 0,
-        })
-        .update({
-          data: {
-            status: 2,
-            usedAt: db.serverDate(),
-          },
-        });
+      .collection("coupons")
+      .where({
+        _id: id,
+        _openid: OPENID,
+        status: 0, // 只能从“未使用”开始
+      })
+      .update({
+        data: {
+          status: 1, // 🟡 进入核销流程
+          appliedAt: db.serverDate(), // 记录申请时间
+        },
+      });
 
       if (updateRes.stats.updated === 0) {
         return { status: 403, msg: "操作失败：卡券已被使用或不存在" };
@@ -206,13 +231,43 @@ async function handle(action, event, ctx) {
 
       // 获取一下卡券信息用于写日志（可选）
       const coupon = (await db.collection("coupons").doc(id).get()).data;
-      await addLog(
-        ctx,
-        "use_coupon",
-        `使用卡券: ${coupon ? coupon.title : "未知卡券"}`
-      );
+      await addLog(ctx, "use_coupon", `申请使用卡券: ${coupon ? coupon.title : "未知"}`);
 
       return { status: 200, msg: "卡券核销成功！" };
+    }
+
+    case "confirm_coupon": {
+      const { couponId } = event;
+      
+      // 1. 查这张券是谁的
+      const couponRes = await db.collection("coupons").doc(couponId).get();
+      const coupon = couponRes.data;
+      
+      if (!coupon) return { status: 404, msg: "卡券不存在" };
+      if (coupon.status !== 1) return { status: 400, msg: "卡券状态不正确" };
+    
+      // 2. 权限校验：操作者(OPENID) 必须是 卡券拥有者(coupon._openid) 的伴侣
+      // 先查卡券主人的信息
+      const ownerRes = await db.collection("users").where({ _openid: coupon._openid }).get();
+      const owner = ownerRes.data[0];
+    
+      // 校验：我是不是他的 partner
+      if (owner.partner_id !== OPENID) {
+        return { status: 403, msg: "你没有权限核销这张券" };
+      }
+    
+      // 3. 执行核销
+      await db.collection("coupons").doc(couponId).update({
+        data: {
+          status: 2, // 🟢 最终变为已使用
+          usedAt: db.serverDate(),
+          verifier: OPENID // 记录是谁核销的
+        }
+      });
+    
+      await addLog(ctx, "confirm_coupon", `核销了伴侣的卡券: ${coupon.title}`);
+    
+      return { status: 200, msg: "核销成功，承诺已兑现！" };
     }
 
     // === 恋爱清单 (保持不变) ===

@@ -40,8 +40,7 @@
         <view class="ticket-main" style="border-left: 10rpx solid {{item.status>0 ? '#ccc' : '#ff6b81'}};">
           <view class="ticket-info">
             <text class="t-title">{{item.title}}</text>
-            <text class="t-desc">{{item.desc}}</text>
-            <text class="t-time">制作于 {{item.createTimeStr}}</text>
+            <text class="t-time">  制作于 {{item.createTimeStr}}</text>
           </view>
           <view class="ticket-status">
             <text wx:if="{{item.status===0}}" class="status-tag">未使用</text>
@@ -50,9 +49,21 @@
           </view>
         </view>
         <view class="ticket-rip"></view>
-        <view class="ticket-stub" bindtap="onUseCoupon" data-id="{{item._id}}" data-status="{{item.status}}">
-          <text wx:if="{{item.status===0}}">点击\n使用</text>
-          <text wx:else>票根\n留念</text>
+        <view class="ticket-stub" bindtap="{{item.isRequest ? 'onVerifyCoupon' : 'onUseCoupon'}}" 
+              data-id="{{item._id}}" 
+              data-status="{{item.status}}"
+              style="{{item.isRequest ? 'background:#e3f2fd;color:#1976d2;' : ''}}">
+          
+          <block wx:if="{{!item.isRequest}}">
+            <text wx:if="{{item.status===0}}">点击\n使用</text>
+            <text wx:elif="{{item.status===1}}">等待\n确认</text>
+            <text wx:else>票根\n留念</text>
+          </block>
+
+          <block wx:else>
+            <text style="font-size:22rpx">TA申请\n使用</text>
+            <text style="font-size:32rpx;margin-top:4rpx">✅</text>
+          </block>
         </view>
       </view>
     </block>

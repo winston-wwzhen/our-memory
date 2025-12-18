@@ -38,8 +38,8 @@
       {
         "pagePath": "pages/playground/index",
         "text": "Fun",
-        "iconPath": "images/dog.png",
-        "selectedIconPath": "images/dog-active.png"
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
       },
       {
         "pagePath": "pages/history/index",

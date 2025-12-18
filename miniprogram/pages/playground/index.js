@@ -5,11 +5,6 @@ Page({
   data: {
     loading: false,
     waterCount: 0,
-    growth: 0,
-    level: 1,
-    maxGrowth: 100,
-    progress: 0,
-    harvestCount: 0,
     logs: [],
     showLogModal: false,
     navHeight: app.globalData.navBarHeight,
@@ -72,6 +67,14 @@ Page({
         content:
           "体力决定了宠物能否出门去远方旅行。\n\n🍱 如何提升：\n当体力不足时，请点击“行囊”为宠物准备便当，进食后体力会迅速恢复！",
       },
+      love: {
+        title: "关于爱意 (Love Energy)",
+        content: "爱意是情侣空间的核心能量 💧\n\n✨ 主要作用：\n1. 制作宠物便当 (行囊 -> 制作)\n\n📈 获取方式：\n每日拍照打卡、完成每日任务、宠物旅行带回、或触发幸运彩蛋。"
+      },
+      rose: {
+        title: "关于玫瑰 (Rose)",
+        content: "玫瑰是珍贵的稀有信物 🌹\n\n✨ 主要作用：\n用于兑换「特权工坊」中的稀有卡券（如和好卡、许愿卡、静音卡等）。后续可兑换高级情侣头像、获取宠物皮肤等多种用途。\n\n📈 获取方式：\n宠物旅行时概率掉落，心情越好掉落概率越高哦！"
+      }
     },
 
     roseBalance: 0, // 🌹 玫瑰余额
@@ -869,13 +872,55 @@ Page({
     return "疲惫不堪";
   },
 
-  onWater: function () {
-    if (!this.checkPartner()) return;
-    wx.showToast({
-      title: "请使用宠物互动功能",
-      icon: "none",
+  // 🟢 宠物改名逻辑
+  onRenamePet: function() {
+
+    wx.showModal({
+      title: '给宠物起个名字',
+      content: this.data.petName,
+      editable: true, // 开启输入框
+      placeholderText: '请输入新名字 (6字内)',
+      success: (res) => {
+        if (res.confirm && res.content) {
+          const newName = res.content.trim();
+          if (newName === this.data.petName) return;
+          
+          this.doRename(newName);
+        }
+      }
     });
   },
+
+  doRename: function(newName) {
+    wx.showLoading({ title: '改名中...' });
+    
+    wx.cloud.callFunction({
+      name: "user_center",
+      data: {
+        action: "rename_pet",
+        name: newName
+      },
+      success: (res) => {
+        wx.hideLoading();
+        if (res.result.status === 200) {
+          this.setData({
+            petName: newName
+          });
+          wx.showToast({ title: '改名成功', icon: 'success' });
+          
+          // 触发一个小气泡反馈
+          this.showPetMessage(`我有新名字啦！叫我${newName}吧~`);
+        } else {
+          wx.showToast({ title: res.result.msg || '改名失败', icon: 'none' });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        wx.showToast({ title: '网络开小差了', icon: 'none' });
+      }
+    });
+  },
+
 
   toggleLogModal: function () {
     this.setData({
@@ -883,13 +928,6 @@ Page({
     });
   },
 
-  onHarvest: function () {
-    if (!this.checkPartner()) return;
-    wx.showToast({
-      title: "请使用旅行功能",
-      icon: "none",
-    });
-  },
 
   checkMessageHint: function () {
     wx.cloud.callFunction({

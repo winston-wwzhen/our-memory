@@ -46,9 +46,10 @@
 
   <view class="ui-overlay">
     <view class="status-card glass-panel">
-      <view class="pet-identity">
+      <view class="pet-identity" bindtap="onRenamePet">
         <text class="pill-icon">🐾</text>
         <text class="pill-text">{{petName}}</text>
+        <text class="edit-icon"> ✏️</text>
       </view>
       
       <view class="divider-h"></view>
@@ -85,12 +86,12 @@
       </view>
     </view>
 
-    <view class="love-pill glass-panel">
+    <view class="love-pill glass-panel" bindtap="showHelp" data-type="love">
       <text class="pill-icon">💧</text>
       <text class="pill-value">{{loveEnergy}}g</text>
     </view>
 
-    <view class="rose-pill glass-panel">
+    <view class="rose-pill glass-panel" bindtap="showHelp" data-type="rose">
       <text class="pill-icon">🌹</text>
       <text class="pill-value">{{roseBalance}}</text>
     </view>

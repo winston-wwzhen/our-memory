@@ -348,6 +348,16 @@ page {
   display: flex;
   align-items: center;
 }
+.pet-identity:active { /* 🟢 增加按压反馈 */
+  opacity: 0.6;
+}
+
+/* 🟢 新增编辑图标样式 */
+.edit-icon {
+  font-size: 24rpx;
+  margin-left: 10rpx;
+  opacity: 0.5;
+}
 .pill-icon { font-size: 32rpx; margin-right: 12rpx;
 }
 .pill-text { font-size: 30rpx; font-weight: 800; color: #5d4037; }
@@ -814,4 +824,11 @@ page {
   font-size: 26rpx; 
   font-weight: 700; 
   color: #e91e63; /* 玫瑰红 */
+}
+
+.love-pill:active, 
+.rose-pill:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+  transition: all 0.1s;
 }
