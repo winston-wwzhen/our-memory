@@ -36,8 +36,8 @@
       {
         "pagePath": "pages/playground/index",
         "text": "Fun",
-        "iconPath": "images/pet.png",
-        "selectedIconPath": "images/pet_active.png"
+        "iconPath": "images/dog.png",
+        "selectedIconPath": "images/dog-active.png"
       },
       {
         "pagePath": "pages/history/index",

@@ -10,36 +10,6 @@ page {
   min-height: 100vh;
 }
 
-/* Page Header */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30rpx;
-}
-
-.back-btn, .share-btn {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
-}
-
-.back-icon, .share-icon {
-  font-size: 28rpx;
-  color: #666;
-}
-
-.page-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-}
-
 /* Statistics Summary */
 .stats-summary {
   display: flex;

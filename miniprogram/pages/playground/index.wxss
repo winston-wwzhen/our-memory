@@ -409,8 +409,7 @@ page {
 /* 右侧功能导航组 (位于胶囊下方) */
 .side-nav-group {
   position: absolute;
-  /* 原来是 100rpx，改为 170rpx 以避开玫瑰胶囊 */
-  top: calc(env(safe-area-inset-top) + 170rpx); 
+  top: calc(env(safe-area-inset-top) + 170rpx);
   right: 32rpx;
   display: flex;
   flex-direction: column;

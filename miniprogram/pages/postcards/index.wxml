@@ -1,14 +1,4 @@
 <view class="postcards-container">
-  <!-- Header with Back Button -->
-  <view class="page-header">
-    <view class="back-btn" bindtap="goBack">
-      <text class="back-icon">←</text>
-    </view>
-    <text class="page-title">💌 旅行明信片</text>
-    <view class="share-btn" bindtap="onShare">
-      <text class="share-icon">📤</text>
-    </view>
-  </view>
 
   <!-- Statistics Summary -->
   <view class="stats-summary paper-texture">
@@ -86,11 +76,6 @@
               </view>
             </view>
 
-            <!-- Like Button -->
-            <view class="like-btn {{item.liked ? 'liked' : ''}}" bindtap="onLikePostcard" catchtap="stopPropagation" data-id="{{item.id}}">
-              <text class="like-icon">{{item.liked ? '❤️' : '🤍'}}</text>
-              <text class="like-count">{{item.likes || 0}}</text>
-            </view>
           </view>
         </view>
       </view>
@@ -112,24 +97,6 @@
           <text class="detail-destination">{{selectedPostcard.destination.name}}</text>
           <text class="detail-date">{{selectedPostcard.travel_date_formatted}}</text>
           <text class="detail-message">{{selectedPostcard.message}}</text>
-
-          <view class="detail-section">
-            <text class="detail-section-title">旅行信息</text>
-            <view class="detail-info">
-              <view class="info-item">
-                <text class="info-label">旅行时长</text>
-                <text class="info-value">{{selectedPostcard.travel_duration}}分钟</text>
-              </view>
-              <view class="info-item">
-                <text class="info-label">便当类型</text>
-                <text class="info-value">{{selectedPostcard.food_type === 'rice_ball' ? '饭团便当' : '豪华御膳'}}</text>
-              </view>
-              <view class="info-item">
-                <text class="info-label">心情变化</text>
-                <text class="info-value">+{{selectedPostcard.mood_bonus}}</text>
-              </view>
-            </view>
-          </view>
 
           <view wx:if="{{selectedPostcard.rewards && selectedPostcard.rewards.length > 0}}" class="detail-section">
             <text class="detail-section-title">获得奖励</text>

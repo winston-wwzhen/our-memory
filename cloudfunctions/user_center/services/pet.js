@@ -336,17 +336,18 @@ async function handle(action, event, ctx) {
       const rewards = await processTravelRewards(db, pet, me, CONFIG);
 
       // 更新用户资产
+      const owners = pet.owners || [OPENID];
       await db
         .collection("users")
-        .doc(me._id)
+        .where({ _openid: _.in(owners) }) // 找出所有主人
         .update({
           data: {
             rose_balance: _.inc(rewards.roses),
             water_count: _.inc(rewards.love_energy),
           },
         });
-
       // 🌟 [新增] 处理明信片存储到独立表 (Postcards Table)
+
       if (rewards.specialty) {
         await db.collection("postcards").add({
           data: {

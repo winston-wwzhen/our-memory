@@ -189,11 +189,6 @@ Page({
     });
   },
 
-  // Go back
-  goBack: function() {
-    wx.navigateBack();
-  },
-
   // Stop event propagation
   stopPropagation: function() {
     // Do nothing

@@ -56,6 +56,7 @@ exports.main = async (event, context) => {
     case "get_destinations":
     case "check_in":
     case "watch_ad_reward":
+    case "get_postcards":
       return await petService.handle(action, event, ctx);
 
     // === Message (留言板) ===
