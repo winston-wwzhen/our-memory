@@ -1,0 +1,11 @@
+{
+  "name": "init_avatar_data",
+  "version": "1.0.0",
+  "description": "Initialize avatar sets data",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

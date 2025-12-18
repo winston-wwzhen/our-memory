@@ -1,5 +1,6 @@
 const { addLog } = require("../utils/logger");
 const { checkTextSafety } = require("../utils/safety");
+const { getTodayStr } = require("../utils/common");
 
 // 🔒 安全配置：后端硬编码卡券价格，防止前端篡改
 // 也可以选择从数据库 static_content 集合读取，这里为了性能直接配置
@@ -79,7 +80,6 @@ async function handle(action, event, ctx) {
       return { status: 200, data: pd };
     }
 
-    // === 🟢 修复核心：特权工坊 ===
     case "redeem_coupon": {
       const { templateId } = event; // 只接收 ID，忽略前端传的 cost/title
 
@@ -261,6 +261,84 @@ async function handle(action, event, ctx) {
         msg: isFinished ? "打卡成功 +5g爱意" : "已取消打卡",
       };
     }
+
+    case "get_avatar_list": {
+      return await getAvatarList(event, ctx);
+    }
+
+    case "get_avatar_detail": {
+      return await getAvatarDetail(event, ctx);
+    }
+  }
+}
+
+async function getAvatarList(event, ctx) {
+  const { db, _ } = ctx;
+  const { page = 0, pageSize = 10, category = "all" } = event;
+
+  try {
+    // 构建查询条件
+    let query = {};
+    if (category !== "all") {
+      query.category = category;
+    }
+
+    // 1. 先查总数（用于前端判断是否到底）
+    const countResult = await db.collection("avatar_sets").where(query).count();
+    const total = countResult.total;
+
+    // 2. 分页查询数据
+    const listResult = await db
+      .collection("avatar_sets")
+      .where(query)
+      .orderBy("sort_order", "desc") // 优先按权重排序（人工干预）
+      .orderBy("created_at", "desc") // 其次按时间倒序
+      .skip(page * pageSize)
+      .limit(pageSize)
+      .get();
+
+    // 3. 数据脱敏/处理 (可选)
+    // MVP阶段虽然我们存了 HD 链接，但为了安全，
+    // 其实可以在列表接口把 _hd 字段删掉，只在详情接口返回 HD 链接。
+    // 这里为了简单，暂且全部返回，前端根据 is_vip 控制下载逻辑。
+
+    return {
+      status: 200,
+      data: listResult.data,
+      total: total,
+      page: page,
+      hasMore: (page + 1) * pageSize < total,
+    };
+  } catch (err) {
+    console.error("获取头像列表失败", err);
+    return { status: 500, msg: "获取失败，请稍后重试" };
+  }
+}
+
+async function getAvatarDetail(event, ctx) {
+  const { db } = ctx;
+  const { id } = event;
+
+  try {
+    // 浏览量 +1 (原子操作)
+    await db
+      .collection("avatar_sets")
+      .doc(id)
+      .update({
+        data: { downloads: db.command.inc(1) },
+      });
+
+    const res = await db.collection("avatar_sets").doc(id).get();
+
+    // 检查 VIP 逻辑可以在前端做，也可以后端返回标记
+    // 这里直接返回完整数据
+    return {
+      status: 200,
+      data: res.data,
+    };
+  } catch (err) {
+    console.error(err);
+    return { status: 404, msg: "头像不存在或已下架" };
   }
 }
 

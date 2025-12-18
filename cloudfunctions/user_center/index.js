@@ -8,7 +8,7 @@ const _ = db.command;
 
 // 引入各个服务模块
 const authService = require("./services/auth");
-const petService = require("./services/pet");  // Replaced garden with pet
+const petService = require("./services/pet"); // Replaced garden with pet
 const messageService = require("./services/message");
 const capsuleService = require("./services/capsule");
 const quizService = require("./services/quiz");
@@ -87,14 +87,16 @@ exports.main = async (event, context) => {
     case "use_coupon":
     case "get_love_list_status":
     case "toggle_love_list_item":
+    case "get_avatar_list":
+    case "get_avatar_detail":
       return await playgroundService.handle(action, event, ctx);
 
     case "get_system_config":
       return {
         success: true,
         data: {
-          showVipExchange: ctx.CONFIG.SHOW_VIP_EXCHANGE
-        }
+          showVipExchange: ctx.CONFIG.SHOW_VIP_EXCHANGE,
+        },
       };
 
     default:

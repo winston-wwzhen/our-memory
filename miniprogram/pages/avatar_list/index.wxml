@@ -1,0 +1,54 @@
+<view class="container">
+  
+  <view class="bg-decoration">
+    <view class="floating-heart h1">❤</view>
+    <view class="floating-heart h2">❤</view>
+    <view class="floating-heart h3">❤</view>
+    <view class="floating-heart h4">❤</view>
+    <view class="floating-heart h5">❤</view>
+  </view>
+
+  <view class="content-wrapper">
+    
+    <view class="banner-box glass-effect">
+      <view class="banner-text">
+        <text class="title">甜蜜头像馆</text>
+        <text class="subtitle">换上一对头像，宣示主权吧 💕</text>
+      </view>
+    </view>
+
+    <view class="avatar-grid">
+      <block wx:for="{{list}}" wx:key="_id">
+        <view class="card" bindtap="navToDetail" data-id="{{item._id}}" hover-class="card-hover">
+          
+          <view class="image-box">
+            <image class="img-half left" src="{{item.boy_img}}" mode="aspectFill" lazy-load></image>
+            <image class="img-half right" src="{{item.girl_img}}" mode="aspectFill" lazy-load></image>
+            
+            <view class="heart-connector">
+              <view class="heart-icon">❤</view>
+            </view>
+
+            <view class="tag vip" wx:if="{{item.is_vip}}">VIP</view>
+            <view class="tag hot" wx:elif="{{item.downloads > 500}}">🔥 HOT</view>
+          </view>
+
+          <view class="info-box">
+            <view class="card-title">{{item.title}}</view>
+            <view class="card-meta">
+              <text class="category">#{{item.category || '精选'}}</text>
+              <text class="count">{{item.downloads}}人喜欢</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="footer-state">
+      <view class="loading-wrap" wx:if="{{loading}}">
+        <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+      </view>
+      <view class="no-more" wx:if="{{!hasMore && !loading}}">- 到底啦，快去换头像吧 -</view>
+    </view>
+  </view>
+</view>

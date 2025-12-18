@@ -169,11 +169,19 @@
       <view class="tag-badge love" wx:if="{{capsuleRedDot}}">❤</view>
     </view>
 
-    <view class="grid-card" bindtap="navToDecision">
+    <!-- <view class="grid-card" bindtap="navToDecision">
       <view class="card-icon-bg yellow"><text class="card-icon">🎲</text></view>
       <view class="card-info">
         <text class="card-title">决定转盘</text>
         <text class="card-desc">治愈选择困难</text>
+      </view>
+    </view> -->
+
+    <view class="grid-card" bindtap="navToCoupleAvatar">
+      <view class="card-icon-bg yellow"><text class="card-icon">🎲</text></view>
+      <view class="card-info">
+        <text class="card-title">情侣头像</text>
+        <text class="card-desc">可爱情侣头像</text>
       </view>
     </view>
 

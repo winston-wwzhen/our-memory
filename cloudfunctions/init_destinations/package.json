@@ -1,0 +1,11 @@
+{
+  "name": "init_destinations",
+  "version": "1.0.0",
+  "description": "Initialize travel destinations data",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

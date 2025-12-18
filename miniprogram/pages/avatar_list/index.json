@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "情侣头像",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#fff0f5", 
+  "backgroundTextStyle": "dark",
+  "usingComponents": {}
+}

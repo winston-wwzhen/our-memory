@@ -12,7 +12,9 @@
     "pages/history/index",
     "pages/mine/index",
     "pages/travel_map/index",
-    "pages/postcards/index"
+    "pages/postcards/index",
+    "pages/avatar_list/index", 
+    "pages/avatar_detail/index"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",

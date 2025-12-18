@@ -1,0 +1,119 @@
+<view class="page-container">
+  
+  <view class="bg-decoration">
+    <view class="floating-bubble b1"></view>
+    <view class="floating-bubble b2"></view>
+    <view class="floating-bubble b3"></view>
+  </view>
+
+  <scroll-view class="main-scroll" scroll-y="true" enable-back-to-top="true">
+    <view class="scroll-content">
+      
+      <view class="showcase-card glass-panel slide-down">
+        <view class="card-header">
+          <text class="title-text">{{detail.title || '甜蜜情侣头像'}}</text>
+          <view class="hot-badge" wx:if="{{detail.downloads > 100}}">🔥 {{detail.downloads}}</view>
+        </view>
+        
+        <view class="avatar-pair-box">
+          <view class="avatar-wrap" bindtap="previewImage" data-idx="0">
+            <image class="avatar-img" src="{{detail.boy_img}}" mode="aspectFill"></image>
+            <view class="tag-pill boy">👦</view>
+          </view>
+          
+          <view class="connector">
+            <view class="heart-pulse">❤</view>
+          </view>
+
+          <view class="avatar-wrap" bindtap="previewImage" data-idx="1">
+            <image class="avatar-img" src="{{detail.girl_img}}" mode="aspectFill"></image>
+            <view class="tag-pill girl">👧</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="preview-section fade-in">
+        <view class="section-header">
+          <text class="section-title">效果预览</text>
+        </view>
+        
+        <view class="chat-mock-container">
+          <view class="chat-row left">
+            <image class="chat-avatar" src="{{detail.boy_img}}" mode="aspectFill"></image>
+            <view class="chat-bubble left">
+              <text>宝，这对头像好甜呀！🥺</text>
+            </view>
+          </view>
+          <view class="chat-row right">
+            <image class="chat-avatar" src="{{detail.girl_img}}" mode="aspectFill"></image>
+            <view class="chat-bubble right">
+              <text>换上换上！宣示主权 🥰</text>
+            </view>
+          </view>
+          <view class="chat-row left">
+            <image class="chat-avatar" src="{{detail.boy_img}}" mode="aspectFill"></image>
+            <view class="chat-bubble left">
+              <text>这是什么神仙小程序呀~</text>
+            </view>
+          </view>
+
+          <view class="chat-row right">
+            <image class="chat-avatar" src="{{detail.girl_img}}" mode="aspectFill"></image>
+            <view class="chat-bubble right sticker-bubble">
+               <image class="chat-sticker" src="/images/我们的纪念册-prod.jpg" mode="widthFix"></image>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="quality-section fade-in">
+        <view class="quality-card glass-panel-sm">
+          <view class="q-label">画质选择</view>
+          <view class="q-switch-group">
+            <view class="q-opt {{quality === 'normal' ? 'active' : ''}}" bindtap="switchQuality" data-mode="normal">
+              <text>标准</text>
+            </view>
+            <view class="q-opt {{quality === 'hd' ? 'active' : ''}}" bindtap="switchQuality" data-mode="hd">
+              <text>高清原图</text>
+              <view class="lock-tag" wx:if="{{!isHdUnlocked}}">🔒</view>
+              <view class="vip-tag" wx:else>VIP</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="safe-area-spacer"></view>
+    </view>
+  </scroll-view>
+
+  <view class="fixed-footer-island">
+    <view class="island-bg"></view>
+    
+    <view class="island-content">
+      <view class="action-group-left">
+        <view class="action-item-vertical" bindtap="saveAvatar" data-type="boy">
+          <button class="btn-circle-glass" hover-class="btn-hover-pop">
+            <text class="emoji-icon">👦</text>
+          </button>
+          <text class="action-txt">存男头</text>
+        </view>
+        
+        <view class="action-item-vertical" bindtap="saveAvatar" data-type="girl">
+          <button class="btn-circle-glass" hover-class="btn-hover-pop">
+            <text class="emoji-icon">👧</text>
+          </button>
+          <text class="action-txt">存女头</text>
+        </view>
+      </view>
+
+      <button class="btn-main-pill" bindtap="saveAll" hover-class="btn-main-hover">
+        <text class="main-icon">📥</text>
+        <view class="main-txt-group">
+          <text class="txt-primary">一键保存全部</text>
+          <text class="txt-sub">自动存两张</text>
+        </view>
+      </button>
+    </view>
+  </view>
+
+</view>

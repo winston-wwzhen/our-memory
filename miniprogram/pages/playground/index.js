@@ -1013,6 +1013,13 @@ Page({
       url: "/pages/guide/index",
     });
   },
+  navToCoupleAvatar: function () {
+    if (!this.checkPartner()) return;
+    wx.navigateTo({
+      url: "/pages/avatar_list/index",
+    });
+  },
+  
   onTodo: function () {
     if (!this.checkPartner()) return;
     wx.showToast({

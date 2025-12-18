@@ -1,0 +1,186 @@
+/* miniprogram/pages/avatar_list/index.wxss */
+page {
+  /* 与首页保持一致的暖粉色背景 */
+  background: #fff0f5; 
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  min-height: 100vh;
+}
+
+.container {
+  position: relative;
+  min-height: 100vh;
+  /* 整体大背景渐变 */
+  background: linear-gradient(180deg, #fff0f5 0%, #fffaf0 100%);
+}
+
+/* === 🌸 背景动态装饰 (复用 Index 逻辑) === */
+.bg-decoration {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0; 
+  overflow: hidden;
+}
+
+.floating-heart {
+  position: absolute;
+  bottom: -50rpx;
+  font-size: 30rpx; color: #ffdee9; opacity: 0.6;
+  animation: floatUp linear infinite;
+  text-shadow: 0 0 10rpx rgba(255, 182, 193, 0.5);
+}
+/* 定义不同爱心的轨迹 */
+.h1 { left: 10%; animation-duration: 8s; font-size: 24rpx; }
+.h2 { left: 30%; animation-duration: 12s; animation-delay: 2s; font-size: 36rpx; color: #ffb7b2; }
+.h3 { left: 60%; animation-duration: 10s; animation-delay: 4s; }
+.h4 { left: 80%; animation-duration: 15s; animation-delay: 1s; font-size: 20rpx; }
+.h5 { left: 90%; animation-duration: 9s; animation-delay: 6s; font-size: 28rpx; }
+
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+}
+
+/* === 内容容器 (确保在背景之上) === */
+.content-wrapper {
+  position: relative;
+  z-index: 10;
+  padding-bottom: 60rpx;
+}
+
+/* === 顶部 Banner (毛玻璃风格) === */
+.banner-box {
+  margin: 30rpx;
+  padding: 40rpx;
+  border-radius: 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* 毛玻璃效果核心 */
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border: 2rpx solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.2);
+}
+
+.banner-text .title {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #5d4037; /* 深棕色，契合 Playground 文字色 */
+  display: block;
+  letter-spacing: 2rpx;
+  margin-bottom: 8rpx;
+}
+
+.banner-text .subtitle {
+  font-size: 24rpx;
+  color: #ff8fa3; /* 柔和粉 */
+  font-weight: 600;
+}
+
+.banner-icon {
+  width: 100rpx;
+  height: 100rpx;
+  transform: rotate(10deg); /* 俏皮一点 */
+}
+
+/* === 瀑布流 Grid === */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+  padding: 0 24rpx;
+}
+
+/* === 卡片样式 (更通透) === */
+.card {
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  /* 柔和阴影 */
+  box-shadow: 0 8rpx 24rpx rgba(139, 69, 19, 0.05);
+  transition: all 0.2s ease;
+  position: relative;
+  border: 1rpx solid rgba(255, 240, 245, 0.8);
+}
+
+.card-hover {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(139, 69, 19, 0.1);
+}
+
+.image-box {
+  position: relative;
+  width: 100%;
+  height: 340rpx;
+  display: flex;
+}
+
+.img-half {
+  width: 50%;
+  height: 100%;
+  background: #fffaf0; /* 暖色占位 */
+}
+.img-half.left {
+  border-right: 2rpx solid #fff;
+}
+
+/* 爱心连接符 */
+.heart-connector {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background: #fff;
+  width: 48rpx; height: 48rpx;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.2);
+}
+.heart-icon {
+  font-size: 26rpx; color: #ff6b81; margin-top: 4rpx;
+}
+
+/* 标签 */
+.tag {
+  position: absolute; top: 12rpx; left: 12rpx;
+  padding: 4rpx 12rpx; border-radius: 12rpx;
+  font-size: 18rpx; font-weight: bold; color: #fff; z-index: 5;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.1);
+}
+.tag.hot { background: linear-gradient(90deg, #ff9a9e, #ff6b81); }
+.tag.vip { background: linear-gradient(90deg, #ffd700, #ffb900); }
+
+/* 信息区 */
+.info-box { padding: 20rpx; }
+
+.card-title {
+  font-size: 28rpx; font-weight: 700; color: #5d4037;
+  margin-bottom: 10rpx;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.card-meta {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.category {
+  font-size: 20rpx; color: #ff8fa3; 
+  background: #fff0f5; padding: 4rpx 10rpx; border-radius: 8rpx;
+}
+.count { font-size: 20rpx; color: #bcaaa4; }
+
+/* === 底部 Loading === */
+.footer-state { padding: 40rpx 0; text-align: center; }
+.loading-wrap { display: flex; justify-content: center; gap: 10rpx; }
+.dot {
+  width: 10rpx; height: 10rpx; background: #ffb7b2;
+  border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;
+}
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+.no-more { font-size: 22rpx; color: #d7ccc8; letter-spacing: 2rpx; }
