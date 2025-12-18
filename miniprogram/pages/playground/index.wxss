@@ -409,11 +409,16 @@ page {
 /* 右侧功能导航组 (位于胶囊下方) */
 .side-nav-group {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 170rpx);
-  right: 32rpx;
+  left: 32rpx;
+  
+  /* 垂直居中核心代码 */
+  top: 50%;
+  transform: translateY(-50%);
+  
+  /* 布局样式 */
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 40rpx; /* 间距拉大一点，显得更优雅 */
   align-items: center;
   z-index: 20;
 }
@@ -439,8 +444,13 @@ page {
 
 /* 底部操作按钮组 */
 .action-buttons {
-  position: absolute; bottom: 40rpx; 
-  right: 28rpx; display: flex; flex-direction: column; gap: 24rpx; align-items: flex-end;
+  position: absolute; 
+  bottom: 40rpx; 
+  right: 32rpx; /* 微调：从 28rpx 改为 32rpx，左右对称 */
+  display: flex; 
+  flex-direction: column; 
+  gap: 24rpx; 
+  align-items: flex-end; /* 右对齐 */
 }
 
 .action-btn-glass {

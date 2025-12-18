@@ -13,10 +13,11 @@ page {
   background: linear-gradient(180deg, #fff0f5 0%, #fffaf0 100%);
 }
 
-/* === 🌸 背景动态装饰 (复用 Index 逻辑) === */
+/* === 🌸 背景动态装饰 === */
 .bg-decoration {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0; left: 0; width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 0; 
   overflow: hidden;
@@ -25,11 +26,11 @@ page {
 .floating-heart {
   position: absolute;
   bottom: -50rpx;
-  font-size: 30rpx; color: #ffdee9; opacity: 0.6;
+  font-size: 30rpx; color: #ffdee9;
+  opacity: 0.6;
   animation: floatUp linear infinite;
   text-shadow: 0 0 10rpx rgba(255, 182, 193, 0.5);
 }
-/* 定义不同爱心的轨迹 */
 .h1 { left: 10%; animation-duration: 8s; font-size: 24rpx; }
 .h2 { left: 30%; animation-duration: 12s; animation-delay: 2s; font-size: 36rpx; color: #ffb7b2; }
 .h3 { left: 60%; animation-duration: 10s; animation-delay: 4s; }
@@ -42,14 +43,14 @@ page {
   100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
 }
 
-/* === 内容容器 (确保在背景之上) === */
+/* === 内容容器 === */
 .content-wrapper {
   position: relative;
   z-index: 10;
   padding-bottom: 60rpx;
 }
 
-/* === 顶部 Banner (毛玻璃风格) === */
+/* === 顶部 Banner === */
 .banner-box {
   margin: 30rpx;
   padding: 40rpx;
@@ -57,7 +58,6 @@ page {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* 毛玻璃效果核心 */
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
   border: 2rpx solid rgba(255, 255, 255, 0.8);
@@ -67,7 +67,7 @@ page {
 .banner-text .title {
   font-size: 40rpx;
   font-weight: 800;
-  color: #5d4037; /* 深棕色，契合 Playground 文字色 */
+  color: #5d4037;
   display: block;
   letter-spacing: 2rpx;
   margin-bottom: 8rpx;
@@ -75,14 +75,8 @@ page {
 
 .banner-text .subtitle {
   font-size: 24rpx;
-  color: #ff8fa3; /* 柔和粉 */
+  color: #ff8fa3;
   font-weight: 600;
-}
-
-.banner-icon {
-  width: 100rpx;
-  height: 100rpx;
-  transform: rotate(10deg); /* 俏皮一点 */
 }
 
 /* === 瀑布流 Grid === */
@@ -93,12 +87,11 @@ page {
   padding: 0 24rpx;
 }
 
-/* === 卡片样式 (更通透) === */
+/* === 卡片样式 === */
 .card {
   background: #fff;
   border-radius: 24rpx;
   overflow: hidden;
-  /* 柔和阴影 */
   box-shadow: 0 8rpx 24rpx rgba(139, 69, 19, 0.05);
   transition: all 0.2s ease;
   position: relative;
@@ -115,16 +108,17 @@ page {
   width: 100%;
   height: 340rpx;
   display: flex;
+  /* ⚡️ 优化：增加灰色背景占位，防止图片加载前的空白闪烁 */
+  background-color: #f2f2f2;
 }
 
 .img-half {
   width: 50%;
   height: 100%;
-  background: #fffaf0; /* 暖色占位 */
+  /* ⚡️ 优化：增加渐变过渡，图片加载出来时更柔和 */
+  transition: opacity 0.3s ease; 
 }
-.img-half.left {
-  border-right: 2rpx solid #fff;
-}
+.img-half.left { border-right: 2rpx solid #fff; }
 
 /* 爱心连接符 */
 .heart-connector {
@@ -138,15 +132,14 @@ page {
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.2);
 }
-.heart-icon {
-  font-size: 26rpx; color: #ff6b81; margin-top: 4rpx;
-}
+.heart-icon { font-size: 26rpx; color: #ff6b81; margin-top: 4rpx; }
 
 /* 标签 */
 .tag {
   position: absolute; top: 12rpx; left: 12rpx;
   padding: 4rpx 12rpx; border-radius: 12rpx;
-  font-size: 18rpx; font-weight: bold; color: #fff; z-index: 5;
+  font-size: 18rpx; font-weight: bold;
+  color: #fff; z-index: 5;
   box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.1);
 }
 .tag.hot { background: linear-gradient(90deg, #ff9a9e, #ff6b81); }
@@ -156,14 +149,13 @@ page {
 .info-box { padding: 20rpx; }
 
 .card-title {
-  font-size: 28rpx; font-weight: 700; color: #5d4037;
+  font-size: 28rpx; font-weight: 700;
+  color: #5d4037;
   margin-bottom: 10rpx;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.card-meta {
-  display: flex; justify-content: space-between; align-items: center;
-}
+.card-meta { display: flex; justify-content: space-between; align-items: center; }
 .category {
   font-size: 20rpx; color: #ff8fa3; 
   background: #fff0f5; padding: 4rpx 10rpx; border-radius: 8rpx;
@@ -184,3 +176,36 @@ page {
   40% { transform: scale(1); }
 }
 .no-more { font-size: 22rpx; color: #d7ccc8; letter-spacing: 2rpx; }
+
+.make-btn {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  padding: 16rpx 28rpx;
+  border-radius: 40rpx;
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.btn-icon {
+  font-size: 28rpx;
+}
+
+.btn-txt {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1rpx;
+}
+
+/* 点击态 */
+.btn-hover {
+  transform: scale(0.95);
+  filter: brightness(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 129, 0.2);
+}

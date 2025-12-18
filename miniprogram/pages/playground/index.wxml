@@ -142,6 +142,14 @@
 
 <view class="menu-section">
   <view class="grid-menu">
+    <view class="grid-card" bindtap="navToCoupleAvatar">
+      <view class="card-icon-bg yellow"><text class="card-icon">💑</text></view>
+      <view class="card-info">
+        <text class="card-title">情侣头像</text>
+        <text class="card-desc">可爱情侣头像</text>
+      </view>
+    </view>
+    
     <view class="grid-card" bindtap="navToQuiz">
       <view class="card-icon-bg purple"><text class="card-icon">🧩</text></view>
       <view class="card-info">
@@ -176,14 +184,6 @@
         <text class="card-desc">治愈选择困难</text>
       </view>
     </view> -->
-
-    <view class="grid-card" bindtap="navToCoupleAvatar">
-      <view class="card-icon-bg yellow"><text class="card-icon">🎲</text></view>
-      <view class="card-info">
-        <text class="card-title">情侣头像</text>
-        <text class="card-desc">可爱情侣头像</text>
-      </view>
-    </view>
 
     <view class="grid-card" bindtap="navToCoupons">
       <view class="card-icon-bg red"><text class="card-icon">🎟️</text></view>
