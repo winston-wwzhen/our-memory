@@ -101,8 +101,8 @@ page {
 .pet-bubble {
   position: absolute;
   /* 位置调整：位于宠物头顶右侧 */
-  bottom: 72%;  
-  left: 77%;    
+  bottom: 76%;  
+  left: 62%;    
   
   /* 初始状态：从左下角（嘴巴方向）缩小 */
   transform: scale(0);
@@ -124,7 +124,7 @@ page {
   
   /* 字体样式 */
   text-align: left; /* 左对齐更像说话 */
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #5d4037;
   font-weight: 800; /* 加粗 */
   line-height: 1.4;
@@ -164,8 +164,8 @@ page {
   top: 25%; /* 宠物肩膀高度 */
   left: 50%; /* 水平居中 (会被内联样式覆盖微调) */
   color: #ff4081; /* 鲜艳的粉色 */
-  font-weight: 900;
-  font-size: 36rpx;
+  font-weight: 600;
+  font-size: 26rpx;
   z-index: 50;
   text-shadow: 2rpx 2rpx 0px #fff, -1rpx -1rpx 0 #fff; /* 白边描边效果 */
   pointer-events: none;

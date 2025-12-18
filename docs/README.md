@@ -118,6 +118,7 @@
 - `vip_codes` - VIP兑换码
 - `app_config` - 应用配置
 - `avatar_sets` - 头像集合
+- `egg_configs` - 彩蛋集合
 
 ## 商业化与游戏化
 
