@@ -1,21 +1,26 @@
 /* miniprogram/pages/avatar_list/index.wxss */
+
+/* === 基础页面设置 === */
 page {
-  background: #fff0f5; 
-  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  /* 使用更柔和的粉白渐变，营造浪漫氛围 */
+  background: linear-gradient(180deg, #fff0f5 0%, #fffbf0 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif;
   min-height: 100vh;
+  /* 解决 iOS 滚动回弹背景色问题 */
+  background-attachment: fixed; 
 }
 
 .container {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(180deg, #fff0f5 0%, #fffaf0 100%);
+  box-sizing: border-box;
 }
 
-/* === 🌸 背景动态装饰 === */
+/* === 🌸 背景动态装饰 (保持原有逻辑，微调参数) === */
 .bg-decoration {
   position: absolute;
-  top: 0; left: 0; width: 100%;
-  height: 100%;
+  top: 0; left: 0; 
+  width: 100%; height: 100%;
   pointer-events: none;
   z-index: 0; 
   overflow: hidden;
@@ -23,130 +28,195 @@ page {
 
 .floating-heart {
   position: absolute;
-  bottom: -50rpx;
-  font-size: 30rpx; color: #ffdee9;
-  opacity: 0.6;
+  bottom: -60rpx;
+  font-size: 32rpx; 
+  color: #ffdee9;
+  opacity: 0;
   animation: floatUp linear infinite;
-  text-shadow: 0 0 10rpx rgba(255, 182, 193, 0.5);
+  /* 增加文字阴影，让爱心更有立体感 */
+  text-shadow: 0 4rpx 8rpx rgba(255, 182, 193, 0.6);
 }
-.h1 { left: 10%; animation-duration: 8s; font-size: 24rpx; }
-.h2 { left: 30%; animation-duration: 12s; animation-delay: 2s; font-size: 36rpx; color: #ffb7b2; }
-.h3 { left: 60%; animation-duration: 10s; animation-delay: 4s; }
-.h4 { left: 80%; animation-duration: 15s; animation-delay: 1s; font-size: 20rpx; }
-.h5 { left: 90%; animation-duration: 9s; animation-delay: 6s; font-size: 28rpx; }
+
+/* 错峰动画时间，让飘动更自然 */
+.h1 { left: 10%; animation-duration: 9s;  font-size: 28rpx; }
+.h2 { left: 25%; animation-duration: 13s; animation-delay: 2s; font-size: 40rpx; color: #ffc3c3; }
+.h3 { left: 50%; animation-duration: 11s; animation-delay: 4s; }
+.h4 { left: 75%; animation-duration: 16s; animation-delay: 1s; font-size: 24rpx; }
+.h5 { left: 88%; animation-duration: 10s; animation-delay: 6s; font-size: 32rpx; }
 
 @keyframes floatUp {
-  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-  20% { opacity: 0.8; }
-  100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+  0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+  20% { opacity: 0.8; transform: scale(1); }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(-120vh) rotate(360deg) scale(0.8); opacity: 0; }
 }
 
 /* === 内容容器 === */
 .content-wrapper {
   position: relative;
   z-index: 10;
-  padding-bottom: 60rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 40rpx);
 }
 
-/* === 顶部 Banner === */
+/* === 顶部 Banner (玻璃拟态升级) === */
 .banner-box {
-  /* ✨ 极限收窄：左右仅留 10rpx */
-  margin: 20rpx 10rpx; 
-  padding: 30rpx 40rpx; /* 内部 padding 保持舒适 */
-  border-radius: 24rpx; /* 圆角稍微改小一点点以适配窄边 */
+  margin: 24rpx;
+  padding: 32rpx 40rpx;
+  border-radius: 32rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  border: 2rpx solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 10rpx 30rpx rgba(255, 182, 193, 0.2);
+  
+  /* 玻璃拟态核心 */
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  
+  /* 细腻的边框高光 */
+  border: 2rpx solid rgba(255, 255, 255, 0.9);
+  /* 有色弥散阴影 */
+  box-shadow: 0 20rpx 40rpx rgba(255, 182, 193, 0.25), inset 0 0 20rpx rgba(255, 255, 255, 0.5);
+}
+
+.banner-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .banner-text .title {
-  font-size: 36rpx; /* 稍微调整 Banner 字体大小适配紧凑布局 */
+  font-size: 38rpx;
   font-weight: 800;
-  color: #5d4037;
-  display: block;
+  color: #5d4037; /* 暖棕色 */
   letter-spacing: 2rpx;
-  margin-bottom: 6rpx;
+  margin-bottom: 8rpx;
+  text-shadow: 0 2rpx 0 rgba(255,255,255,0.8);
 }
 
 .banner-text .subtitle {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #ff8fa3;
   font-weight: 600;
+  letter-spacing: 1rpx;
 }
 
-/* === 瀑布流 Grid (极致紧凑双列) === */
+/* 定制按钮优化 */
+.make-btn {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  padding: 16rpx 28rpx;
+  border-radius: 40rpx;
+  box-shadow: 0 8rpx 20rpx rgba(255, 154, 158, 0.4);
+  border: 2rpx solid rgba(255, 255, 255, 0.8);
+  transition: transform 0.2s ease;
+}
+
+.btn-content { 
+  display: flex; 
+  align-items: center; 
+  gap: 8rpx; 
+}
+.btn-icon { font-size: 28rpx; }
+.btn-txt { 
+  font-size: 26rpx; 
+  font-weight: 700; 
+  color: #fff; 
+  letter-spacing: 2rpx;
+  text-shadow: 0 2rpx 4rpx rgba(255, 107, 129, 0.2);
+}
+/* 按钮点击态 */
+.btn-hover { 
+  transform: scale(0.94); 
+  filter: brightness(1.05); 
+}
+
+/* === 瀑布流 Grid (保持紧凑布局) === */
 .avatar-grid {
   display: grid;
+  /* 两列等宽 */
   grid-template-columns: repeat(2, 1fr);
-  /* ✨ 间距和边距都设为 10rpx */
-  gap: 10rpx;
-  padding: 0 10rpx;
+  /* 间距设定 */
+  gap: 16rpx; 
+  padding: 0 16rpx;
 }
 
 /* === 卡片样式 === */
 .card {
-  background: #fff;
-  border-radius: 20rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(139, 69, 19, 0.04);
-  transition: all 0.2s ease;
   position: relative;
-  border: 1rpx solid rgba(255, 240, 245, 0.8);
+  /* 优化阴影：更轻、更有色彩感 */
+  box-shadow: 0 10rpx 30rpx rgba(233, 213, 218, 0.25);
+  border: 1rpx solid rgba(255, 255, 255, 1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* 确保 WebKit 浏览器下圆角内的图片不溢出 */
+  -webkit-mask-image: -webkit-radial-gradient(white, black); 
 }
 
 .card-hover {
-  transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(139, 69, 19, 0.08);
+  transform: translateY(4rpx) scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(233, 213, 218, 0.4);
 }
 
+/* 图片区域 */
 .image-box {
   position: relative;
   width: 100%;
-  /* ✨ 2:1 比例精确计算 */
-  /* 屏幕宽 750rpx */
-  /* 减去左右 padding (10*2) = 20 */
-  /* 减去中间 gap (10) */
-  /* 剩余空间 = 720rpx */
-  /* 单卡片宽 = 360rpx */
-  /* 高度 = 360 / 2 = 180rpx */
+  /* 保持 2:1 比例 (360:180) */
   height: 180rpx; 
-  display: block;
-  background-color: #f2f2f2;
+  background-color: #f7f7f7; /* 图片加载前的底色 */
+  overflow: hidden;
 }
 
 .cover-img {
   width: 100%;
   height: 100%;
-  /* 填满 2:1 容器，超出的部分裁切 */
-  object-fit: cover; 
-  transition: opacity 0.3s ease;
+  object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
-/* 标签 */
+/* 标签优化 */
 .tag {
-  position: absolute; top: 8rpx; left: 8rpx;
-  padding: 4rpx 10rpx; border-radius: 8rpx;
-  font-size: 18rpx; font-weight: bold;
-  color: #fff; z-index: 5;
-  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.15);
+  position: absolute; 
+  top: 10rpx; left: 10rpx;
+  padding: 6rpx 14rpx; 
+  border-radius: 12rpx;
+  font-size: 18rpx; 
+  font-weight: 800;
+  color: #fff; 
+  z-index: 5;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
-.tag.hot { background: linear-gradient(90deg, #ff9a9e, #ff6b81); }
-.tag.vip { background: linear-gradient(90deg, #ffd700, #ffb900); }
+
+.tag.hot { 
+  background: linear-gradient(90deg, #ff9a9e, #ff6b81);
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+}
+
+.tag.vip { 
+  background: linear-gradient(90deg, #ffd700, #ffaa00); 
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+}
 
 /* 信息区 */
-.info-box { padding: 16rpx; }
+.info-box { 
+  padding: 20rpx 16rpx;
+  background: #fff;
+}
 
 .card-title {
-  /* 卡片变宽了，字号可以稍微大一点点 */
   font-size: 28rpx; 
   font-weight: 700;
-  color: #5d4037;
-  margin-bottom: 8rpx;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: #4a4a4a;
+  margin-bottom: 12rpx;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.5rpx;
 }
 
 .card-meta { 
@@ -155,42 +225,81 @@ page {
   align-items: center; 
 }
 
+.category {
+  font-size: 20rpx;
+  color: #aab2bd;
+  background: #f5f7fa;
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+}
+
 .count { 
   font-size: 22rpx; 
-  color: #bcaaa4; 
+  color: #ffb7b2;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
 }
+
 .count::before {
   content: '♥';
-  margin-right: 4rpx;
-  color: #ffb7b2;
+  margin-right: 6rpx;
+  font-size: 20rpx;
+  /* 爱心跳动动画 */
+  animation: heartBeat 2s infinite ease-in-out;
+  display: inline-block;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
 }
 
 /* === 底部 Loading === */
-.footer-state { padding: 40rpx 0; text-align: center; }
-.loading-wrap { display: flex; justify-content: center; gap: 10rpx; }
+.footer-state { 
+  padding: 50rpx 0;
+  text-align: center; 
+}
+
+.loading-wrap { 
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  gap: 12rpx; 
+}
+
 .dot {
-  width: 10rpx; height: 10rpx; background: #ffb7b2;
-  border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;
+  width: 12rpx; 
+  height: 12rpx; 
+  background: #ffb7b2;
+  border-radius: 50%; 
+  animation: bounce 1.4s infinite ease-in-out both;
 }
 .dot:nth-child(1) { animation-delay: -0.32s; }
 .dot:nth-child(2) { animation-delay: -0.16s; }
+
 @keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
-}
-.no-more { font-size: 22rpx; color: #d7ccc8; letter-spacing: 2rpx; }
-
-/* 定制按钮 */
-.make-btn {
-  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-  padding: 14rpx 24rpx;
-  border-radius: 40rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 129, 0.3);
-  border: 2rpx solid rgba(255, 255, 255, 0.6);
-  transition: all 0.2s ease;
+  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
 }
 
-.btn-content { display: flex; align-items: center; gap: 6rpx; }
-.btn-icon { font-size: 26rpx; }
-.btn-txt { font-size: 24rpx; font-weight: 700; color: #fff; letter-spacing: 1rpx; }
-.btn-hover { transform: scale(0.95); filter: brightness(0.95); box-shadow: 0 2rpx 8rpx rgba(255, 107, 129, 0.2); }
+.no-more { 
+  font-size: 24rpx;
+  color: #d7ccc8; 
+  letter-spacing: 4rpx;
+  position: relative;
+  display: inline-block;
+  padding: 0 20rpx;
+}
+
+/* 装饰线 */
+.no-more::before, .no-more::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40rpx;
+  height: 2rpx;
+  background: #efebe9;
+}
+.no-more::before { left: -30rpx; }
+.no-more::after { right: -30rpx; }
