@@ -8,13 +8,9 @@
     if (url.indexOf('imageMogr2') > -1) return url;
 
     // ☁️ 核心优化：追加腾讯云图片处理参数
-    // thumbnail/300x : 限制宽度为 300px (列表页足够了)，高度自适应
-    // quality/80 : 压缩质量 80%
-    // format/webp : 转换为 webp 格式 (安卓/iOS均支持，体积极小)
-    
-    // 判断连接符是 ? 还是 &
+    // thumbnail/400x : 适当增加分辨率，因为现在是单张大图
     var joinChar = url.indexOf('?') > -1 ? '&' : '?';
-    return url + joinChar + 'imageMogr2/thumbnail/300x/quality/80/format/webp'; 
+    return url + joinChar + 'imageMogr2/thumbnail/400x/quality/80/format/webp'; 
   }
   module.exports.getThumb = getThumb;
 </wxs>
@@ -37,7 +33,7 @@
         <text class="subtitle">换上一对头像，宣示主权吧 💕</text>
       </view>
       <view class="make-btn" bindtap="onMakeAvatar" hover-class="btn-hover">
-          <view class="btn-content">
+        <view class="btn-content">
             <text class="btn-icon">🎨</text>
             <text class="btn-txt">定制</text>
           </view>
@@ -50,22 +46,12 @@
           
           <view class="image-box">
             <image 
-              class="img-half left" 
-              src="{{imgUtils.getThumb(item.boy_img)}}" 
-              mode="aspectFill" 
-              lazy-load="{{true}}"
-            ></image>
-            <image 
-              class="img-half right" 
-              src="{{imgUtils.getThumb(item.girl_img)}}" 
+              class="cover-img" 
+              src="{{imgUtils.getThumb(item.cover_url || item.boy_img)}}" 
               mode="aspectFill" 
               lazy-load="{{true}}"
             ></image>
             
-            <view class="heart-connector">
-              <view class="heart-icon">❤</view>
-            </view>
-
             <view class="tag vip" wx:if="{{item.is_vip}}">VIP</view>
             <view class="tag hot" wx:elif="{{item.downloads > 500}}">🔥 HOT</view>
           </view>

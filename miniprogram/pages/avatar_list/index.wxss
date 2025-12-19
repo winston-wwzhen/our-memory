@@ -1,6 +1,5 @@
 /* miniprogram/pages/avatar_list/index.wxss */
 page {
-  /* 与首页保持一致的暖粉色背景 */
   background: #fff0f5; 
   font-family: -apple-system, 'Helvetica Neue', sans-serif;
   min-height: 100vh;
@@ -9,7 +8,6 @@ page {
 .container {
   position: relative;
   min-height: 100vh;
-  /* 整体大背景渐变 */
   background: linear-gradient(180deg, #fff0f5 0%, #fffaf0 100%);
 }
 
@@ -52,9 +50,10 @@ page {
 
 /* === 顶部 Banner === */
 .banner-box {
-  margin: 30rpx;
-  padding: 40rpx;
-  border-radius: 32rpx;
+  /* ✨ 极限收窄：左右仅留 10rpx */
+  margin: 20rpx 10rpx; 
+  padding: 30rpx 40rpx; /* 内部 padding 保持舒适 */
+  border-radius: 24rpx; /* 圆角稍微改小一点点以适配窄边 */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -65,34 +64,35 @@ page {
 }
 
 .banner-text .title {
-  font-size: 40rpx;
+  font-size: 36rpx; /* 稍微调整 Banner 字体大小适配紧凑布局 */
   font-weight: 800;
   color: #5d4037;
   display: block;
   letter-spacing: 2rpx;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
 }
 
 .banner-text .subtitle {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #ff8fa3;
   font-weight: 600;
 }
 
-/* === 瀑布流 Grid === */
+/* === 瀑布流 Grid (极致紧凑双列) === */
 .avatar-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24rpx;
-  padding: 0 24rpx;
+  /* ✨ 间距和边距都设为 10rpx */
+  gap: 10rpx;
+  padding: 0 10rpx;
 }
 
 /* === 卡片样式 === */
 .card {
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx rgba(139, 69, 19, 0.05);
+  box-shadow: 0 4rpx 16rpx rgba(139, 69, 19, 0.04);
   transition: all 0.2s ease;
   position: relative;
   border: 1rpx solid rgba(255, 240, 245, 0.8);
@@ -100,67 +100,70 @@ page {
 
 .card-hover {
   transform: scale(0.98);
-  box-shadow: 0 4rpx 12rpx rgba(139, 69, 19, 0.1);
+  box-shadow: 0 2rpx 8rpx rgba(139, 69, 19, 0.08);
 }
 
 .image-box {
   position: relative;
   width: 100%;
-  height: 340rpx;
-  display: flex;
-  /* ⚡️ 优化：增加灰色背景占位，防止图片加载前的空白闪烁 */
+  /* ✨ 2:1 比例精确计算 */
+  /* 屏幕宽 750rpx */
+  /* 减去左右 padding (10*2) = 20 */
+  /* 减去中间 gap (10) */
+  /* 剩余空间 = 720rpx */
+  /* 单卡片宽 = 360rpx */
+  /* 高度 = 360 / 2 = 180rpx */
+  height: 180rpx; 
+  display: block;
   background-color: #f2f2f2;
 }
 
-.img-half {
-  width: 50%;
+.cover-img {
+  width: 100%;
   height: 100%;
-  /* ⚡️ 优化：增加渐变过渡，图片加载出来时更柔和 */
-  transition: opacity 0.3s ease; 
+  /* 填满 2:1 容器，超出的部分裁切 */
+  object-fit: cover; 
+  transition: opacity 0.3s ease;
 }
-.img-half.left { border-right: 2rpx solid #fff; }
-
-/* 爱心连接符 */
-.heart-connector {
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  background: #fff;
-  width: 48rpx; height: 48rpx;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.2);
-}
-.heart-icon { font-size: 26rpx; color: #ff6b81; margin-top: 4rpx; }
 
 /* 标签 */
 .tag {
-  position: absolute; top: 12rpx; left: 12rpx;
-  padding: 4rpx 12rpx; border-radius: 12rpx;
+  position: absolute; top: 8rpx; left: 8rpx;
+  padding: 4rpx 10rpx; border-radius: 8rpx;
   font-size: 18rpx; font-weight: bold;
   color: #fff; z-index: 5;
-  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.1);
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.15);
 }
 .tag.hot { background: linear-gradient(90deg, #ff9a9e, #ff6b81); }
 .tag.vip { background: linear-gradient(90deg, #ffd700, #ffb900); }
 
 /* 信息区 */
-.info-box { padding: 20rpx; }
+.info-box { padding: 16rpx; }
 
 .card-title {
-  font-size: 28rpx; font-weight: 700;
+  /* 卡片变宽了，字号可以稍微大一点点 */
+  font-size: 28rpx; 
+  font-weight: 700;
   color: #5d4037;
-  margin-bottom: 10rpx;
+  margin-bottom: 8rpx;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.card-meta { display: flex; justify-content: space-between; align-items: center; }
-.category {
-  font-size: 20rpx; color: #ff8fa3; 
-  background: #fff0f5; padding: 4rpx 10rpx; border-radius: 8rpx;
+.card-meta { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
 }
-.count { font-size: 20rpx; color: #bcaaa4; }
+
+.count { 
+  font-size: 22rpx; 
+  color: #bcaaa4; 
+}
+.count::before {
+  content: '♥';
+  margin-right: 4rpx;
+  color: #ffb7b2;
+}
 
 /* === 底部 Loading === */
 .footer-state { padding: 40rpx 0; text-align: center; }
@@ -177,35 +180,17 @@ page {
 }
 .no-more { font-size: 22rpx; color: #d7ccc8; letter-spacing: 2rpx; }
 
+/* 定制按钮 */
 .make-btn {
   background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-  padding: 16rpx 28rpx;
+  padding: 14rpx 24rpx;
   border-radius: 40rpx;
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 129, 0.3);
   border: 2rpx solid rgba(255, 255, 255, 0.6);
   transition: all 0.2s ease;
 }
 
-.btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.btn-icon {
-  font-size: 28rpx;
-}
-
-.btn-txt {
-  font-size: 26rpx;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 1rpx;
-}
-
-/* 点击态 */
-.btn-hover {
-  transform: scale(0.95);
-  filter: brightness(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 129, 0.2);
-}
+.btn-content { display: flex; align-items: center; gap: 6rpx; }
+.btn-icon { font-size: 26rpx; }
+.btn-txt { font-size: 24rpx; font-weight: 700; color: #fff; letter-spacing: 1rpx; }
+.btn-hover { transform: scale(0.95); filter: brightness(0.95); box-shadow: 0 2rpx 8rpx rgba(255, 107, 129, 0.2); }
