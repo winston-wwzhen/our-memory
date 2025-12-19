@@ -113,10 +113,10 @@ Page({
     wx.showModal({
       title: "🎨 专属定制即将上线",
       content:
-        "AI 专属情侣头像制作功能正在紧急开发中...\n\n上传你和TA的照片，即可生成独一无二的漫画情头，敬请期待！✨",
+        "AI 专属情侣头像制作功能正在紧急开发中...\n上传你和TA的照片，即可生成独一无二的漫画情头，敬请期待！\n当前你也可以去首页打卡生成不同风格的头像哦✨",
       showCancel: false,
-      confirmText: "我会等的",
-      confirmColor: "#ff6b81", // 使用主题粉色
+      confirmText: "超期待的💕",
+      confirmColor: "#ff6b81",
       success: (res) => {
         if (res.confirm) {
           // 可选：这里可以埋点统计用户点击意愿
