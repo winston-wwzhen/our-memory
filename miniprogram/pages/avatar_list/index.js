@@ -7,46 +7,35 @@ Page({
     hasMore: true,
     page: 0,
     pageSize: 10,
-    isRefreshed: false, // 标记当前是否处于下拉刷新状态
+    isRefreshed: false,
   },
 
   onLoad() {
     this.fetchData();
   },
 
-  // 🔄 1. 下拉刷新监听
   onPullDownRefresh() {
-    // 震动反馈，提升手感
     wx.vibrateShort({ type: "light" });
-
     this.setData({
       isRefreshed: true,
       page: 0,
       hasMore: true,
     });
-
-    // 重新请求数据
     this.fetchData(() => {
-      // 请求完成后，停止下拉动画
       wx.stopPullDownRefresh();
       this.setData({ isRefreshed: false });
-
-      // 提示刷新成功
       wx.showToast({ title: "已刷新", icon: "none" });
     });
   },
 
-  // 📜 触底加载更多
   onReachBottom() {
     if (this.data.hasMore && !this.data.loading) {
       this.fetchData();
     }
   },
 
-  // 数据获取逻辑 (保持不变，确保处理了回调 cb)
   fetchData(cb) {
     if (this.data.loading && !this.data.isRefreshed) return;
-
     this.setData({ loading: true });
 
     wx.cloud.callFunction({
@@ -60,11 +49,8 @@ Page({
         const result = res.result;
         if (result.status === 200) {
           const newItems = result.data;
-
           this.setData({
-            // 如果是第一页(下拉刷新)，直接覆盖；否则追加
-            list:
-              this.data.page === 0 ? newItems : this.data.list.concat(newItems),
+            list: this.data.page === 0 ? newItems : this.data.list.concat(newItems),
             page: this.data.page + 1,
             hasMore: result.hasMore,
             loading: false,
@@ -78,7 +64,6 @@ Page({
         this.setData({ loading: false });
       },
       complete: () => {
-        // 🔥 关键：执行回调，用于停止下拉刷新动画
         if (cb && typeof cb === "function") cb();
       },
     });
@@ -91,36 +76,31 @@ Page({
     });
   },
 
-  // 📤 2. 分享给朋友
   onShareAppMessage() {
     return {
       title: "这里有好多超甜的情侣头像，快来换上！💕",
       path: "/pages/avatar_list/index",
-      // imageUrl: '/images/share_cover.jpg' // 可选：自定义分享图，不填则默认截取当前页面
     };
   },
 
-  // 🌍 3. 分享到朋友圈
   onShareTimeline() {
     return {
       title: "换个头像，换种心情。这里有好多好看的情侣头像 👇",
-      query: "", // 朋友圈分享不需要带参数
-      // imageUrl: ... // 朋友圈默认使用小程序 Logo 或当前页截图
+      query: "",
     };
   },
-  // ✨ 新增：点击定制按钮的逻辑
+
+  // ✨ 修复后的弹窗逻辑
   onMakeAvatar() {
     wx.showModal({
       title: "🎨 专属定制即将上线",
-      content:
-        "AI 专属情侣头像制作功能正在紧急开发中...\n上传你和TA的照片，即可生成独一无二的漫画情头，敬请期待！\n当前你也可以去首页打卡生成不同风格的头像哦✨",
+      content: "AI 专属情侣头像制作功能正在紧急开发中...\n上传你和TA的照片，即可生成独一无二的漫画情头，敬请期待！",
       showCancel: false,
-      confirmText: "超期待的💕",
+      confirmText: "我知道了", // 保持4个字以内，无 Emoji
       confirmColor: "#ff6b81",
       success: (res) => {
         if (res.confirm) {
-          // 可选：这里可以埋点统计用户点击意愿
-          console.log("User is interested in Avatar Maker");
+          console.log("用户点击知晓");
         }
       },
     });

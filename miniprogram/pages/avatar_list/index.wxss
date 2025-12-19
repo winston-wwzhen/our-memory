@@ -1,5 +1,6 @@
 /* miniprogram/pages/avatar_list/index.wxss */
 page {
+  /* 与首页保持一致的暖粉色背景 */
   background: #fff0f5; 
   font-family: -apple-system, 'Helvetica Neue', sans-serif;
   min-height: 100vh;
@@ -8,6 +9,7 @@ page {
 .container {
   position: relative;
   min-height: 100vh;
+  /* 整体大背景渐变 */
   background: linear-gradient(180deg, #fff0f5 0%, #fffaf0 100%);
 }
 
@@ -63,12 +65,18 @@ page {
 }
 
 .banner-text .title {
-  font-size: 40rpx; font-weight: 800; color: #5d4037;
-  display: block; letter-spacing: 2rpx; margin-bottom: 8rpx;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #5d4037;
+  display: block;
+  letter-spacing: 2rpx;
+  margin-bottom: 8rpx;
 }
 
 .banner-text .subtitle {
-  font-size: 24rpx; color: #ff8fa3; font-weight: 600;
+  font-size: 24rpx;
+  color: #ff8fa3;
+  font-weight: 600;
 }
 
 /* === 瀑布流 Grid === */
@@ -95,32 +103,22 @@ page {
   box-shadow: 0 4rpx 12rpx rgba(139, 69, 19, 0.1);
 }
 
-/* 🚩 关键修复点在这里！ */
 .image-box {
   position: relative;
-  width: 340rpx;
-  height: 170rpx;
-  display: flex;
-  background-color: #f2f2f2;
-  overflow: hidden;
-}
-
-.cover-img {
   width: 100%;
-  height: 100%;
-  transition: opacity 0.3s ease;
+  height: 340rpx;
+  display: flex;
+  /* ⚡️ 优化：增加灰色背景占位，防止图片加载前的空白闪烁 */
+  background-color: #f2f2f2;
 }
 
-/* 中间分割线 */
-.split-line {
-  position: absolute;
-  left: 50%; top: 0; bottom: 0;
-  width: 4rpx;
-  background: #fff;
-  transform: translateX(-50%);
-  z-index: 5;
-  box-shadow: 0 0 4rpx rgba(0,0,0,0.1);
+.img-half {
+  width: 50%;
+  height: 100%;
+  /* ⚡️ 优化：增加渐变过渡，图片加载出来时更柔和 */
+  transition: opacity 0.3s ease; 
 }
+.img-half.left { border-right: 2rpx solid #fff; }
 
 /* 爱心连接符 */
 .heart-connector {
@@ -129,20 +127,18 @@ page {
   transform: translate(-50%, -50%);
   z-index: 10;
   background: #fff;
-  /* 👇 尺寸调小一点，适应变矮的卡片 */
-  width: 36rpx; height: 36rpx;
+  width: 48rpx; height: 48rpx;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.2);
-  border: 4rpx solid #fff;
 }
-.heart-icon { font-size: 18rpx; color: #ff6b81; margin-top: 2rpx; }
+.heart-icon { font-size: 26rpx; color: #ff6b81; margin-top: 4rpx; }
 
 /* 标签 */
 .tag {
-  position: absolute; top: 6rpx; left: 6rpx;
-  padding: 2rpx 10rpx; border-radius: 8rpx;
-  font-size: 16rpx; font-weight: bold;
+  position: absolute; top: 12rpx; left: 12rpx;
+  padding: 4rpx 12rpx; border-radius: 12rpx;
+  font-size: 18rpx; font-weight: bold;
   color: #fff; z-index: 5;
   box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.1);
 }
@@ -150,23 +146,23 @@ page {
 .tag.vip { background: linear-gradient(90deg, #ffd700, #ffb900); }
 
 /* 信息区 */
-.info-box { padding: 16rpx; }
+.info-box { padding: 20rpx; }
 
 .card-title {
-  font-size: 26rpx; font-weight: 700;
+  font-size: 28rpx; font-weight: 700;
   color: #5d4037;
-  margin-bottom: 8rpx;
+  margin-bottom: 10rpx;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .card-meta { display: flex; justify-content: space-between; align-items: center; }
 .category {
-  font-size: 18rpx; color: #ff8fa3; 
-  background: #fff0f5; padding: 2rpx 8rpx; border-radius: 6rpx;
+  font-size: 20rpx; color: #ff8fa3; 
+  background: #fff0f5; padding: 4rpx 10rpx; border-radius: 8rpx;
 }
-.count { font-size: 18rpx; color: #bcaaa4; }
+.count { font-size: 20rpx; color: #bcaaa4; }
 
-/* 底部状态 */
+/* === 底部 Loading === */
 .footer-state { padding: 40rpx 0; text-align: center; }
 .loading-wrap { display: flex; justify-content: center; gap: 10rpx; }
 .dot {
@@ -190,7 +186,26 @@ page {
   transition: all 0.2s ease;
 }
 
-.btn-content { display: flex; align-items: center; gap: 8rpx; }
-.btn-icon { font-size: 28rpx; }
-.btn-txt { font-size: 26rpx; font-weight: 700; color: #fff; letter-spacing: 1rpx; }
-.btn-hover { transform: scale(0.95); filter: brightness(0.95); box-shadow: 0 2rpx 8rpx rgba(255, 107, 129, 0.2); }
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.btn-icon {
+  font-size: 28rpx;
+}
+
+.btn-txt {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1rpx;
+}
+
+/* 点击态 */
+.btn-hover {
+  transform: scale(0.95);
+  filter: brightness(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 129, 0.2);
+}
