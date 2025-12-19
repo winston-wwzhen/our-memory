@@ -385,7 +385,6 @@ async function handle(action, event, ctx) {
         current_destination: "",
         return_time: null,
         travel_count: _.inc(1),
-        guaranteed_progress: rewards.guaranteed_progress,
         updatedAt: db.serverDate(),
       };
 
@@ -565,24 +564,31 @@ async function handle(action, event, ctx) {
 
     case "rename_pet": {
       const { name } = event;
-      if (!name || name.trim().length === 0) return { status: 400, msg: "名字不能为空" };
+      if (!name || name.trim().length === 0)
+        return { status: 400, msg: "名字不能为空" };
       if (name.length > 6) return { status: 400, msg: "名字太长啦(最多6个字)" };
 
       // 🛡️ 安全检测
       const isSafe = await checkTextSafety(ctx, name);
       if (!isSafe) return { status: 403, msg: "名字包含敏感词，请换一个" };
 
-      const petRes = await db.collection("pets").where({ owners: OPENID }).get();
+      const petRes = await db
+        .collection("pets")
+        .where({ owners: OPENID })
+        .get();
       if (petRes.data.length === 0) return { status: 404, msg: "宠物不存在" };
-      
+
       const pet = petRes.data[0];
 
-      await db.collection("pets").doc(pet._id).update({
-        data: {
-          name: name,
-          updatedAt: db.serverDate()
-        }
-      });
+      await db
+        .collection("pets")
+        .doc(pet._id)
+        .update({
+          data: {
+            name: name,
+            updatedAt: db.serverDate(),
+          },
+        });
 
       await addLog(ctx, "pet_interaction", `给宠物改名为：${name}`);
 
@@ -599,7 +605,7 @@ async function processTravelRewards(db, pet, user, CONFIG) {
     roses: 0,
     love_energy: 10, // 兜底默认值
     specialty: null,
-    guaranteed_progress: pet.guaranteed_progress || 0,
+    // [修改] 去除 guaranteed_progress 字段
   };
 
   const destRes = await db
@@ -610,56 +616,66 @@ async function processTravelRewards(db, pet, user, CONFIG) {
   if (destRes.data.length > 0) {
     const destination = destRes.data[0];
 
-    // 爱意值奖励
+    // 1. 爱意值奖励
     if (destination.base_love_reward) {
       rewards.love_energy = destination.base_love_reward;
     }
 
-    // 保底进度
-    const newProgress = (pet.guaranteed_progress || 0) + 30;
-    if (newProgress >= 350) {
-      rewards.roses += 1;
-      rewards.guaranteed_progress = newProgress - 350;
-    } else {
-      rewards.guaranteed_progress = newProgress;
-    }
+    // [修改] 删除原有的“保底进度”逻辑 (newProgress >= 350 ...)
 
-    // 玫瑰掉落
-    const roseChance = destination.rose_chance_base || 0.2;
+    // 2. 随机玫瑰掉落 (同时修复字段读取问题)
+    // 优先读取 destination 中的 rose_config 对象
+    const roseConfig = destination.rose_config || {
+      chance: 0.2,
+      min: 1,
+      max: 1,
+    };
+
     const reqMood = destination.mood_bonus_required || 60;
     const moodBonus = (pet.mood_value || 0) >= reqMood ? 0.2 : 0;
-    if (Math.random() < roseChance + moodBonus) {
-      rewards.roses += 1;
+
+    // 计算最终概率
+    const finalRoseChance = roseConfig.chance + moodBonus;
+
+    if (Math.random() < finalRoseChance) {
+      // 计算掉落数量：[min, max] 随机
+      const min = roseConfig.min || 1;
+      const max = roseConfig.max || 1;
+      const count = Math.floor(Math.random() * (max - min + 1)) + min;
+      rewards.roses += count;
     }
 
-    // 特产/明信片掉落
-    const specialtyChance = destination.specialty_chance || 0;
-    if (Math.random() < specialtyChance) {
-      // 动态生成名字
-      let cardName = `${destination.name}纪念册`;
-      if (
-        destination.possible_rewards &&
-        destination.possible_rewards.length > 0
-      ) {
-        cardName = destination.possible_rewards[0];
-      }
+    // 3. [修改] 明信片/特产掉落 - 改为 100% 必得
+    // 移除 Math.random() < specialtyChance 的判断
 
-      rewards.specialty = {
-        id: `${destination.id}_${Date.now()}`,
-        name: cardName,
-        description: destination.description,
-        collected_at: new Date(),
-        type: "postcard",
-
-        image_url: destination.postcard_image || destination.image,
-
-        composition: {
-          bg_image: destination.postcard_bg || destination.image_url,
-          skin_id: pet.current_skin || "default", // 记录当时穿的皮肤
-          layout: destination.postcard_layout || { x: 0.5, y: 0.5, scale: 1 },
-        },
-      };
+    // 动态生成名字
+    let cardName = `${destination.name}纪念册`;
+    if (
+      destination.possible_rewards &&
+      destination.possible_rewards.length > 0
+    ) {
+      // 简单逻辑：取第一个作为名字
+      cardName = destination.possible_rewards[0];
     }
+
+    rewards.specialty = {
+      id: `${destination.id}_${Date.now()}`,
+      name: cardName,
+      description: destination.description,
+      collected_at: new Date(),
+      type: "postcard",
+
+      // 兼容处理：优先用 postcard_image，没有则用 image
+      image_url: destination.postcard_image || destination.image,
+
+      composition: {
+        // 背景图逻辑
+        bg_image:
+          destination.postcard_bg || destination.image_url || destination.image,
+        skin_id: pet.current_skin || "default",
+        layout: destination.postcard_layout || { x: 0.5, y: 0.5, scale: 1 },
+      },
+    };
   }
 
   return rewards;

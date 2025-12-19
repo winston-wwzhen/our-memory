@@ -15,9 +15,10 @@ const COLLECTIONS = [
   "avatar_sets", 
 
   // 2. 核心互动
-  "gardens",
   "pets", 
   "destinations",
+  "travel_records",
+  "postcards",
   "capsules",
   "messages",
   "coupons",
@@ -28,6 +29,7 @@ const COLLECTIONS = [
   "task_pool",
   "quiz_pool",
   "egg_configs",
+  "user_eggs",
 
   // 4. 日志
   "logs",
