@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="200" src="./miniprogram/images/default-atatar.png" alt="Logo">
+  <img width="200" src="./miniprogram/images/default-avatar.png" alt="Logo">
 </p>
 
 <h1 align="center">我们的纪念册 (Our Memory)</h1>
