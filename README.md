@@ -1,67 +1,149 @@
-# 📖 我们的纪念册 (Our Memory)
+<p align="center">
+  <img width="200" src="./miniprogram/images/our-memory-logo-placeholder.png" alt="Logo">
+</p>
 
-> **记录爱，经营爱，把平淡的日常画成漫画里的模样。**
->
-> A WeChat Mini Program for couples to record memories, play games, and grow love together.
+<h1 align="center">我们的纪念册 (Our Memory)</h1>
 
-这是一个基于 **微信小程序云开发** 构建的情侣互动应用。它不仅仅是一个相册，更是一个包含恋爱养成、双人游戏、权益兑换的完整“恋爱元宇宙”。
+<p align="center">
+  <a href="https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html">
+    <img src="https://img.shields.io/badge/WeChat-MiniProgram-green" alt="WeChat">
+  </a>
+  <a href="https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html">
+    <img src="https://img.shields.io/badge/CloudBase-Serverless-blue" alt="CloudBase">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/License-MIT-orange" alt="License">
+  </a>
+</p>
+
+<p align="center">
+  <strong>💖 一个集萌宠养成、恋爱清单、实用工具于一体的私密二人空间</strong><br>
+  <i>不仅是记录，更是连接。从日活运营的角度打造的高粘性情侣小程序。</i>
+</p>
+
+## 📖 项目简介 (Introduction)
+
+**“我们的纪念册”** 不仅仅是一个照片存储工具，它是一套完整的情侣/密友互动解决方案。基于微信小程序原生开发，采用 **微信云开发 (WeChat CloudBase)** 架构，无需自建服务器，低成本、高并发。
+
+本项目深度融合了**用户留存（Retention）**与**互动（Engagement）**机制，通过虚拟宠物、每日任务、互动问答等功能，让用户不仅仅是在“存照片”，而是在“玩生活”。
+
+## ✨ 核心功能亮点 (Features)
+
+基于最新的代码迭代，本项目包含以下核心模块：
+
+### 1. 🐣 情感维系系统 (Engagement)
+* **云端萌宠 (Virtual Pet)**: `pages/pet`
+    * 内置宠物养成系统，支持喂食、心情交互、旅行。
+    * *运营价值*：通过“喂食”机制极大提升用户的**DAU（日活）**和回访率。
+* **默契问答 (Couple Quiz)**: `pages/quiz`
+    * 两人同答一题，测试默契度。
+    * *运营价值*：增强用户互动深度，制造话题。
+* **时光胶囊 (Time Capsule)**: `pages/capsule`
+    * 写给未来的信，设定开启时间。
+    * *运营价值*：锁定用户长远留存预期。
+
+### 2. 💌 互动权益体系 (Incentive)
+* **恋爱兑换券 (Love Coupons)**: `pages/coupons`
+    * 自定义兑换券（如“按摩券”、“洗碗券”），支持核销状态管理。
+    * *运营价值*：将线下互动数字化，增加打开频次。
+* **每日任务 (Daily Missions)**: `cloudfunctions/get_daily_mission`
+    * 完成任务获取积分/道具。
+
+### 3. 🛠 实用生活工具 (Utility)
+* **小决定 (Decision Maker)**: `pages/decision`
+    * 解决“今天吃什么”、“去哪玩”的千古难题。
+* **旅行足迹 (Travel Map)**: `pages/travel_map`
+    * 可视化记录两人的旅行打卡地，点亮中国地图。
+* **纪念日提醒 (Anniversary)**: `pages/index`
+    * 首页置顶重要纪念日倒数/正数。
+
+### 4. 📸 影像与记录 (Memory)
+* **云相册**: 支持分类管理，利用云存储CDN加速。
+* **留言板 (Message Board)**: `pages/message_board`
+    * 类似拍立得风格的留言互动区。
 
 ---
 
-## ✨ 核心功能 (Features)
+## 🏗 技术栈 (Tech Stack)
 
-### 1. 📸 每日心动 (Today & AI Camera)
-* **同频任务**：基于极客算法的每日任务系统（如“摸头杀”、“借位魔法”），确保情侣双方每天看到相同的挑战。
-* **AI 魔法绘图**：
-    * 集成 **腾讯云 AI 绘画** 能力。
-    * 支持 **13+ 种风格**（日漫风、国风工笔、莫奈花园、黏土风、3D迪士尼等）。
-    * **智能拍立得**：自动生成带有 AI 评分、趣味点评和日期的拍立得照片。
-* **VIP 体系**：区分普通用户与 VIP 用户的生图额度与专属风格。
-
-### 2. 🎡 恋爱乐园 (Playground)
-打造了一个闭环的“爱情经济系统”：
-* **🌹 玫瑰花园**：
-    * **养成**：二人共同消耗“爱意值”浇灌玫瑰。
-    * **收获**：玫瑰成熟后可收获，作为应用内的“硬通货”。
-    * **日记**：记录每一次浇水的点滴。
-* **🎁 特权工坊 (Coupons)**：
-    * 消耗玫瑰制作兑换券（如：💆‍♂️揉肩卡、🍽️免洗金牌、🤝和好卡）。
-    * **核销系统**：支持卡券的制作、赠送与扫码/点击核销。
-* **🧩 默契大闯关**：双人同步答题，通过题目判断（如“谁更爱吃醋”）计算灵魂契合度。
-* **📌 爱的留言板**：不仅是留言，还可以设置“当前状态”（如：🐷想你了、🌧️emo了）。
-* **🎲 命运抉择**：治愈选择困难症，翻牌决定“今天吃什么”或“谁做家务”。
-
-### 3. 💊 时光胶囊 (Time Capsule)
-* **埋藏**：写下给未来的信或上传照片，设定开启日期（支持“月光宝盒”深夜彩蛋）。
-* **封印**：未到时间无法开启，时间一到双方均可查阅。
-
-### 4. 🎞️ 时光长廊 (Memory Lane)
-* **双人时间轴**：将二人的打卡记录按时间串联，区分“ME”和“TA”的视角。
-* **里程碑**：自动统计相爱天数与打卡总数，触发阶段性惊喜。
-
-### 5. 🏠 专属空间 (Mine)
-* **绑定机制**：通过邀请码实现双人绑定，数据实时互通。
-* **纪念日**：自定义恋爱起始日，实时计算相爱天数。
+* **前端**: 微信小程序原生 (WXML, WXSS, JavaScript)
+* **后端**: 微信云开发 (Cloud Functions) - Node.js
+* **数据库**: 云数据库 (NoSQL JSON Database)
+* **存储**: 云存储 (COS)
+* **AI能力**: 集成基础图像处理能力 (`cloudfunctions/process_anime`)
 
 ---
 
-## 🛠️ 技术架构 (Architecture)
+## 🚀 快速部署 (Quick Start)
 
-本项目采用 **Serverless** 架构，完全基于微信小程序云开发。
+作为一套 Serverless 架构的项目，你可以在10分钟内完成部署。
 
-### 📂 目录结构
+### 1. 准备工作
+* 注册微信小程序账号。
+* 下载并安装 [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)。
+
+### 2. 导入项目
+1.  打开微信开发者工具，导入本项目根目录。
+2.  修改 `project.config.json` 中的 `appid` 为你自己的 AppID。
+
+### 3. 环境配置 (Environment Setup)
+1.  点击开发者工具上的 **“云开发”** 按钮，开通云开发环境。
+2.  复制你的 **环境ID (Env ID)**。
+3.  打开 `miniprogram/envList.js` (如果不存在请创建)，配置你的环境ID：
+    ```javascript
+    const envList = [{"envId":"你的环境ID","alias":"prod"}]
+    const isMac = false
+    module.exports = {
+      envList,
+      isMac
+    }
+    ```
+
+### 4. 部署云函数 (Deploy Backend)
+本项目核心逻辑依赖云函数，请务必执行以下操作：
+1.  在开发者工具文件列表中，右键点击 `cloudfunctions` 文件夹。
+2.  选择当前环境。
+3.  **核心步骤**：依次右键点击以下文件夹，选择 **“上传并部署：云端安装依赖”**：
+    * `init_app_config` (初始化配置)
+    * `init_db` (数据库初始化)
+    * `user_center` (用户中心核心业务)
+    * `get_daily_mission` (任务系统)
+    * `get_memory_lane` (回忆轴)
+    * `process_anime` (图像处理)
+    * *以及其他所有云函数文件夹...*
+
+### 5. 数据库初始化 (Database Init)
+为了让小程序跑起来，你需要初始化数据库集合：
+1.  在云函数部署完成后，在开发者工具的控制台或通过新建一个测试页面，调用一次 `init_db` 云函数。
+2.  或者手动在云开发控制台创建以下集合（Collection）：
+    * `users` (用户信息)
+    * `pets` (宠物数据)
+    * `coupons` (兑换券)
+    * `capsules` (胶囊)
+    * `memories` (相册)
+    * `posts` (留言板)
+
+---
+
+## 📂 目录结构说明 (Directory Structure)
+
 ```text
-├── cloudfunctions/
-│   ├── process_anime/      # [核心] AI 绘图服务 (腾讯云接入, 图片安全校验)
-│   ├── user_center/        # [单体服务] 业务逻辑分发中心
-│   │   ├── services/       # 包含 auth, capsule, garden, message, playground, quiz 等子模块
-│   │   └── utils/          # 工具类 (内容安全, 彩蛋触发, 日志)
-│   ├── get_daily_mission/  # [算法] 基于日期的每日任务生成
-│   ├── get_memory_lane/    # [查询] 时光轴分页查询
-│   └── init_task_pool/     # [脚本] 数据库初始化 (任务池, 题库, 彩蛋配置)
-├── miniprogram/
-│   ├── pages/              # 页面视图 (10+ 个页面)
-│   ├── components/         # 公共组件
-│   ├── images/             # 静态资源
-│   └── utils/              # 前端配置 (卡券模板, 引导数据, 业务规则)
-└── project.config.json     # 项目配置
+our-memory/
+├── cloudfunctions/        # 云函数（后端业务逻辑）
+│   ├── user_center/       # 用户体系、宠物、胶囊等核心服务
+│   ├── process_anime/     # 图片处理服务
+│   ├── init_db/           # 数据库初始化脚本
+│   └── ...
+├── miniprogram/           # 小程序前端代码
+│   ├── components/        # 公用组件 (Modal, Cards等)
+│   ├── images/            # 静态资源
+│   ├── pages/             # 页面文件
+│   │   ├── index/         # 首页（纪念日、状态）
+│   │   ├── pet/           # 萌宠养成页面
+│   │   ├── coupons/       # 恋爱兑换券
+│   │   ├── travel_map/    # 旅行地图
+│   │   ├── decision/      # 小决定工具
+│   │   └── ...
+│   ├── app.json           # 全局配置
+│   └── envList.js         # 环境配置
+└── project.config.json    # 项目配置文件
