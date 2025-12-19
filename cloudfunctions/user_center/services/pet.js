@@ -636,7 +636,7 @@ async function processTravelRewards(db, pet, user, CONFIG) {
     const specialtyChance = destination.specialty_chance || 0;
     if (Math.random() < specialtyChance) {
       // 动态生成名字
-      let cardName = `${destination.name}纪念品`;
+      let cardName = `${destination.name}纪念册`;
       if (
         destination.possible_rewards &&
         destination.possible_rewards.length > 0
@@ -651,10 +651,8 @@ async function processTravelRewards(db, pet, user, CONFIG) {
         collected_at: new Date(),
         type: "postcard",
 
-        // 1. MVP 展示用的合成图
         image_url: destination.postcard_image || destination.image,
 
-        // 2. Future Proof: 记录当时的配方
         composition: {
           bg_image: destination.postcard_bg || destination.image_url,
           skin_id: pet.current_skin || "default", // 记录当时穿的皮肤
