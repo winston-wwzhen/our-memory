@@ -6,23 +6,63 @@ Page({
     currentId: null, // 保存当前 ID 用于下拉刷新
     detail: null, // 头像详情数据
     quality: "normal", // 画质模式: 'normal' | 'hd'
-    isHdUnlocked: false, // 是否已解锁高清
+    isHdUnlocked: false, // 是否已解锁高清 (保留字段以兼容后续)
     isVip: false, // 是否 VIP
     loading: true,
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const { id } = options;
     if (id) {
       this.setData({ currentId: id });
-      this.fetchDetail(id);
+      
+      // 🟢 1. 启动全屏 Loading，防止页面闪烁
+      wx.showLoading({ title: '加载中...', mask: true });
+
+      try {
+        // 🟢 2. 并行请求：获取详情 + 检查VIP状态
+        // 这里的 fetchDetail 传入 true 表示不让它自己控制 loading，由 onLoad 统一控制
+        await Promise.all([
+          this.checkVipStatus(),
+          this.fetchDetail(id, true) 
+        ]);
+
+        // 🟢 3. 数据就绪后，立即进行准入校验
+        this.checkAccess();
+
+      } catch (err) {
+        console.error("页面初始化失败", err);
+      } finally {
+        // 🟢 4. 只有校验通过或处理完才隐藏 Loading
+        // (如果 checkAccess 触发了拦截，Modal 会覆盖页面，Loading 隐藏也没关系)
+        wx.hideLoading();
+      }
     }
-    this.checkVipStatus();
   },
 
-  // 🔄 1. 下拉刷新逻辑
+  // 🛡️ [新增] 页面准入校验：VIP资源没身份直接踢出
+  checkAccess() {
+    const { detail, isVip } = this.data;
+    if (!detail) return;
+
+    if (detail.is_vip && !isVip) {
+      wx.showModal({
+        title: 'VIP 专属',
+        content: '该头像为 VIP 会员专属资源 \n 请联系客服领取VIP福利哦',
+        showCancel: false,
+        confirmText: '返回',
+        confirmColor: '#ff6b81',
+        success: () => {
+          // 强制返回上一页
+          wx.navigateBack({ delta: 1 });
+        }
+      });
+    }
+  },
+
+  // 🔄 下拉刷新
   onPullDownRefresh() {
-    wx.vibrateShort({ type: "light" }); // 震动反馈
+    wx.vibrateShort({ type: "light" });
 
     const id = this.data.currentId;
     if (!id) {
@@ -30,18 +70,19 @@ Page({
       return;
     }
 
-    // 并行刷新数据
     Promise.all([
-      this.fetchDetail(id, true), // true 表示刷新模式
+      this.fetchDetail(id, true),
       this.checkVipStatus(),
     ]).then(() => {
+      this.checkAccess(); // 刷新后也要重新校验
       wx.stopPullDownRefresh();
       wx.showToast({ title: "已刷新", icon: "none" });
     });
   },
 
-  // 获取详情 (返回 Promise)
+  // 获取详情
   fetchDetail(id, isRefresh = false) {
+    // 如果不是静默刷新模式，且不是由 onLoad 托管 loading，则显示 loading
     if (!isRefresh) wx.showLoading({ title: "加载中..." });
 
     return new Promise((resolve) => {
@@ -71,7 +112,7 @@ Page({
     });
   },
 
-  // 检查 VIP (返回 Promise)
+  // 检查 VIP
   checkVipStatus() {
     return new Promise((resolve) => {
       wx.cloud.callFunction({
@@ -88,7 +129,7 @@ Page({
     });
   },
 
-  // 2. 切换画质
+  // 切换画质
   switchQuality(e) {
     const mode = e.currentTarget.dataset.mode;
     if (mode === this.data.quality) return;
@@ -97,47 +138,30 @@ Page({
       this.setData({ quality: "normal" });
     } else {
       // 切换高清需检查权限
-      if (this.data.isHdUnlocked) {
+      if (this.data.isVip || this.data.isHdUnlocked) {
         this.setData({ quality: "hd" });
         wx.showToast({ title: "已切换高清画质", icon: "none" });
       } else {
-        this.triggerUnlock();
+        this.showVipHint();
       }
     }
   },
 
-  // 3. 触发解锁弹窗
-  triggerUnlock() {
-    const that = this;
+  // 提示 VIP 权益
+  showVipHint() {
     wx.showModal({
-      title: "解锁高清原图",
-      content: "观看一次完整视频，即可免费下载高清无损原图~",
-      confirmText: "去解锁",
+      title: "VIP 专属权益",
+      content: "高清无损原图是 VIP 会员专属权益哦~ \n可联系客服领取VIP福利哦！",
+      confirmText: "我知道了",
       confirmColor: "#ff6b81",
-      cancelText: "再想想",
-      success(res) {
-        if (res.confirm) {
-          that.showVideoAd();
-        }
-      },
+      showCancel: false
     });
   },
 
-  // 模拟/真实广告逻辑
-  showVideoAd() {
-    wx.showLoading({ title: "广告加载中..." });
-    // 模拟 1.5秒后看完广告
-    setTimeout(() => {
-      wx.hideLoading();
-      this.setData({ isHdUnlocked: true, quality: "hd" });
-      wx.showToast({ title: "解锁成功！", icon: "success" });
-    }, 1500);
-  },
-
-  // === 4. 核心下载与保存逻辑 ===
+  // === 下载保存逻辑 ===
 
   saveAvatar(e) {
-    const type = e.currentTarget.dataset.type; // 'boy' or 'girl'
+    const type = e.currentTarget.dataset.type;
     this.doDownload([type]);
   },
 
@@ -147,19 +171,21 @@ Page({
 
   async doDownload(types) {
     if (!this.data.detail) return;
-    const { detail, quality } = this.data;
+    const { detail, quality, isVip, isHdUnlocked } = this.data;
+
+    // 🛑 下载二次拦截 (双重保险)
+    if (detail.is_vip && !isVip && !isHdUnlocked) {
+      this.showVipHint();
+      return;
+    }
 
     wx.showLoading({ title: "保存中...", mask: true });
 
-    // 构建下载任务队列
     const tasks = types.map(async (type) => {
-      // 1. 确定字段名
       const normalKey = `${type}_img`;
       const hdKey = `${type}_img_hd`;
-
       let url;
 
-      // 2. 智能取值：高清模式且有高清图 -> 用高清；否则 -> 降级用普通
       if (quality === "hd" && detail[hdKey]) {
         url = detail[hdKey];
         console.log(`[下载] ${type} 使用高清源`);
@@ -172,7 +198,6 @@ Page({
         throw new Error(`未找到 ${type === "boy" ? "男生" : "女生"} 头像地址`);
       }
 
-      // 3. 执行下载保存
       return this.downloadAndSave(url);
     });
 
@@ -184,7 +209,6 @@ Page({
       wx.hideLoading();
       console.error("保存流程异常:", err);
 
-      // 如果不是权限取消错误，才弹窗提示
       if (
         !(
           err.errMsg &&
@@ -200,16 +224,13 @@ Page({
     }
   },
 
-  // 单个文件流程
   async downloadAndSave(url) {
     const tempFilePath = await this.downloadFilePromise(url);
     await this.saveToAlbumPromise(tempFilePath);
   },
 
-  // Promise: 下载文件 (兼容 HTTPS 和 CloudID)
   downloadFilePromise(url) {
     return new Promise((resolve, reject) => {
-      // 🟢 情况 A: HTTPS 网络图片 -> wx.downloadFile
       if (url.startsWith("http")) {
         wx.downloadFile({
           url: url,
@@ -219,9 +240,7 @@ Page({
           },
           fail: (err) => reject(new Error(err.errMsg || "下载网络图片失败")),
         });
-      }
-      // 🔵 情况 B: 云存储 ID -> wx.cloud.downloadFile
-      else if (url.startsWith("cloud://")) {
+      } else if (url.startsWith("cloud://")) {
         wx.cloud.downloadFile({
           fileID: url,
           success: (res) => resolve(res.tempFilePath),
@@ -233,14 +252,12 @@ Page({
     });
   },
 
-  // Promise: 保存到相册 (含权限引导)
   saveToAlbumPromise(filePath) {
     return new Promise((resolve, reject) => {
       wx.saveImageToPhotosAlbum({
         filePath: filePath,
         success: resolve,
         fail: (err) => {
-          // 权限拒绝自动引导
           if (
             err.errMsg &&
             (err.errMsg.includes("auth") || err.errMsg.includes("deny"))
@@ -260,13 +277,11 @@ Page({
     });
   },
 
-  // 5. 预览大图
   previewImage(e) {
     const idx = e.currentTarget.dataset.idx;
     const { detail, quality } = this.data;
     if (!detail) return;
 
-    // 预览也遵循高清优先逻辑
     const getUrl = (type) => {
       const hdKey = `${type}_img_hd`;
       const normalKey = `${type}_img`;
@@ -282,7 +297,6 @@ Page({
     });
   },
 
-  // 📤 6. 分享给朋友
   onShareAppMessage() {
     const { detail } = this.data;
     const title = detail?.title
@@ -297,7 +311,6 @@ Page({
     };
   },
 
-  // 🌍 7. 分享到朋友圈
   onShareTimeline() {
     const { detail } = this.data;
     const title = detail?.title || "甜蜜情侣头像分享";

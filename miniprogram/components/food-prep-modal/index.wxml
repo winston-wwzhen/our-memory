@@ -20,7 +20,7 @@
           <view class="food-icon">🍙</view>
           <view class="food-info">
             <text class="food-name">饭团便当</text>
-            <text class="food-cost">消耗 10g 爱意</text>
+            <text class="food-cost">消耗 20g 爱意</text>
           </view>
           <view class="food-count">库存: {{foodInventory.rice_ball}}</view>
         </view>
@@ -30,7 +30,7 @@
           <view class="food-icon">🍱</view>
           <view class="food-info">
             <text class="food-name">豪华御膳</text>
-            <text class="food-cost">消耗 50g 爱意</text>
+            <text class="food-cost">消耗 100g 爱意</text>
           </view>
           <view class="food-count">库存: {{foodInventory.luxury_bento}}</view>
         </view>

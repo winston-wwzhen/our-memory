@@ -9,8 +9,8 @@ const DEFAULT_CONFIG = {
   QUESTIONS_PER_ROUND: 10, // 默契问答每轮游戏题目数量
 
   // Pet Paradise Configuration
-  RICE_BALL_COST: 10, // 饭团便当消耗爱意
-  LUXURY_BENTO_COST: 50, // 豪华御膳消耗爱意
+  RICE_BALL_COST: 20, // 饭团便当消耗爱意
+  LUXURY_BENTO_COST: 100, // 豪华御膳消耗爱意
   MAX_MOOD: 100, // 最大心情值
   INITIAL_MOOD: 60, // 初始心情值
   PAT_MOOD_BONUS: 2, // 抚摸心情加成
