@@ -121,9 +121,9 @@ async function handle(action, event, ctx) {
               .update({
                 data: {
                   invite_count: _.inc(1),
-                  // 写入待领取奖励：100水滴 + 2次永久额度
-                  "unclaimed_rewards.water": _.inc(100),
-                  "unclaimed_rewards.quota": _.inc(2),
+                  // 写入待领取奖励：100水滴 + 1次永久额度
+                  "unclaimed_rewards.water": _.inc(200),
+                  "unclaimed_rewards.quota": _.inc(1),
                 },
               });
             await addLog(ctx, "invite_success", `邀请新用户成功`, {
@@ -582,7 +582,8 @@ async function handle(action, event, ctx) {
         // 构建更新数据
         const updateData = {
           vip_expire_date: newExpire,
-          water_count: _.inc(300)  // 默认赠送300爱意值（水滴）
+          water_count: _.inc(vipCode.bouns_water),
+          rose_balance: _.inc(vipCode.rose),
         };
 
         // 如果VIP码配置了永久胶卷，同时更新
@@ -590,17 +591,16 @@ async function handle(action, event, ctx) {
           updateData.extra_quota = _.inc(vipCode.extra_quota);
         }
 
-        await db
-          .collection("users")
-          .doc(user._id)
-          .update({
-            data: updateData,
-          });
+        await db.collection("users").doc(user._id).update({
+          data: updateData,
+        });
 
         await addLog(
           ctx,
           "redeem_vip",
-          `兑换 ${cleanCode}, 获得 ${vipCode.days} 天VIP${vipCode.extra_quota ? ` + ${vipCode.extra_quota}张永久胶卷` : ''} + 300爱意值`
+          `兑换 ${cleanCode}, 获得 ${vipCode.days} 天VIP${
+            vipCode.extra_quota ? ` + ${vipCode.extra_quota}张永久胶卷` : ""
+          } + ${vipCode.bouns_water}爱意值 + ${vipCode.rose}玫瑰`
         );
 
         return {
@@ -608,8 +608,9 @@ async function handle(action, event, ctx) {
           msg: "兑换成功",
           days: vipCode.days,
           extra_quota: vipCode.extra_quota || 0,
-          waterBonus: 300,  // 返回水滴奖励信息
+          waterBonus: vipCode.waterBonus, // 返回水滴奖励信息
           expireDate: newExpire,
+          rose: vipCode.rose,
         };
       } catch (err) {
         console.error(err);

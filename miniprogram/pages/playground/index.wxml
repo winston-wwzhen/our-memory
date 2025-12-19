@@ -59,7 +59,7 @@
       
           <view class="metric-label-group">
             <text class="metric-icon">{{moodValue < 60 ? '😔' : '😊'}}</text>
-            <text class="metric-name">心情</text>
+            <!-- <text class="metric-name">心情</text> -->
           
           <view class="help-badge">?</view>
           </view>
@@ -73,7 +73,7 @@
         <view class="metric-row" bindtap="showHelp" data-type="energy">
           <view class="metric-label-group">
             <text class="metric-icon">{{energyLevel < 30 ? '😴' : '💪'}}</text>
-            <text class="metric-name">体力</text>
+            <!-- <text class="metric-name">体力</text> -->
             <view class="help-badge">?</view>
           </view>
         

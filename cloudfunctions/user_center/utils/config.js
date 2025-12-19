@@ -20,15 +20,10 @@ const DEFAULT_CONFIG = {
   BASE_ROSE_CHANCE: 0.3, // 基础获得玫瑰概率
   MOOD_BONUS_THRESHOLD: 80, // 心情加成阈值
   TRAVEL_ENERGY_COST: 30, // 旅行消耗精力
-  // [新增] 心情衰减配置
+
   MOOD_DECAY_INTERVAL_MINUTES: 60, // 衰减间隔（分钟），例如每60分钟
   MOOD_DECAY_AMOUNT: 2, // 每次衰减数值，例如每次扣2点
-
-  // Legacy Garden Configuration (for backward compatibility)
-  WATER_COST: 10, // 每次浇花消费爱意数量
-  WATER_GROWTH: 10, // 每次浇花成长数值
-  HARVEST_MIN_GROWTH: 300, // 每次收获所需爱意值
-
+  
   CHECKIN_REWARD: 50,
   SHOW_VIP_EXCHANGE: true,
 };

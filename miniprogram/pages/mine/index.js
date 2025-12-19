@@ -645,10 +645,11 @@ Page({
         wx.hideLoading();
         if (res.result.status === 200) {
           const days = res.result.days;
-          const quota = res.result.extra_quota || 0;
-          const waterBonus = res.result.waterBonus || 300;
+          const quota = res.result.extra_quota || 14;
+          const waterBonus = res.result.waterBonus || 520;
+          const rose = res.result.rose || 1
 
-          let descMsg = `VIP 时长已增加 ${days} 天！\n获得 ${waterBonus} 爱意值！`;
+          let descMsg = `VIP 时长已增加 ${days} 天！\n获得 ${waterBonus} 爱意值！ \n 获得 ${rose} 朵玫瑰！`;
           if (quota > 0) {
             descMsg += `\n额外获得 ${quota} 张永久胶卷！`;
           }

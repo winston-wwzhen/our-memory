@@ -174,7 +174,7 @@ async function handle(action, event, ctx) {
     // 3. 制作食物
     case "prepare_food": {
       const { food_type, quantity = 1 } = event;
-      const foodCost = food_type === "luxury_bento" ? 50 : 10;
+      const foodCost = food_type === "luxury_bento" ? 100 : 20;
       const totalCost = foodCost * quantity;
 
       const userRes = await db
@@ -597,7 +597,7 @@ async function handle(action, event, ctx) {
 async function processTravelRewards(db, pet, user, CONFIG) {
   const rewards = {
     roses: 0,
-    love_energy: 30, // 兜底默认值
+    love_energy: 10, // 兜底默认值
     specialty: null,
     guaranteed_progress: pet.guaranteed_progress || 0,
   };

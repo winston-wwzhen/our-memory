@@ -33,8 +33,8 @@ Component({
     animationClass: '',
     canPrepare: false,
     foodCosts: {
-      rice_ball: 10,
-      luxury_bento: 50
+      rice_ball: 20,
+      luxury_bento: 100
     }
   },
 

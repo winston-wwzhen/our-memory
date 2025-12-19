@@ -143,7 +143,8 @@
         <view class="mi-icon yellow">🤝</view>
         <view class="mi-content">
           <text class="mi-title">分享给好友</text>
-          <text class="mi-desc">邀请好友加入，获得 200 💧 + 1 🎞️ + 1 🌹 </text>
+          <text class="mi-desc" wx:if="{{showVipExchange}}">邀请好友加入，获得 200 💧 + 1 🎞️ + 1 🌹 </text>
+          <text class="mi-desc" wx:else>邀请好友加入，一起记录生活的点滴</text>
         </view>
       </view>
       <view class="mi-tag">去分享</view>
@@ -165,7 +166,8 @@
         <view class="mi-icon blue">🎧</view>
         <view class="mi-content">
           <text class="mi-title">联系客服</text>
-          <text class="mi-desc">反馈问题或建议</text>
+          <text class="mi-desc"  wx:if="{{showVipExchange}}">联系客服领取VIP等各种福利哦~</text>
+          <text class="mi-desc"  wx:else>您有任何问题都可以联系客服哦</text>
         </view>
       </view>
       <text class="mi-arrow">></text>
