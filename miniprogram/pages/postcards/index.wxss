@@ -98,6 +98,11 @@ page {
   border-radius: 40rpx;
   border: none;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 129, 0.3);
+  display: flex;
+  align-items: center;      /* 垂直居中 */
+  justify-content: center;  /* 水平居中 */
+  line-height: normal;      /* 重置默认行高干扰 */
+  padding: 0;
 }
 
 /* Postcards Scroll */
@@ -488,6 +493,17 @@ page {
   font-size: 28rpx;
   border-radius: 40rpx;
   border: none;
+  display: flex;
+  align-items: center;      /* 垂直居中 */
+  justify-content: center;  /* 水平居中 */
+  line-height: 1;           /* 紧凑行高，避免文字偏上 */
+  padding: 0;
+}
+
+.modal-btn text, 
+.start-travel-btn text {
+  display: inline-block; /* 或者是 block */
+  line-height: 1;        /* 确保文字自身没有额外的行高偏移 */
 }
 
 .share-btn {

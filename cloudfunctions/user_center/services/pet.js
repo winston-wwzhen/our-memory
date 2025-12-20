@@ -429,16 +429,23 @@ async function handle(action, event, ctx) {
 
     // 7. 获取明信片墙 (新增)
     case "get_postcards": {
-      // 🌟 改为查询 postcards 独立集合
+      const { page = 1, pageSize = 10 } = event; // 接收分页参数
+      const skip = (page - 1) * pageSize;
+
+      const countResult = await db
+        .collection("postcards")
+        .where({ owners: OPENID })
+        .count();
+
       const postcardsRes = await db
         .collection("postcards")
         .where({ owners: OPENID })
         .orderBy("collected_at", "desc")
-        .limit(100) // 可根据需要分页
+        .skip(skip)
+        .limit(pageSize)
         .get();
 
       const postcards = postcardsRes.data.map((item) => {
-        // 兼容处理
         const composition = item.composition || {
           bg_image: item.image_url,
           skin_id: "default",
@@ -467,6 +474,8 @@ async function handle(action, event, ctx) {
       return {
         status: 200,
         postcards: postcards,
+        total: countResult.total, // 返回总数，方便前端判断是否还有更多
+        hasMore: skip + postcardsRes.data.length < countResult.total,
       };
     }
 
@@ -593,6 +602,34 @@ async function handle(action, event, ctx) {
       await addLog(ctx, "pet_interaction", `给宠物改名为：${name}`);
 
       return { status: 200, msg: "改名成功", newName: name };
+    }
+
+    case "toggle_like_postcard": {
+      const { postcardId, isLiked } = event; // isLiked 为前端操作后的状态
+      
+      // 使用原子操作更新 likes 计数
+      const incValue = isLiked ? 1 : -1;
+      
+      // 1. 更新 postcards 表中的总点赞数
+      await db.collection("postcards").doc(postcardId).update({
+        data: {
+          likes: _.inc(incValue)
+        }
+      });
+    
+      // 2. 记录用户点赞状态 (需要一张新表 postcard_likes 或在 user 表记录)
+      // 简单做法：在 postcards 表里存一个 liked_users 数组
+      const updateOperation = isLiked 
+        ? _.addToSet(OPENID) 
+        : _.pull(OPENID);
+    
+      await db.collection("postcards").doc(postcardId).update({
+        data: {
+          liked_users: updateOperation
+        }
+      });
+    
+      return { status: 200, msg: "更新成功" };
     }
   }
 }

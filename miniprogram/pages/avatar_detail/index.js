@@ -16,31 +16,28 @@ Page({
     if (id) {
       this.setData({ currentId: id });
       
-      // 🟢 1. 启动全屏 Loading，防止页面闪烁
+      // 🟢 1. 启动全屏 Loading
       wx.showLoading({ title: '加载中...', mask: true });
 
       try {
-        // 🟢 2. 并行请求：获取详情 + 检查VIP状态
-        // 这里的 fetchDetail 传入 true 表示不让它自己控制 loading，由 onLoad 统一控制
+        // 🟢 2. 并行请求
         await Promise.all([
           this.checkVipStatus(),
           this.fetchDetail(id, true) 
         ]);
 
-        // 🟢 3. 数据就绪后，立即进行准入校验
+        // 🟢 3. 数据就绪后校验
         this.checkAccess();
 
       } catch (err) {
         console.error("页面初始化失败", err);
       } finally {
-        // 🟢 4. 只有校验通过或处理完才隐藏 Loading
-        // (如果 checkAccess 触发了拦截，Modal 会覆盖页面，Loading 隐藏也没关系)
         wx.hideLoading();
       }
     }
   },
 
-  // 🛡️ [新增] 页面准入校验：VIP资源没身份直接踢出
+  // 🛡️ 页面准入校验
   checkAccess() {
     const { detail, isVip } = this.data;
     if (!detail) return;
@@ -53,7 +50,6 @@ Page({
         confirmText: '返回',
         confirmColor: '#ff6b81',
         success: () => {
-          // 强制返回上一页
           wx.navigateBack({ delta: 1 });
         }
       });
@@ -74,7 +70,7 @@ Page({
       this.fetchDetail(id, true),
       this.checkVipStatus(),
     ]).then(() => {
-      this.checkAccess(); // 刷新后也要重新校验
+      this.checkAccess();
       wx.stopPullDownRefresh();
       wx.showToast({ title: "已刷新", icon: "none" });
     });
@@ -82,7 +78,6 @@ Page({
 
   // 获取详情
   fetchDetail(id, isRefresh = false) {
-    // 如果不是静默刷新模式，且不是由 onLoad 托管 loading，则显示 loading
     if (!isRefresh) wx.showLoading({ title: "加载中..." });
 
     return new Promise((resolve) => {
@@ -137,7 +132,6 @@ Page({
     if (mode === "normal") {
       this.setData({ quality: "normal" });
     } else {
-      // 切换高清需检查权限
       if (this.data.isVip || this.data.isHdUnlocked) {
         this.setData({ quality: "hd" });
         wx.showToast({ title: "已切换高清画质", icon: "none" });
@@ -173,7 +167,7 @@ Page({
     if (!this.data.detail) return;
     const { detail, quality, isVip, isHdUnlocked } = this.data;
 
-    // 🛑 下载二次拦截 (双重保险)
+    // 🛑 下载二次拦截
     if (detail.is_vip && !isVip && !isHdUnlocked) {
       this.showVipHint();
       return;
@@ -209,18 +203,24 @@ Page({
       wx.hideLoading();
       console.error("保存流程异常:", err);
 
-      if (
-        !(
-          err.errMsg &&
-          (err.errMsg.includes("auth") || err.errMsg.includes("deny"))
-        )
-      ) {
-        wx.showModal({
-          title: "保存失败",
-          content: err.message || "网络请求失败",
-          showCancel: false,
-        });
+      // 1. 权限问题：已在 saveToAlbumPromise 处理，此处忽略
+      if (err.errMsg && (err.errMsg.includes("auth") || err.errMsg.includes("deny"))) {
+        return;
       }
+
+      // ✅ 2. 修复点：检测用户主动取消操作
+      // 微信 API 文档说明取消时 errMsg 通常包含 "cancel"
+      if (err.errMsg && err.errMsg.includes("cancel")) {
+        wx.showToast({ title: "已取消保存", icon: "none" });
+        return;
+      }
+
+      // 3. 其他真实错误才弹窗
+      wx.showModal({
+        title: "保存失败",
+        content: err.message || "网络请求失败",
+        showCancel: false,
+      });
     }
   },
 

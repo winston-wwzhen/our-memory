@@ -47,7 +47,7 @@
           <!-- Postcard Card -->
           <view class="postcard-card paper-texture" bindtap="onPostcardTap" data-postcard="{{item}}">
             <!-- Postcard Image -->
-            <image class="postcard-image" src="{{item.destination.image}}" mode="aspectFill"></image>
+            <image class="postcard-image" src="{{item.destination.image}}" mode="aspectFill" lazy-load="true"></image>
 
             <!-- Postcard Content -->
             <view class="postcard-content">
@@ -141,3 +141,5 @@
     <action-sheet-cancel>取消</action-sheet-cancel>
   </action-sheet>
 </view>
+
+<canvas type="2d" id="posterCanvas" style="position:fixed; left: -9999px; width: 300px; height: 550px;"></canvas>
