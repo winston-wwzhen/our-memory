@@ -1,121 +1,147 @@
-<view class="coupon-container">
+<view class="container">
   
   <view class="header-balance">
-    <text class="balance-label">可用玫瑰</text>
-    <view class="balance-val">
-      <text class="num">{{roseBalance}}</text>
-      <text class="icon">🌹</text>
+    <view class="balance-left">
+      <text class="balance-icon">🌹</text>
+      <text class="balance-label">爱的玫瑰</text>
+    </view>
+    <view class="balance-val">{{roseBalance}}</view>
+  </view>
+
+  <view class="tab-header-sticky">
+    <view class="tab-header">
+      <view class="tab-item {{currentTab==0 ? 'active' : ''}}" bindtap="switchTab" data-idx="0">特权工坊</view>
+      <view class="tab-item {{currentTab==1 ? 'active' : ''}}" bindtap="switchTab" data-idx="1">我的卡包</view>
+      <view class="tab-item {{currentTab==2 ? 'active' : ''}}" bindtap="switchTab" data-idx="2">待我执行</view>
     </view>
   </view>
 
-  <view class="tab-header">
-    <view class="tab-item {{currentTab===0?'active':''}}" bindtap="switchTab" data-idx="{{0}}">特权工坊</view>
-    <view class="tab-item {{currentTab===1?'active':''}}" bindtap="switchTab" data-idx="{{1}}">我的卡片</view>
-  </view>
-
-  <view class="shop-view" wx:if="{{currentTab===0}}">
+  <view class="shop-view" wx:if="{{currentTab==0}}">
     <view class="coupon-grid">
-      <block wx:for="{{templates}}" wx:key="id">
-        <view class="shop-item paper-texture" bindtap="onRedeem" data-item="{{item}}">
-          <view class="item-top" style="background: {{item.color}}20;"> 
-            <text class="item-title">{{item.title}}</text>
-            <text class="item-cost">{{item.cost}} 🌹</text>
-          </view>
-          <view class="item-body">
-            <text class="item-desc">{{item.desc}}</text>
-            <button class="btn-buy">制作</button>
-          </view>
+      <view class="shop-item" wx:for="{{templates}}" wx:key="id">
+        <view class="item-top">
+          <text class="item-title">{{item.title}}</text>
+          <text class="item-cost">🌹 {{item.cost}} 朵</text>
         </view>
-      </block>
+        <view class="item-body">
+          <text class="item-desc">{{item.desc}}</text>
+          <button class="btn-buy" bindtap="onRedeem" data-item="{{item}}">制作一张</button>
+        </view>
+      </view>
     </view>
   </view>
 
-  <view class="wallet-view" wx:if="{{currentTab===1}}">
-    <view class="empty-state" wx:if="{{myCoupons.length === 0}}">
-      <text>卡包空空如也，快去制作吧~</text>
+  <view class="wallet-view" wx:if="{{currentTab==1}}">
+    <view wx:if="{{myCoupons.length === 0}}" class="empty-state">
+      <text>卡包空空如也，快去制作爱的礼物吧~</text>
     </view>
-
-    <block wx:for="{{myCoupons}}" wx:key="_id">
-      <view class="ticket-card {{item.status > 0 ? 'used' : ''}}">
-        <view class="ticket-main" style="border-left: 10rpx solid {{item.status>0 ? '#ccc' : '#ff6b81'}};">
+    <block wx:else>
+      <view class="ticket-card {{item.status == 0 ? 'style-new' : (item.status == 1 ? 'style-active' : 'style-used')}}" 
+            wx:for="{{myCoupons}}" wx:key="_id">
+        
+        <view class="ticket-main">
+          <view class="decoration-icon">{{item.status == 2 ? '💖' : (item.status == 1 ? '⏳' : '🎁')}}</view>
+          
           <view class="ticket-info">
             <text class="t-title">{{item.title}}</text>
-            <text class="t-time">  制作于 {{item.createTimeStr}}</text>
+            <view class="t-desc">{{item.desc || '专属权益，仅限本人使用'}}</view>
           </view>
-          <view class="ticket-status">
-            <text wx:if="{{item.status===0}}" class="status-tag">未使用</text>
-            <text wx:if="{{item.status===1}}" class="status-tag process">核销中</text>
-            <text wx:if="{{item.status===2}}" class="status-tag done">已使用</text>
+          
+          <view class="status-badge">
+            <text wx:if="{{item.status == 0}}">未使用</text>
+            <text wx:if="{{item.status == 1}}">执行中</text>
+            <text wx:if="{{item.status == 2}}">已完成</text>
+          </view>
+          
+          <view class="stamp-mark" wx:if="{{item.status == 2}}">已兑现</view>
+        </view>
+
+        <view class="ticket-rip"></view>
+        
+        <view class="ticket-stub stub-new" wx:if="{{item.status == 0}}" bindtap="onUseCoupon" data-id="{{item._id}}">
+          <text class="stub-icon">✨</text>
+          <text class="stub-text">立即\n使用</text>
+        </view>
+        
+        <view class="ticket-stub-col stub-active" wx:elif="{{item.status == 1}}">
+          <view class="btn-verify-capsule" bindtap="onVerifyCoupon" data-id="{{item._id}}" data-title="{{item.displayTitle}}">
+            <text>✅ 确认收到</text>
+          </view>
+          <view class="btn-remind-capsule" bindtap="onRemindPartner" data-item="{{item}}">
+            <text>📣 提醒TA</text>
           </view>
         </view>
-        <view class="ticket-rip"></view>
-        <view class="ticket-stub" bindtap="{{item.isRequest ? 'onVerifyCoupon' : 'onUseCoupon'}}" 
-              data-id="{{item._id}}" 
-              data-status="{{item.status}}"
-              style="{{item.isRequest ? 'background:#e3f2fd;color:#1976d2;' : ''}}">
-          
-          <block wx:if="{{!item.isRequest}}">
-            <text wx:if="{{item.status===0}}">点击\n使用</text>
-            <text wx:elif="{{item.status===1}}">等待\n确认</text>
-            <text wx:else>票根\n留念</text>
-          </block>
 
-          <block wx:else>
-            <text style="font-size:22rpx">TA申请\n使用</text>
-            <text style="font-size:32rpx;margin-top:4rpx">✅</text>
-          </block>
+        <view class="ticket-stub stub-used" wx:else>
+          <text class="stub-icon">🎉</text>
+          <text class="stub-text">美好\n达成</text>
+        </view>
+
+      </view>
+    </block>
+    <view class="bottom-tip" wx:if="{{myCoupons.length > 0 && isEnd}}">- 都是满满的爱意 -</view>
+  </view>
+
+  <view class="wallet-view" wx:if="{{currentTab==2}}">
+    <view wx:if="{{todoCoupons.length === 0}}" class="empty-state">
+      <image src="/images/empty-task.png" mode="widthFix" class="empty-img"></image>
+      <text>暂无任务，对象还没申请需求呢~</text>
+    </view>
+    <block wx:else>
+      <view class="ticket-card style-todo" wx:for="{{todoCoupons}}" wx:key="_id">
+        <view class="ticket-main">
+          <view class="decoration-icon">💪</view>
+          <view class="ticket-info">
+            <text class="t-title">{{item.displayTitle}}</text>
+            <view class="t-desc">申请时间：{{item.createTimeStr}}</view>
+          </view>
+          <view class="status-badge badge-todo">等待我执行</view>
+        </view>
+        <view class="ticket-rip"></view>
+        
+        <view class="ticket-stub stub-todo">
+          <text class="stub-icon">🏃‍♂️</text>
+          <text class="stub-text">请线下\n执行</text>
         </view>
       </view>
     </block>
   </view>
 
-  <view class="custom-modal-mask {{showModal ? 'show' : ''}}" bindtap="closeModal">
-    <view class="custom-modal-content" catchtap="true"> <view class="modal-header">✨ 制作确认</view>
-      <view class="modal-body">
-        <view class="modal-line">
-          即将消耗 <text class="highlight-cost">{{selectedItem.cost}}</text> 朵玫瑰 🌹
-        </view>
-        <view class="modal-line-sub">用于制作一张</view>
-        <view class="modal-card-name">
-          「 {{selectedItem.title}} 」
-        </view>
-      </view>
-      <view class="modal-footer">
-        <button class="btn-modal-cancel" bindtap="closeModal">再想想</button>
-        <button class="btn-modal-confirm" bindtap="confirmRedeem">确定制作</button>
-      </view>
-    </view>
-  </view>
+</view>
 
-  <view class="egg-modal-mask" wx:if="{{showEggModal}}" catchtouchmove="true">
-  <view class="god-rays"></view>
-  <view class="confetti-container">
-    <view class="confetti c1"></view><view class="confetti c2"></view><view class="confetti c3"></view>
-    <view class="confetti c4"></view><view class="confetti c5"></view><view class="confetti c6"></view>
-    <view class="confetti c7"></view><view class="confetti c8"></view><view class="confetti c9"></view>
-    <view class="confetti c10"></view>
-  </view>
-  <view class="egg-card bounce-in">
-    <view class="card-ribbon">LUCKY TIME</view>
-    <view class="icon-stage">
-      <view class="halo-ring"></view>
-      <text class="egg-icon">{{eggData.icon}}</text>
-      <view class="shine-star s-left">✨</view>
-      <view class="shine-star s-right">✨</view>
+<view class="custom-modal-mask {{showModal ? 'show' : ''}}" catchtouchmove="true">
+  <view class="custom-modal-content">
+    <view class="modal-header">✨ 确认制作 ✨</view>
+    <view class="modal-body">
+      <view class="modal-line">需消耗 <text class="highlight-cost">{{selectedItem.cost}}</text> 朵玫瑰</view>
+      <view class="modal-line-sub">当前余额: {{roseBalance}}</view>
+      <view class="modal-card-name">{{selectedItem.title}}</view>
     </view>
-    <view class="egg-title">{{eggData.title}}</view>
-    <view class="egg-desc">{{eggData.desc}}</view>
-    <view class="egg-reward-box">
-      <text class="reward-label">获得奖励</text>
-      <view class="reward-val-row">
-        <text class="val-num">+{{eggData.bonus}}</text>
-        <text class="val-unit">g 爱意 💧</text>
-      </view>
+    <view class="modal-footer">
+      <button class="btn-modal-cancel" bindtap="closeModal">再想想</button>
+      <button class="btn-modal-confirm" bindtap="confirmRedeem">确认制作</button>
     </view>
-    <button class="btn-get-egg" bindtap="closeEggModal">
-      <text>开心收下 ❤️</text>
-    </button>
   </view>
 </view>
 
+<view class="modal-mask {{showUseModal ? 'show' : ''}}" catchtouchmove="true">
+  <view class="use-modal-card">
+    <view class="use-modal-header">
+      <text class="modal-icon">📨</text>
+      <text class="modal-title">提醒已发送</text>
+    </view>
+    <view class="use-modal-body">
+      <view class="status-text">如果 TA 还没行动\n就再戳戳 TA 吧！</view>
+      <view class="funny-tip-box">
+        <text class="funny-icon">😈</text>
+        <text class="funny-text">“服务不到位，差评警告”</text>
+      </view>
+    </view>
+    <view class="use-modal-footer">
+      <button class="btn-share" open-type="share" bindtap="onNotifyPartner">
+        <text>📣 戳一戳 TA</text>
+      </button>
+      <button class="btn-close" bindtap="closeUseModal"><text>好的</text></button>
+    </view>
+  </view>
 </view>

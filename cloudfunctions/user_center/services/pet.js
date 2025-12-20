@@ -413,16 +413,33 @@ async function handle(action, event, ctx) {
         .where({ owners: OPENID })
         .get();
 
+      const myPet = petRes.data[0];
       const unlocked_locations =
         petRes.data.length > 0 ? petRes.data[0].unlocked_locations || [] : [];
 
       // 判断是否全解锁
       const isFullUnlock = unlocked_locations.length === 0;
 
+      let visitedSet = new Set();
+      if (myPet) {
+        // 查询该宠物所有已完成的旅行记录
+        const recordsRes = await db.collection("travel_records")
+          .where({ 
+            pet_id: myPet._id,
+            status: "completed" 
+          })
+          .limit(1000) // 获取足够多的记录以覆盖所有地点
+          .field({ destination_id: true }) // 性能优化：只取 ID
+          .get();
+        
+        recordsRes.data.forEach(r => visitedSet.add(r.destination_id));
+      }
+
       const destinationsRes = await db.collection("destinations").get();
       const destinations = destinationsRes.data.map((dest) => ({
         ...dest,
         unlocked: isFullUnlock || unlocked_locations.includes(dest.id),
+        visited: visitedSet.has(dest.id),
       }));
       return { status: 200, destinations: destinations };
     }

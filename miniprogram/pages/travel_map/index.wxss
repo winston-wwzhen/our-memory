@@ -486,3 +486,65 @@ page {
 .empty-text { font-size: 32rpx; color: #333; margin-bottom: 10rpx; display: block; }
 .empty-desc { font-size: 24rpx; color: #999; }
 .loading-container { text-align: center; padding-top: 100rpx; color: #999; font-size: 28rpx; }
+
+/* 图片容器，用于定位印章 */
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280rpx;
+}
+/* 覆盖原有的 .destination-image 样式确保填满 */
+.image-wrapper .destination-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 24rpx 24rpx 0 0; /* 仅上边圆角 */
+}
+
+/* 已打卡印章 */
+.visited-seal {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border: 4rpx solid #4caf50; /* 绿色代表完成 */
+  color: #4caf50;
+  font-size: 24rpx;
+  font-weight: 900;
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+  transform: rotate(15deg); /* 倾斜一点更有印章感 */
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
+  z-index: 10;
+  letter-spacing: 2rpx;
+}
+.visited-seal::after {
+  content: "✓";
+  margin-left: 6rpx;
+  font-weight: bold;
+}
+
+/* 奖励展示条 */
+.rewards-box {
+  display: flex;
+  align-items: flex-start;
+  background: #fff8e1; /* 淡淡的金黄色背景 */
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  border: 1rpx solid #ffe082;
+}
+
+.reward-label {
+  font-size: 24rpx;
+  color: #ff8f00;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-right: 8rpx;
+}
+
+.reward-text {
+  font-size: 24rpx;
+  color: #6d4c41;
+  line-height: 1.4;
+  font-weight: 500;
+}

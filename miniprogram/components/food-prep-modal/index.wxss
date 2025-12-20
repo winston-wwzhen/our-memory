@@ -168,14 +168,26 @@
   gap: 20rpx;
 }
 
+/* ✅ 修复按钮文字居中问题 */
 .cancel-btn, .confirm-btn {
   flex: 1;
   height: 88rpx;
-  line-height: 88rpx;
-  text-align: center;
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: bold;
+
+  /* 核心修复代码 */
+  display: flex;
+  align-items: center;     /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  line-height: normal;     /* 重置行高 */
+  padding: 0;              /* 清除默认内边距 */
+  margin: 0;
+}
+
+/* 去除小程序按钮自带的细边框 */
+.cancel-btn::after, .confirm-btn::after {
+  border: none;
 }
 
 .cancel-btn {
@@ -186,9 +198,16 @@
 .confirm-btn {
   background: linear-gradient(135deg, #ff6b81, #ff8a9b);
   color: #fff;
+  box-shadow: 0 6rpx 12rpx rgba(255, 107, 129, 0.3); /* 增加一点阴影让它更立体 */
+}
+
+.confirm-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 3rpx 6rpx rgba(255, 107, 129, 0.2);
 }
 
 .confirm-btn.disabled {
-  background: #ccc;
+  background: #e0e0e0;
   color: #999;
+  box-shadow: none;
 }

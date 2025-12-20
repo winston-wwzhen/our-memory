@@ -56,7 +56,14 @@
         </view>
         
         <view wx:for="{{availableDestinations}}" wx:key="id" class="destination-card paper-texture ripple-effect" bindtap="onSelectDestination" data-destination="{{item}}">
-          <image class="destination-image" src="{{item.image}}" mode="aspectFill"></image>
+          
+          <view class="image-wrapper">
+            <image class="destination-image" src="{{item.image}}" mode="aspectFill"></image>
+            
+            <view class="visited-seal" wx:if="{{item.visited}}">
+              <text>已打卡</text>
+            </view>
+          </view>
           
           <view class="destination-content">
             <view class="card-top">
@@ -68,8 +75,13 @@
 
             <text class="destination-desc">{{item.description}}</text>
 
+            <view class="rewards-box">
+              <text class="reward-label">🎁 掉落：</text>
+              <text class="reward-text">{{item.rewardsStr || '未知宝藏'}}</text>
+            </view>
+
             <view class="card-footer">
-              <view class="requirements">
+               <view class="requirements">
                 <text class="req-tag">🍱 {{item.food_required === 'any' ? '任意便当' : (item.food_required === 'luxury_bento' ? '豪华御膳' : '饭团便当')}} <text style="font-weight:900; color:#ff6b81;" wx:if="{{item.foodCost > 1}}">x{{item.foodCost}}</text></text>
               </view>
               <view class="action-btn-area">
@@ -86,20 +98,38 @@
           <text class="section-title">等待探索</text>
         </view>
 
-        <view wx:for="{{lockedDestinations}}" wx:key="id" class="destination-card paper-texture locked">
-          <view class="locked-overlay">
-            <text class="lock-big-icon">🔒</text>
-            <text class="lock-condition">{{item.unlock_condition || '未解锁'}}</text>
+        <view wx:for="{{availableDestinations}}" wx:key="id" class="destination-card paper-texture ripple-effect" bindtap="onSelectDestination" data-destination="{{item}}">
+          
+          <view class="image-wrapper">
+            <image class="destination-image" src="{{item.image}}" mode="aspectFill"></image>
+            
+            <view class="visited-seal" wx:if="{{item.visited}}">
+              <text>已打卡</text>
+            </view>
           </view>
-          <image class="destination-image" src="{{item.image}}" mode="aspectFill"></image>
           
           <view class="destination-content">
             <view class="card-top">
               <text class="destination-name">{{item.name}}</text>
+              <view class="tag-time">
+                <text>⏱️ {{item.duration}}分钟</text>
+              </view>
             </view>
-            <view class="unlock-hint-box">
-              <text class="hint-icon">💡</text>
-              <text class="hint-text">{{item.unlock_hint || '完成更多旅行来解锁'}}</text>
+
+            <text class="destination-desc">{{item.description}}</text>
+
+            <view class="rewards-box">
+              <text class="reward-label">🎁 掉落：</text>
+              <text class="reward-text">{{item.rewardsStr || '未知宝藏'}}</text>
+            </view>
+
+            <view class="card-footer">
+               <view class="requirements">
+                <text class="req-tag">🍱 {{item.food_required === 'any' ? '任意便当' : (item.food_required === 'luxury_bento' ? '豪华御膳' : '饭团便当')}} <text style="font-weight:900; color:#ff6b81;" wx:if="{{item.foodCost > 1}}">x{{item.foodCost}}</text></text>
+              </view>
+              <view class="action-btn-area">
+                <text class="go-btn-text">GO 🚀</text>
+              </view>
             </view>
           </view>
         </view>

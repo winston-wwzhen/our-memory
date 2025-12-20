@@ -1,208 +1,676 @@
 /* miniprogram/pages/coupons/index.wxss */
-page {
-  background: #fdfbf7;
-  color: #5d4037;
-  font-family: -apple-system, sans-serif;
-  padding-bottom: 40rpx;
+
+/* =========================================
+   1. 全局配置 & 重置
+   ========================================= */
+/* 核心修复：重置小程序默认的 container 样式，防止页面被挤压 */
+.container {
+  display: block !important;
+  padding: 0 !important;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.header-balance {
-  padding: 30rpx 40rpx;
-  display: flex; justify-content: space-between; align-items: center;
-  background: #fff; margin-bottom: 20rpx;
+page {
+  /* 使用更温暖的米色背景，营造温馨感 */
+  background: #fffbf0;
+  color: #5d4037; /* 深棕色文字，比纯黑更柔和 */
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  padding-bottom: 60rpx;
 }
-.balance-label { font-size: 28rpx; color: #a1887f; }
-.balance-val { font-size: 40rpx; font-weight: 900; color: #ff6b81; }
+
+/* =========================================
+   2. 顶部余额 (暖心设计)
+   ========================================= */
+.header-balance {
+  margin: 20rpx 30rpx;
+  padding: 30rpx 40rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.1); /* 粉色微光阴影 */
+}
+
+.balance-left {
+  display: flex;
+  align-items: center;
+}
+
+.balance-icon {
+  font-size: 36rpx;
+  margin-right: 12rpx;
+}
+
+.balance-label {
+  font-size: 30rpx;
+  color: #5d4037;
+  font-weight: bold;
+}
+
+.balance-val {
+  font-size: 44rpx;
+  font-weight: 900;
+  color: #ff6b81;
+  font-family: 'Arial Rounded MT Bold', sans-serif;
+  letter-spacing: 1rpx;
+}
+
+/* =========================================
+   3. Tab 栏 (吸顶 + 胶囊风格)
+   ========================================= */
+.tab-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background: #fffbf0; /* 与页面背景同色，遮挡下方内容 */
+  padding: 10rpx 30rpx 20rpx; /* 底部留一点空隙 */
+}
 
 .tab-header {
-  display: flex; justify-content: center; margin-bottom: 30rpx;
+  display: flex;
+  justify-content: space-around;
+  background: #fff;
+  padding: 10rpx;
+  border-radius: 40rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
+
 .tab-item {
-  padding: 16rpx 40rpx; font-size: 28rpx; color: #a1887f;
-  border-bottom: 4rpx solid transparent; transition: all 0.3s;
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #a1887f;
+  font-weight: 500;
+  border-radius: 32rpx;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
 .tab-item.active {
-  color: #5d4037; font-weight: bold; border-bottom: 4rpx solid #ff6b81;
+  color: #fff;
+  font-weight: bold;
+  background: linear-gradient(135deg, #ff9a9e 0%, #ff6b81 100%); /* 激活态渐变背景 */
+  box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.3);
 }
 
-/* === 🛒 制作列表 === */
+/* =========================================
+   4. Tab 0: 制作列表 (Grid布局)
+   ========================================= */
+.shop-view {
+  padding: 10rpx 30rpx;
+}
+
 .coupon-grid {
-  display: flex; flex-wrap: wrap; justify-content: space-between; padding: 0 30rpx;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
+
 .shop-item {
-  width: 48%; background: #fff; border-radius: 20rpx;
-  margin-bottom: 30rpx; overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  width: 48%;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 30rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+  border: 2rpx solid #fff0f5; /* 粉色细边框 */
+  transition: transform 0.2s;
 }
+
+.shop-item:active {
+  transform: scale(0.98);
+}
+
 .item-top {
-  padding: 24rpx; text-align: center;
+  padding: 24rpx;
+  text-align: center;
+  background: #fff5f7; /* 头部浅粉背景 */
+  border-bottom: 2rpx dashed #ffcdd2;
 }
-.item-title { display: block; font-size: 30rpx; font-weight: bold; margin-bottom: 10rpx; }
-.item-cost { font-size: 24rpx; color: #ff6b81; font-weight: bold; }
 
-.item-body { padding: 20rpx; display: flex; flex-direction: column; justify-content: space-between; height: 160rpx; }
-.item-desc { font-size: 22rpx; color: #a1887f; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.item-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #5d4037;
+  margin-bottom: 8rpx;
+}
 
-/* 升级版按钮样式 */
+.item-cost {
+  font-size: 24rpx;
+  color: #ff6b81;
+  font-weight: bold;
+  background: rgba(255, 107, 129, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+}
+
+.item-body {
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 180rpx; /* 固定高度 */
+}
+
+.item-desc {
+  font-size: 24rpx;
+  color: #a1887f;
+  line-height: 1.5;
+  height: 72rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
 .btn-buy {
-  width: 100% !important; height: 64rpx; line-height: 64rpx;
-  font-size: 26rpx; font-weight: bold;
+  width: 100% !important;
+  height: 68rpx;
   background: linear-gradient(135deg, #ff9a9e 0%, #ff6b81 100%);
-  color: #fff; border-radius: 32rpx; padding: 0; margin-top: 20rpx;
+  color: #fff;
+  border-radius: 34rpx;
+  font-size: 26rpx;
+  font-weight: bold;
+  /* Flex 居中 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
   box-shadow: 0 6rpx 16rpx rgba(255, 107, 129, 0.3);
 }
 .btn-buy::after { border: none; }
-.btn-buy:active { transform: scale(0.96); opacity: 0.9; }
 
-/* === 🎟️ 我的卡包 === */
-.wallet-view { padding: 0 30rpx; }
+/* =========================================
+   5. Tab 1 & 2: 卡券通用样式 (核心升级)
+   ========================================= */
+.wallet-view {
+  padding: 10rpx 30rpx;
+}
+
+/* --- 卡片容器 --- */
 .ticket-card {
-  display: flex; height: 180rpx; background: #fff;
-  margin-bottom: 24rpx; border-radius: 12rpx;
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.05);
-  position: relative; overflow: hidden;
+  display: flex;
+  height: 220rpx; /* 增加高度以容纳双按钮 */
+  margin-bottom: 34rpx;
+  filter: drop-shadow(0 6rpx 16rpx rgba(0, 0, 0, 0.08)); /* 整体投影 */
+  position: relative;
+  transition: transform 0.2s;
 }
+
+.ticket-card:active {
+  transform: scale(0.99);
+}
+
+/* --- 左侧：主要信息区 --- */
 .ticket-main {
-  flex: 1; padding: 24rpx; display: flex; flex-direction: column; justify-content: space-between;
-  background-image: radial-gradient(#f0f0f0 10%, transparent 10%);
-  background-size: 16rpx 16rpx;
+  flex: 1;
+  background: #fff;
+  border-radius: 24rpx 0 0 24rpx;
+  padding: 30rpx 24rpx;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  /* 细腻纸张纹理背景 */
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0e0d0' fill-opacity='0.4' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3Ccircle cx='13' cy='13' r='1'/%3E%3C/g%3E%3C/svg%3E");
 }
-.t-title { font-size: 32rpx; font-weight: bold; color: #5d4037; }
-.t-desc { font-size: 22rpx; color: #a1887f; }
-.t-time { font-size: 18rpx; color: #ccc; }
 
-.ticket-status { position: absolute; top: 20rpx; right: 140rpx; }
-.status-tag { font-size: 20rpx; padding: 4rpx 10rpx; border: 1rpx solid #ff6b81; color: #ff6b81; border-radius: 8rpx; }
-.status-tag.done { border-color: #ccc; color: #ccc; }
+.decoration-icon {
+  font-size: 60rpx;
+  margin-right: 24rpx;
+  opacity: 0.9;
+}
 
+.ticket-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 10rpx; /* 防止文字触碰右侧 */
+}
+
+.t-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #5d4037;
+  margin-bottom: 12rpx;
+}
+
+.t-desc {
+  font-size: 24rpx;
+  color: #a1887f;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 状态标签 (右上角) */
+.status-badge {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  font-size: 20rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1rpx;
+}
+
+/* 印章 (已完成状态) */
+.stamp-mark {
+  position: absolute;
+  bottom: 10rpx;
+  right: 10rpx;
+  font-size: 28rpx;
+  color: rgba(161, 136, 127, 0.4);
+  font-weight: bold;
+  border: 4rpx solid rgba(161, 136, 127, 0.4);
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  transform: rotate(-20deg);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* --- 中间：拟真撕票线 --- */
 .ticket-rip {
-  width: 6rpx; background-image: linear-gradient(to bottom, #fff 50%, #eee 50%);
-  background-size: 100% 20rpx; position: relative;
-}
-.ticket-rip::before, .ticket-rip::after {
-  content: ''; position: absolute; left: -10rpx; width: 24rpx; height: 24rpx;
-  border-radius: 50%; background: #fdfbf7; z-index: 10;
-}
-.ticket-rip::before { top: -12rpx; }
-.ticket-rip::after { bottom: -12rpx; }
-
-.ticket-stub {
-  width: 120rpx; background: #fffae0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24rpx; color: #5d4037; font-weight: bold; text-align: center;
-  border-left: 2rpx dashed #dcdcdc;
+  width: 28rpx;
+  background: #fff; /* 默认背景，会被覆盖 */
+  position: relative;
+  overflow: hidden;
+  /* 核心：径向渐变模拟锯齿 */
+  background-image: radial-gradient(circle at 0 50%, transparent 12rpx, #fff 13rpx);
+  background-size: 28rpx 28rpx;
+  background-position: 14rpx 0;
 }
 
-.ticket-card.used .ticket-main, .ticket-card.used .ticket-stub {
-  background: #f5f5f5; color: #999;
+.ticket-rip::after {
+  content: '';
+  position: absolute;
+  top: 14rpx;
+  bottom: 14rpx;
+  left: -2rpx;
+  border-left: 4rpx dotted #d7ccc8; /* 棕色虚线 */
 }
-.ticket-card.used .t-title { color: #999; text-decoration: line-through; }
 
-.empty-state { text-align: center; color: #ccc; margin-top: 100rpx; font-size: 26rpx; }
-
-/* === 🆕 自定义弹窗样式 (精修版) === */
-.custom-modal-mask {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6); z-index: 999;
-  display: flex; justify-content: center; align-items: center;
-  visibility: hidden; opacity: 0; transition: all 0.3s;
-  backdrop-filter: blur(4px); /* 增加模糊背景，更高级 */
+/* --- 右侧：操作存根区 (通用) --- */
+.ticket-stub, .ticket-stub-col {
+  width: 160rpx; /* 宽度适中 */
+  background: #fff;
+  border-radius: 0 24rpx 24rpx 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
-.custom-modal-mask.show { visibility: visible; opacity: 1; }
 
+.stub-icon {
+  font-size: 40rpx;
+  margin-bottom: 10rpx;
+}
+
+.stub-text {
+  font-size: 26rpx;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* =========================================
+   6. 状态差异化样式 (Theme Styles)
+   ========================================= */
+
+/* --- 1. 未使用 (Style New) - 奶油色系 --- */
+.style-new .ticket-main {
+  border-left: 8rpx solid #ffe082; /* 黄色侧边条 */
+}
+.style-new .status-badge {
+  background: #fff8e1;
+  color: #ffb300;
+}
+.stub-new {
+  background: #fff3e0;
+  color: #ff8f00; /* 橙黄色存根 */
+  transition: all 0.3s;
+}
+.stub-new:active {
+  background: #ffe0b2;
+}
+
+/* --- 2. 执行中 (Style Active) - 粉绿双按钮 --- */
+.style-active .ticket-main {
+  border-left: 8rpx solid #ff6b81; /* 粉色侧边条 */
+}
+.style-active .status-badge {
+  background: #fff0f5;
+  color: #ff6b81;
+}
+
+/* 双按钮容器样式 */
+.stub-active {
+  background: #fff;
+  padding: 12rpx; /* 内边距 */
+  gap: 12rpx;     /* 按钮间距 */
+  box-sizing: border-box;
+}
+
+/* 胶囊按钮通用 */
+.btn-verify-capsule, .btn-remind-capsule {
+  width: 100%;
+  flex: 1; /* 平分高度 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx; /* 圆角小一点 */
+  font-size: 22rpx;
+  font-weight: bold;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+  text-align: center;
+  padding: 0 4rpx;
+}
+
+/* 确认收到按钮 (绿色) */
+.btn-verify-capsule {
+  background: linear-gradient(135deg, #a7ffeb, #64ffda);
+  color: #00796b;
+}
+.btn-verify-capsule:active { opacity: 0.8; }
+
+/* 提醒TA按钮 (粉色) */
+.btn-remind-capsule {
+  background: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+  color: #c62828;
+}
+.btn-remind-capsule:active { opacity: 0.8; }
+
+
+/* --- 3. 已完成 (Style Used) - 灰色消逝感 --- */
+.style-used {
+  filter: grayscale(0.9) opacity(0.7); /* 整体灰度+透明度 */
+}
+.style-used .ticket-main {
+  background: #eee;
+  border-left: 8rpx solid #bdbdbd;
+  background-image: none; /* 去除纹理 */
+}
+.style-used .t-title {
+  text-decoration: line-through;
+  color: #999;
+}
+.style-used .status-badge {
+  background: #e0e0e0;
+  color: #9e9e9e;
+}
+.style-used .ticket-rip {
+  background: #eee;
+  /* 撕票线背景色也要变灰 */
+  background-image: radial-gradient(circle at 0 50%, transparent 12rpx, #eee 13rpx);
+}
+.style-used .ticket-rip::after {
+  border-color: #bdbdbd;
+}
+.stub-used {
+  background: #e0e0e0;
+  color: #9e9e9e;
+}
+
+/* --- 4. 待我执行 (Style Todo) - 任务感 --- */
+.style-todo .ticket-main {
+  border-left: 8rpx solid #ff6b81;
+  background: #fff5f7;
+}
+.badge-todo {
+  background: #ff6b81;
+  color: #fff;
+}
+.stub-todo {
+  background: #ffcdd2;
+  color: #c62828;
+}
+
+/* =========================================
+   7. 空状态 & 底部提示
+   ========================================= */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 100rpx;
+  opacity: 0.7;
+}
+
+.empty-img {
+  width: 240rpx;
+  margin-bottom: 30rpx;
+  filter: hue-rotate(-10deg);
+}
+
+.empty-state text {
+  font-size: 28rpx;
+  color: #a1887f;
+  font-weight: 500;
+}
+
+.bottom-tip {
+  text-align: center;
+  padding: 40rpx;
+  color: #d7ccc8;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+}
+
+/* =========================================
+   8. 弹窗样式 (通用)
+   ========================================= */
+.custom-modal-mask, .modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75); /* 深色遮罩 */
+  backdrop-filter: blur(5px);      /* 模糊背景 */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+.custom-modal-mask.show, .modal-mask.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 兑换弹窗内容 */
 .custom-modal-content {
-  width: 580rpx; background: #fff; border-radius: 36rpx;
-  overflow: hidden; animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.25);
+  width: 580rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  overflow: hidden;
+  box-shadow: 0 24rpx 64rpx rgba(255, 107, 129, 0.25);
+  animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* 顶部标题栏 */
 .modal-header {
-  padding: 36rpx 0; 
-  text-align: center; 
-  font-size: 34rpx; 
+  padding: 36rpx 0;
+  text-align: center;
+  font-size: 34rpx;
   font-weight: 900;
-  color: #fff; 
-  /* 渐变背景 */
+  color: #fff;
   background: linear-gradient(135deg, #ff9a9e 0%, #ff6b81 100%);
   letter-spacing: 4rpx;
-  text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
 }
 
-/* 内容区 */
-.modal-body { 
-  padding: 60rpx 50rpx; 
-  text-align: center; 
-  background: radial-gradient(circle at center, #fffbf0 0%, #fff 70%); /* 淡淡的中心光 */
+.modal-body {
+  padding: 60rpx 50rpx;
+  text-align: center;
+  background: radial-gradient(circle at center, #fffbf0 0%, #fff 70%);
 }
 
-/* 消耗提示 */
-.modal-line { 
-  font-size: 30rpx; color: #5d4037; 
-  margin-bottom: 24rpx; 
-  display: flex; align-items: center; justify-content: center;
-}
-.highlight-cost { 
-  color: #ff6b81; font-weight: 900; font-size: 44rpx; 
-  margin: 0 10rpx; font-family: 'Arial Rounded MT Bold', sans-serif;
+.modal-line {
+  font-size: 30rpx;
+  color: #5d4037;
+  margin-bottom: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.modal-line-sub { 
-  font-size: 24rpx; color: #a1887f; margin-bottom: 30rpx; opacity: 0.8;
+.highlight-cost {
+  color: #ff6b81;
+  font-weight: 900;
+  font-size: 44rpx;
+  margin: 0 10rpx;
+  font-family: 'Arial Rounded MT Bold', sans-serif;
 }
 
-/* 卡片名称展示框 */
+.modal-line-sub {
+  font-size: 24rpx;
+  color: #a1887f;
+  margin-bottom: 30rpx;
+  opacity: 0.8;
+}
+
 .modal-card-name {
-  font-size: 36rpx; font-weight: bold; color: #5d4037;
-  padding: 24rpx 40rpx; 
-  background: #fff; 
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #5d4037;
+  padding: 24rpx 40rpx;
+  background: #fff;
   border-radius: 20rpx;
-  display: inline-block; 
-  /* 双重边框效果 */
+  display: inline-block;
   border: 4rpx solid #ffe4e1;
-  box-shadow: 
-    0 10rpx 20rpx rgba(255, 182, 193, 0.15),
-    inset 0 0 20rpx rgba(255, 240, 245, 0.5);
+  box-shadow: 0 10rpx 20rpx rgba(255, 182, 193, 0.15);
   min-width: 300rpx;
 }
 
-/* 底部按钮区 */
 .modal-footer {
-  display: flex; 
-  padding: 30rpx 40rpx 40rpx 40rpx; /* 增加底部留白 */
+  display: flex;
+  padding: 30rpx 40rpx 40rpx 40rpx;
   gap: 30rpx;
   background: #fff;
 }
+
 .btn-modal-cancel, .btn-modal-confirm {
-  flex: 1; 
-  height: 80rpx !important; 
-  border-radius: 40rpx; 
-  font-size: 28rpx; 
+  flex: 1;
+  height: 80rpx !important;
+  border-radius: 40rpx;
+  font-size: 28rpx;
   font-weight: bold;
   display: flex !important;
   align-items: center;
   justify-content: center;
-  
-  padding: 0 !important; /* 清除默认内边距 */
+  padding: 0 !important;
   margin: 0 !important;
+  line-height: normal;
+}
+.btn-modal-cancel::after, .btn-modal-confirm::after { border: none; }
+
+.btn-modal-cancel {
+  background: #f5f5f5;
+  color: #a1887f;
 }
 
-.btn-modal-cancel::after, .btn-modal-confirm::after {
-  border: none;
-}
-
-.btn-modal-cancel { 
-  background: #f5f5f5; color: #a1887f; 
-}
-.btn-modal-confirm { 
-  background: linear-gradient(90deg, #ff9a9e, #ff6b81); 
-  color: #fff; 
+.btn-modal-confirm {
+  background: linear-gradient(90deg, #ff9a9e, #ff6b81);
+  color: #fff;
   box-shadow: 0 8rpx 20rpx rgba(255, 107, 129, 0.3);
 }
 .btn-modal-confirm:active { transform: scale(0.98); opacity: 0.9; }
 
-@keyframes bounceIn { 
-  0% { transform: scale(0.8); opacity: 0; } 
-  60% { transform: scale(1.05); opacity: 1; } 
-  100% { transform: scale(1); } 
+/* 提醒弹窗 (use-modal) */
+.use-modal-card {
+  width: 600rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  padding: 40rpx 40rpx 50rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.15);
+  animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.use-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+.modal-icon { font-size: 80rpx; margin-bottom: 20rpx; }
+.modal-title { font-size: 36rpx; font-weight: 800; color: #333; }
+
+.use-modal-body {
+  width: 100%; text-align: center; margin-bottom: 50rpx;
+}
+.status-text {
+  font-size: 28rpx; color: #666; line-height: 1.6; margin-bottom: 30rpx;
+}
+
+.funny-tip-box {
+  background: #fff0f5;
+  border: 2rpx dashed #ffb6c1;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: rotate(-2deg);
+}
+.funny-icon { font-size: 40rpx; margin-bottom: 6rpx; }
+.funny-text {
+  font-size: 26rpx; font-weight: bold; color: #d81b60; letter-spacing: 2rpx;
+}
+
+.use-modal-footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.btn-share, .btn-close {
+  width: 100% !important;
+  height: 90rpx;
+  border-radius: 45rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0; margin: 0; line-height: normal;
+}
+.btn-share::after, .btn-close::after { border: none; }
+
+.btn-share {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: #fff;
+  box-shadow: 0 8rpx 20rpx rgba(108, 92, 231, 0.3);
+}
+.btn-share:active { transform: scale(0.98); }
+
+.btn-close {
+  background: #f5f6fa;
+  color: #999;
+}
+.btn-close:active { background: #dcdde1; }
+
+/* 动画定义 */
+@keyframes bounceIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }

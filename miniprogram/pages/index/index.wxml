@@ -183,46 +183,52 @@
 </view>
 
   <!-- 人脸确认模态框 -->
-  <view class="face-confirm-modal-mask" wx:if="{{showFaceConfirmModal}}" catchtouchmove="true">
+  <view class="face-confirm-modal-mask {{showFaceConfirmModal ? 'show' : ''}}" wx:if="{{showFaceConfirmModal}}" catchtouchmove="true">
     <view class="face-confirm-modal bounce-in">
+      
       <view class="modal-header">
-        <text class="modal-title">📸 照片确认</text>
-        <text class="modal-subtitle">请确保照片质量以获得最佳AI效果</text>
+        <text class="modal-title">📸 确认照片</text>
+        <text class="modal-subtitle">清晰的照片能生成更棒的效果哦</text>
       </view>
 
       <view class="image-preview-wrapper">
         <image src="{{selectedImagePath}}" mode="aspectFit" class="preview-photo"></image>
 
-        <!-- 人脸引导框 -->
         <view class="face-guide-overlay">
           <view class="guide-frame pulse">
             <view class="corner top-left"></view>
             <view class="corner top-right"></view>
             <view class="corner bottom-left"></view>
             <view class="corner bottom-right"></view>
-            <text class="frame-label">人脸区域</text>
           </view>
+          <view class="guide-label-capsule">人物区域</view>
         </view>
       </view>
 
-      <view class="guide-tips">
-        <view class="tip-check">
-          <text class="check-icon">✓</text>
-          <text>人脸清晰，表情自然</text>
+      <view class="guide-tips-row">
+        <view class="tip-item">
+          <text class="tip-icon">✨</text>
+          <text>五官清晰</text>
         </view>
-        <view class="tip-check">
-          <text class="check-icon">✓</text>
-          <text>避免远景、模糊照片</text>
+        <view class="tip-divider"></view>
+        <view class="tip-item">
+          <text class="tip-icon">💡</text>
+          <text>避免远景</text>
         </view>
-        <view class="tip-check">
-          <text class="check-icon">✓</text>
-          <text>光线充足，背景简洁</text>
+        <view class="tip-divider"></view>
+        <view class="tip-item">
+          <text class="tip-icon">🙅‍♂️</text>
+          <text>无遮挡</text>
         </view>
       </view>
 
       <view class="modal-buttons">
-        <button class="btn-reselect" bindtap="onReselectImage">重新选择</button>
-        <button class="btn-use-photo" bindtap="onConfirmImage">使用这张照片</button>
+        <button class="btn-reselect" bindtap="onReselectImage">
+          <text>重拍</text>
+        </button>
+        <button class="btn-use-photo" bindtap="onConfirmImage">
+          <text>确认使用</text>
+        </button>
       </view>
     </view>
   </view>
