@@ -19,7 +19,7 @@ const TEST_CONFIG = {
 const NORMAL_FREE_LIMIT = 1; // 普通用户
 const VIP_DAILY_LIMIT = 3; // VIP用户
 const REG_DAY_LIMIT = 10; // 首日特权
-const DAILY_AD_LIMIT = 3;
+const DAILY_AD_LIMIT = 1;
 
 // 🎨 风格配置表 (后端做最终校验)
 const STYLE_CONFIG = {

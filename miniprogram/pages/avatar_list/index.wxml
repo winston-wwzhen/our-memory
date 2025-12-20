@@ -71,7 +71,7 @@
       <view class="loading-wrap" wx:if="{{loading}}">
         <view class="dot"></view><view class="dot"></view><view class="dot"></view>
       </view>
-      <view class="no-more" wx:if="{{!hasMore && !loading}}">- 到底啦，快去换头像吧 -</view>
+      <view class="no-more" wx:if="{{!hasMore && !loading}}">- 现在到底啦，不过每天都会有新头像上架哦~ 快去换头像吧 -</view>
     </view>
   </view>
 </view>

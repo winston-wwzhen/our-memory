@@ -23,7 +23,7 @@
         <text class="note-desc">{{currentTask.description}}</text>
         
         <view class="remote-tip-box">
-          <text>💡 异地贴士：视频通话截图也能甜蜜暴击哦！</text>
+          <text>💡拍出高评分照片能开启彩蛋哦~</text>
         </view>
 
         <view class="note-footer">

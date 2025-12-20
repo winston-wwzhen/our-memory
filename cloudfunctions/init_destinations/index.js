@@ -31,14 +31,12 @@ const DEFAULT_DESTINATIONS = [
     food_consumption: 1,
     base_love_reward: 15,
 
-    // 💥 修改点：从 10% 提至 40%
-    // 逻辑：平均去 2-3 次就能拿到 1 朵。一天能拿 3-4 朵。
     rose_config: {
       chance: 0.4,
       min: 1,
       max: 2,
     },
-    possible_rewards: ["花园明信片", "大概率玫瑰"],
+    possible_rewards: ["花园明信片", "有概率获得玫瑰"],
   },
 
   {
@@ -64,11 +62,11 @@ const DEFAULT_DESTINATIONS = [
 
     // 💥 修改点：提至 50% (抛硬币概率)
     rose_config: {
-      chance: 0.5,
+      chance: 0.6,
       min: 1,
-      max: 3,
+      max: 2,
     },
-    possible_rewards: ["街角明信片", "一半概率玫瑰"],
+    possible_rewards: ["街角明信片", "有概率获得玫瑰"],
   },
 
   {
@@ -92,13 +90,12 @@ const DEFAULT_DESTINATIONS = [
     food_consumption: 3,
     base_love_reward: 50,
 
-    // 💥 修改点：提至 60%
     rose_config: {
-      chance: 0.6,
+      chance: 0.8,
       min: 1,
       max: 3,
     },
-    possible_rewards: ["夜景烟花明信片", "玫瑰"],
+    possible_rewards: ["夜景烟花明信片", "大概率获得玫瑰"],
   },
 
   // ==========================================
@@ -125,13 +122,12 @@ const DEFAULT_DESTINATIONS = [
     food_consumption: 2,
     base_love_reward: 60,
 
-    // 💥 修改点：提至 80% (只要去了基本都有)
     rose_config: {
       chance: 0.8,
-      min: 1,
+      min: 2,
       max: 3,
     },
-    possible_rewards: ["星空营地明信片", "高概率玫瑰"],
+    possible_rewards: ["星空营地明信片", "大概率获得玫瑰"],
   },
 
   {
@@ -155,143 +151,15 @@ const DEFAULT_DESTINATIONS = [
     food_consumption: 3,
     base_love_reward: 100,
 
-    // 💥 修改点：提至 90%，且有机会爆 2 朵
     rose_config: {
-      chance: 0.9,
+      chance: 0.8,
       min: 2,
       max: 5,
     },
-    possible_rewards: ["日出灯塔明信片", "1-2朵玫瑰"],
-  },
-
-  // ==========================================
-  // 🔴 第三阶梯：必出区 (付费玩家的尊严)
-  // 逻辑：既然花了那么多爱意值(甚至看了广告)，必须 100% 给玫瑰
-  // ==========================================
-  // {
-  //   id: "ancient_teahouse",
-  //   name: "烟雨古镇",
-  //   description: "青石板路，油纸伞，还有那杯没喝完的碧螺春。",
-  //   min_travel_time: 480, // 8小时
-  //   max_travel_time: 600,
-  //   mood_bonus_required: 100,
-  //   image:
-  //     "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight_town.png",
-
-  //   postcard_image:
-  //     "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/postcards/postcard1.png?sign=327a684c006fc581e0c46d57cf3aa7ad&t=1765964405",
-  //   postcard_bg:
-  //     "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight1.png?sign=3785d2d547d5c64a0818b882dbf4e7b8&t=1765964312",
-  //   postcard_layout: { x: 0.5, y: 0.65, scale: 0.8, rotation: 0, z_index: 10 },
-
-  //   food_required: "deluxe_meal",
-  //   food_consumption: 2,
-  //   base_love_reward: 80,
-
-  //   // 💥 修改点：100% 必出 1 朵，大概率 2 朵
-  //   rose_config: {
-  //     chance: 1.0,
-  //     min: 1,
-  //     max: 2,
-  //   },
-  //   possible_rewards: ["水乡古镇明信片", "必得玫瑰"],
-  // },
-
-  // {
-  //   id: "mountain_tea",
-  //   name: "高山茶园",
-  //   description: "满眼都是治愈的绿色，空气里有淡淡的茶香。",
-  //   min_travel_time: 600, // 10小时
-  //   max_travel_time: 720,
-  //   mood_bonus_required: 120,
-  //   image:
-  //     "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight_tea.png",
-
-  //   food_required: "deluxe_meal",
-  //   food_consumption: 3,
-  //   base_love_reward: 100,
-
-  //   // 💥 必出 2 朵起步
-  //   rose_config: {
-  //     chance: 1.0,
-  //     min: 2,
-  //     max: 3,
-  //   },
-  //   possible_rewards: ["采茶纪实明信片", "2-3朵玫瑰"],
-  // },
-
-  // {
-  //   id: "desert_star",
-  //   name: "大漠观星",
-  //   description: "在这里，银河低得仿佛触手可及，世界只剩下风声。",
-  //   min_travel_time: 720, // 12小时
-  //   max_travel_time: 900,
-  //   mood_bonus_required: 150,
-  //   image:
-  //     "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight_desert.png",
-
-  //   food_required: "deluxe_meal",
-  //   food_consumption: 3,
-  //   base_love_reward: 120,
-
-  //   // 💥 必出 2-3 朵
-  //   rose_config: {
-  //     chance: 1.0,
-  //     min: 2,
-  //     max: 3,
-  //   },
-  //   possible_rewards: ["大漠星河明信片", "2-3朵玫瑰"],
-  // },
-
-  // {
-  //   id: "snow_mountain",
-  //   name: "雪山脚下",
-  //   description: "日照金山的瞬间，所有的等待都有了意义。",
-  //   min_travel_time: 960, // 16小时
-  //   max_travel_time: 1200,
-  //   mood_bonus_required: 180,
-  //   image:
-  //     "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight_snow.png",
-
-  //   food_required: "deluxe_meal",
-  //   food_consumption: 4,
-  //   base_love_reward: 150,
-
-  //   // 💥 必出 3 朵起步
-  //   rose_config: {
-  //     chance: 1.0,
-  //     min: 3,
-  //     max: 4,
-  //   },
-  //   possible_rewards: ["日照金山明信片", "3-4朵玫瑰"],
-  // },
-
-  // {
-  //   id: "island_road",
-  //   name: "落日环岛路",
-  //   description: "车窗外是橘子海，音响里放着最爱的歌，没有终点。",
-  //   min_travel_time: 1440, // 24小时
-  //   max_travel_time: 1600,
-  //   mood_bonus_required: 200,
-  //   image:
-  //     "https://7465-test1-3gxkuc1c2093c1a8-1387968548.tcb.qcloud.la/Sight/sight_island.png",
-
-  //   food_required: "deluxe_meal",
-  //   food_consumption: 5,
-  //   base_love_reward: 200,
-
-  //   // 💥 必出 4-5 朵！去一次顶一周！
-  //   rose_config: {
-  //     chance: 1.0,
-  //     min: 4,
-  //     max: 5,
-  //   },
-  //   possible_rewards: ["环岛公路明信片", "海量玫瑰"],
-  // },
+    possible_rewards: ["日出灯塔明信片", "获得大量玫瑰"],
+  }
 ];
 
-module.exports = DEFAULT_DESTINATIONS;
-module.exports = DEFAULT_DESTINATIONS;
 exports.main = async (event, context) => {
   const result = {
     added: 0,
