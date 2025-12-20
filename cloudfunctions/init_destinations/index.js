@@ -36,7 +36,7 @@ const DEFAULT_DESTINATIONS = [
     rose_config: {
       chance: 0.4,
       min: 1,
-      max: 1,
+      max: 2,
     },
     possible_rewards: ["花园明信片", "大概率玫瑰"],
   },
@@ -66,7 +66,7 @@ const DEFAULT_DESTINATIONS = [
     rose_config: {
       chance: 0.5,
       min: 1,
-      max: 1,
+      max: 3,
     },
     possible_rewards: ["街角明信片", "一半概率玫瑰"],
   },
@@ -96,7 +96,7 @@ const DEFAULT_DESTINATIONS = [
     rose_config: {
       chance: 0.6,
       min: 1,
-      max: 1,
+      max: 3,
     },
     possible_rewards: ["夜景烟花明信片", "玫瑰"],
   },
@@ -122,14 +122,14 @@ const DEFAULT_DESTINATIONS = [
     postcard_layout: { x: 0.4, y: 0.65, scale: 0.8, rotation: -5, z_index: 10 },
 
     food_required: "deluxe_meal",
-    food_consumption: 1,
+    food_consumption: 2,
     base_love_reward: 60,
 
     // 💥 修改点：提至 80% (只要去了基本都有)
     rose_config: {
       chance: 0.8,
       min: 1,
-      max: 1,
+      max: 3,
     },
     possible_rewards: ["星空营地明信片", "高概率玫瑰"],
   },
@@ -152,14 +152,14 @@ const DEFAULT_DESTINATIONS = [
     postcard_layout: { x: 0.5, y: 0.6, scale: 0.6, rotation: 0, z_index: 10 },
 
     food_required: "deluxe_meal",
-    food_consumption: 2,
+    food_consumption: 3,
     base_love_reward: 100,
 
     // 💥 修改点：提至 90%，且有机会爆 2 朵
     rose_config: {
       chance: 0.9,
-      min: 1,
-      max: 2,
+      min: 2,
+      max: 5,
     },
     possible_rewards: ["日出灯塔明信片", "1-2朵玫瑰"],
   },
