@@ -733,3 +733,19 @@ page {
   transform: scale(0.98);
   box-shadow: 0 4rpx 10rpx rgba(255, 107, 129, 0.2);
 }
+
+
+.floating-heart {
+  color: #ffffff; /* 雪花白色 */
+  opacity: 0.8;
+}
+
+/* 拍立得边框装饰 */
+.polaroid-frame::before {
+  content: "🎅";
+  position: absolute;
+  top: -40rpx;
+  right: -20rpx;
+  font-size: 60rpx;
+  z-index: 20;
+}

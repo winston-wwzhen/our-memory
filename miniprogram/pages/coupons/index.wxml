@@ -84,7 +84,6 @@
 
   <view class="wallet-view" wx:if="{{currentTab==2}}">
     <view wx:if="{{todoCoupons.length === 0}}" class="empty-state">
-      <image src="/images/empty-task.png" mode="widthFix" class="empty-img"></image>
       <text>暂无任务，对象还没申请需求呢~</text>
     </view>
     <block wx:else>
